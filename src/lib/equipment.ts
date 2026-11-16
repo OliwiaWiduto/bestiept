@@ -1,5 +1,7 @@
 // Picks one of our hand-drawn icons for a piece of kitchen equipment, whatever the recipe calls it.
 const MAP: [RegExp, string][] = [
+  [/parchment|baking paper|greaseproof|papier do pieczenia|papier/, 'parchment'],
+  [/scoop|gałkownic|łyżka do lodów/, 'scoop'],
   [/air ?fryer|frytkownic/, 'airfryer'],
   [/blender|processor|nutribullet|mixer|malakser|robot/, 'blender'],
   [/whisk|trzepaczk|rózg/, 'whisk'],
