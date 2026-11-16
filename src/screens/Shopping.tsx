@@ -50,7 +50,7 @@ export default function Shopping() {
         <span className={`check ${on ? 'on' : ''}`}>{on && <Icon name="check" size={16} sw={2.5} />}</span>
         <span className="grow stack" style={{ gap: 2 }}>
           <span style={{ fontSize: 15, lineHeight: '20px', fontWeight: 600, color: on ? 'var(--ink-muted)' : 'var(--ink)', textDecoration: on ? 'line-through' : 'none' }}>{cap(name)}</span>
-          <span className="caption">{caption}</span>
+          {caption && <span className="caption">{caption}</span>}
         </span>
         <span style={{ fontSize: 14, fontWeight: 600, color: on ? 'var(--ink-muted)' : 'var(--green)', whiteSpace: 'nowrap' }}>{amount}</span>
       </button>
@@ -67,7 +67,7 @@ export default function Shopping() {
         <span className="small muted">{t(lines.length === 1 ? 'itemN' : 'itemsN', { n: lines.length })}</span>
       </div>
       <div className="card" style={{ padding: '4px 16px' }}>
-        {lines.map((l, i) => row(l.key, l.name, displayAmount(l), l.recipes.join(', '), i === lines.length - 1))}
+        {lines.map((l, i) => row(l.key, l.name, displayAmount(l), '', i === lines.length - 1))}
       </div>
     </section>
   )
