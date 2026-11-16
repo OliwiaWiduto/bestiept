@@ -2,17 +2,17 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useStore } from '../store'
 import { defaultMeal, useUI } from '../ui-state'
 import { useT } from '../i18n'
-import { MEALS, type FoodItem, type Macros, type Meal } from '../types'
+import { MEALS, type FoodItem, type LogEntry, type Macros, type Meal } from '../types'
 import { useFoodSearch } from '../lib/foodSearch'
 import { uid } from '../lib/util'
 import { BarcodeScanner } from './BarcodeScanner'
 import { scanMeal, scanMealText } from '../lib/ai'
 import { IngredientForm, IngredientRow, MealHeader } from './MealParts'
 import { VoiceLog } from './VoiceLog'
-import { itemMacros } from '../lib/nutrition'
+import { itemMacros, sumItems } from '../lib/nutrition'
 import { Icon, PhotoButton, Sheet, Stepper, Thumb, toast, type IconName } from './ui'
 
-type Mode = 'menu' | 'recipe' | 'search' | 'quick' | 'barcode' | 'scan' | 'voice'
+type Mode = 'menu' | 'recipe' | 'search' | 'quick' | 'barcode' | 'scan' | 'voice' | 'again'
 type Picked = { name: string; per: Macros; portion: number; source?: string }
 
 export default function LogFoodSheet() {
@@ -23,6 +23,8 @@ export default function LogFoodSheet() {
   const [mode, setMode] = useState<Mode>('menu')
   const [meal, setMeal] = useState<Meal>(defaultMeal())
   const [query, setQuery] = useState('')
+  const [tab, setTab] = useState<'food' | 'recipe'>('food')
+  const [again, setAgain] = useState<LogEntry | null>(null)
   const [recipeId, setRecipeId] = useState<string | null>(null)
   const [servings, setServings] = useState(1)
   const [picked, setPicked] = useState<Picked | null>(null)
@@ -41,12 +43,12 @@ export default function LogFoodSheet() {
 
   useEffect(() => {
     if (logOpen) {
-      setMode('menu'); setMeal(logMeal ?? defaultMeal()); setQuery(''); setRecipeId(null); setServings(1); setPicked(null)
+      setMode('menu'); setMeal(logMeal ?? defaultMeal()); setQuery(''); setTab('food'); setAgain(null); setRecipeId(null); setServings(1); setPicked(null)
       setQuick({ name: '', kcal: '', protein: '', carbs: '', fat: '' }); setCode(''); setLookup('idle'); setTyping(false); setScan(null); setEditId(null); setGuessNote(false); setScanning(false); setScanError(null); setDest('own'); setTargetId(null)
     }
   }, [logOpen, logMeal])
 
-  const foods = useFoodSearch(mode === 'search' ? query : '', t.lang)
+  const foods = useFoodSearch(mode === 'menu' || mode === 'search' ? query : '', t.lang)
   const recipeList = useMemo(() => recipes.filter((r) => !query || r.title.toLowerCase().includes(query.toLowerCase())), [recipes, query])
 
   const mealChips = (
@@ -99,19 +101,9 @@ export default function LogFoodSheet() {
     toast(`${name} · ${t(meal)}`)
   }
 
-  const option = (icon: IconName, label: string, onClick?: () => void, sub?: string) => (
-    <button key={label} className="meal-row" onClick={onClick} disabled={!onClick} style={{ opacity: onClick ? 1 : 0.55 }}>
-      <span className="thumb" style={{ width: 44, height: 44, background: 'var(--peach-soft)' }}><Icon name={icon} /></span>
-      <span className="grow stack" style={{ gap: 0 }}>
-        <span style={{ fontWeight: 600 }}>{label}</span>
-        {sub && <span className="caption">{sub}</span>}
-      </span>
-      {onClick && <Icon name="forward" size={18} />}
-    </button>
-  )
 
 
-  const goBack = () => { setMode('menu'); setPicked(null); setRecipeId(null); setQuery(''); setScan(null); setEditId(null) }
+  const goBack = () => { setMode('menu'); setPicked(null); setRecipeId(null); setScan(null); setEditId(null); setAgain(null) }
   const back = mode !== 'menu' && !editId && (
     <button className="icon-btn" style={{ alignSelf: 'flex-start' }} aria-label={t('back')} onClick={goBack}><Icon name="back" /></button>
   )
@@ -187,17 +179,100 @@ export default function LogFoodSheet() {
 
   const r = recipes.find((x) => x.id === recipeId)
 
+  /** Up to 30 different things logged before, newest first. */
+  const recent = useMemo(() => {
+    const seen = new Set<string>()
+    const out: LogEntry[] = []
+    for (const l of [...logs].sort((a, b) => b.createdAt - a.createdAt)) {
+      const k = l.name.trim().toLowerCase()
+      if (!k || seen.has(k)) continue
+      seen.add(k); out.push(l)
+      if (out.length >= 30) break
+    }
+    return out
+  }, [logs])
+  const logAgain = (l: LogEntry) => {
+    const rec = l.recipeId ? recipes.find((x) => x.id === l.recipeId) : undefined
+    const only = l.items.length === 1 ? l.items[0] : null
+    if (rec && only) { setRecipeId(rec.id); setServings(only.amount || 1); setMode('recipe') }
+    else if (only && only.unit === 'g') { setPicked({ name: only.name, per: only.per, portion: only.amount }); setGrams(String(Math.round(only.amount))); setMode('search') }
+    else { setAgain(l); setMode('again') }
+  }
+  const searching = mode === 'menu' && query.trim().length > 0
+  const tile = (icon: IconName, label: string, onClick: () => void) => (
+    <button key={label} className="log-tile" aria-label={label} title={label} onClick={onClick}><Icon name={icon} size={26} sw={1.75} /></button>
+  )
+
   return (
     <Sheet open={logOpen} onClose={closeLog} title={t('logFood')}>
       {back}
       {mode === 'menu' && (
-        <div className="stack">
-          {option('camera', t('photoScan'), () => setMode('scan'), t('photoScanSub'))}
-          {option('search', t('searchFoods'), () => setMode('search'))}
-          {option('barcode', t('barcode'), () => setMode('barcode'))}
-          {option('mic', t('voiceLog'), () => setMode('voice'), t('voiceLogSub'))}
-          {option('book', t('fromRecipe'), () => setMode('recipe'))}
-          {option('bolt', t('quickAdd'), () => setMode('quick'))}
+        <div className="stack" style={{ gap: 14 }}>
+          <label className="search-field">
+            <Icon name="search" size={20} />
+            <input type="search" placeholder={t('searchFoodsRecipes')} aria-label={t('searchFoodsRecipes')} value={query} onChange={(e) => setQuery(e.target.value)} />
+            {query && <button className="icon-btn" style={{ width: 32, height: 32, background: 'transparent' }} aria-label={t('clear')} onClick={() => setQuery('')}><Icon name="close" size={16} /></button>}
+          </label>
+          {!searching && (
+            <div className="log-tiles">
+              {tile('camera', t('photoScan'), () => setMode('scan'))}
+              {tile('barcode', t('barcode'), () => setMode('barcode'))}
+              {tile('mic', t('voiceLog'), () => setMode('voice'))}
+              {tile('book', t('fromRecipe'), () => { setQuery(''); setMode('recipe') })}
+              {tile('plus', t('quickAdd'), () => setMode('quick'))}
+            </div>
+          )}
+          {searching && (
+            <>
+              <div className="chips" role="group">
+                <button className="chip" aria-pressed={tab === 'food'} onClick={() => setTab('food')}>{t('foodsTab')}</button>
+                <button className="chip" aria-pressed={tab === 'recipe'} onClick={() => setTab('recipe')}>{t('recipes')} {recipeList.length > 0 && <span className="muted">· {recipeList.length}</span>}</button>
+              </div>
+              {tab === 'food' && (foods.length === 0 ? <p className="muted" style={{ margin: 0 }}>{t('noResults')}</p> : (
+                <div className="card tight">
+                  {foods.map((f) => (
+                    <button key={f.key} className="list-row" style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--line)', textAlign: 'left' }}
+                      onClick={() => { setPicked({ name: f.name, per: f.per, portion: f.portion, source: f.uk ? t('ukFoodData') : undefined }); setGrams(String(f.portion)); setMode('search') }}>
+                      <span className="grow" style={{ fontWeight: 600, fontSize: 15 }}>{f.name}</span>
+                      <span className="small muted" style={{ whiteSpace: 'nowrap' }}>{f.per.kcal} {t('kcal')} / 100g</span>
+                    </button>
+                  ))}
+                </div>
+              ))}
+              {tab === 'recipe' && (recipeList.length === 0 ? <p className="muted" style={{ margin: 0 }}>{t('noResults')}</p> : recipeList.map((x) => (
+                <button key={x.id} className="meal-row" onClick={() => { setRecipeId(x.id); setMeal(x.category); setMode('recipe') }}>
+                  <Thumb photo={x.photo} size={48} />
+                  <span className="grow" style={{ fontWeight: 600 }}>{x.title}</span>
+                  <span className="small muted" style={{ whiteSpace: 'nowrap' }}>{x.nutrition.kcal} {t('kcal')}</span>
+                </button>
+              )))}
+            </>
+          )}
+          {!searching && recent.length > 0 && (
+            <>
+              <span className="label">{t('recentlyLogged')}</span>
+              <div className="card tight">
+                {recent.map((l) => (
+                  <button key={l.id} className="list-row" style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--line)', textAlign: 'left' }} onClick={() => logAgain(l)}>
+                    <Thumb photo={l.photo} size={40} />
+                    <span className="grow stack" style={{ gap: 0, minWidth: 0 }}>
+                      <span style={{ fontWeight: 600, fontSize: 15 }}>{l.name}</span>
+                      <span className="caption">{Math.round(sumItems(l.items).kcal)} {t('kcal')}</span>
+                    </span>
+                    <Icon name="plus" size={18} />
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+      {mode === 'again' && again && (
+        <div className="stack" style={{ gap: 14 }}>
+          <MealHeader photo={again.photo} name={again.name} onName={(name) => setAgain({ ...again, name })} />
+          <div className="card tight">{again.items.map((i) => <div key={i.id} className="list-row"><span className="grow" style={{ fontWeight: 600, fontSize: 15 }}>{i.name}</span><span className="small muted">{Math.round(itemMacros(i).kcal)} {t('kcal')}</span></div>)}</div>
+          {mealChips}
+          <button className="btn primary block" onClick={() => save(again.name, again.items.map((i) => ({ ...i, id: uid() })), again.photo ? { photo: again.photo } : undefined)}>{t('addToMeal', { meal: t(meal) })}</button>
         </div>
       )}
 

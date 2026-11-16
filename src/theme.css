@@ -252,3 +252,12 @@ input, textarea, select { font-size: max(16px, 1em); }
 .screen > .hero-photo { max-width: none; }
 .screen > .chips.scroll { max-width: none; }
 .sheet > .chips.scroll { max-width: none; }
+
+/* Log food: search, icon tiles, history */
+.search-field { display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 8px 0 16px; border-radius: var(--radius-pill); background: var(--surface-raised); border: 1.5px solid var(--line); color: var(--ink-muted); }
+.search-field input { flex: 1; min-width: 0; border: none; background: transparent; color: var(--ink); height: 100%; }
+.search-field input:focus { outline: none; }
+.search-field input::-webkit-search-cancel-button { display: none; }
+.log-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.log-tile { aspect-ratio: 1; border: none; border-radius: 18px; background: var(--peach-soft); color: var(--green); display: grid; place-items: center; }
+.log-tile:active { transform: scale(.96); }
