@@ -114,7 +114,7 @@ export default function Today() {
             )
           return entries.map((e) => (
             <button key={e.id} className="meal-row" onClick={() => nav(`/meal/${e.id}`)}>
-              <Thumb photo={e.photo} cat={e.meal} />
+              <Thumb photo={e.photo} cat={e.meal} name={e.name} />
               <span className="grow stack" style={{ gap: 2 }}>
                 <span className="caption">{t(meal)}</span>
                 <span style={{ fontSize: 15, lineHeight: '20px', fontWeight: 600 }}>{e.name}</span>

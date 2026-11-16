@@ -5,7 +5,8 @@ import { useRecipes } from '../lib/recipeLang'
 import { useT } from '../i18n'
 import { MEALS, type Meal, type Recipe } from '../types'
 import { usePhoto } from '../lib/sync'
-import { CoachTip, Icon, mealArt } from '../components/ui'
+import { CoachTip, Icon } from '../components/ui'
+import { foodArt } from '../lib/art'
 import { personName, useFamily } from '../lib/family'
 
 type Filter = 'all' | 'fav' | Meal
@@ -71,7 +72,7 @@ function RecipeCard({ r, onOpen }: { r: Recipe; onOpen: () => void }) {
     <button onClick={onOpen} className="card" style={{ padding: 10, border: 'none', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ position: 'relative' }}>
         <div className="thumb" style={{ width: '100%', height: 130, borderRadius: 20, backgroundImage: photo ? `url(${photo})` : undefined }}>
-          {!r.photo && <img src={mealArt(r.category)} alt="" style={{ width: 96, height: 96 }} />}
+          {!photo && <img src={foodArt(r.title, r.category)} alt="" style={{ width: 96, height: 96 }} />}
         </div>
         {r.favourite && <span style={{ position: 'absolute', top: 8, right: 8, width: 30, height: 30, borderRadius: 999, background: 'var(--surface-raised)', color: 'var(--cherry)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="heart" size={16} fill /></span>}
       </div>

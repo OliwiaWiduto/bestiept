@@ -3,6 +3,7 @@ import { fileToDataUrl } from '../lib/util'
 import { usePhoto } from '../lib/sync'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useT } from '../i18n'
+import { foodArt } from '../lib/art'
 import { useStore } from '../store'
 import { useLocation } from 'react-router-dom'
 
@@ -141,14 +142,12 @@ export function BackButton({ to }: { to?: string }) {
   return <button className="icon-btn" aria-label={t('back')} onClick={() => (to ? nav(to) : nav(-1))}><Icon name="back" /></button>
 }
 
-/** Our hand-drawn picture for a meal type, used wherever there's no photo. */
-export const mealArt = (cat?: string) => `/icons/meal-${cat === 'breakfast' || cat === 'lunch' || cat === 'snack' ? cat : 'dinner'}.png`
 
-export function Thumb({ photo: src, size = 56, cat }: { photo?: string; size?: number; cat?: string }) {
+export function Thumb({ photo: src, size = 56, cat, name }: { photo?: string; size?: number; cat?: string; name?: string }) {
   const photo = usePhoto(src)
   return (
     <div className="thumb" aria-hidden="true" style={{ width: size, height: size, backgroundImage: photo ? `url(${photo})` : undefined }}>
-      {!photo && <img src={mealArt(cat)} alt="" style={{ width: '78%', height: '78%', objectFit: 'contain' }} />}
+      {!photo && <img src={foodArt(name, cat)} alt="" style={{ width: '78%', height: '78%', objectFit: 'contain' }} />}
     </div>
   )
 }

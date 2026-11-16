@@ -5,7 +5,8 @@ import { useRecipes } from '../lib/recipeLang'
 import { useT } from '../i18n'
 import { ingredientText, siteName } from '../lib/util'
 import { usePhoto } from '../lib/sync'
-import { Icon, MacroGrid, PhotoButton, Stepper, mealArt } from '../components/ui'
+import { Icon, MacroGrid, PhotoButton, Stepper } from '../components/ui'
+import { foodArt } from '../lib/art'
 import AddToPlanSheet from '../components/AddToPlanSheet'
 
 export default function RecipeDetail() {
@@ -25,7 +26,7 @@ export default function RecipeDetail() {
   return (
     <main className="screen no-nav" style={{ paddingTop: 24 }}>
       <div className="hero-photo" role="img" aria-label={r.title} style={{ backgroundImage: photo ? `url(${photo})` : undefined }}>
-        {!r.photo && <img src={mealArt(r.category)} alt="" style={{ width: 170, height: 170 }} />}
+        {!photo && <img src={foodArt(r.title, r.category)} alt="" style={{ width: 170, height: 170 }} />}
         <button className="icon-btn" style={{ left: 24 }} aria-label={t('back')} onClick={() => nav(-1)}><Icon name="back" /></button>
         <button className="icon-btn" style={{ right: 24, color: 'var(--cherry)' }} aria-pressed={r.favourite} aria-label={r.favourite ? t('unfavourite') : t('favourite')} onClick={() => toggleFavourite(r.id)}>
           <Icon name="heart" fill={r.favourite} />
