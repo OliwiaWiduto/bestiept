@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useStore } from '../store'
+import { useRecipes } from '../lib/recipeLang'
 import { useT } from '../i18n'
 import type { Ingredient } from '../types'
 import { ingredientText, shortName, splitName, uid } from '../lib/util'
@@ -46,7 +47,8 @@ export default function Cooking() {
   const nav = useNavigate()
   const { id } = useParams()
   const [params] = useSearchParams()
-  const { recipes, saveLog, seeTip } = useStore()
+  const { saveLog, seeTip } = useStore()
+  const recipes = useRecipes()
   const tips = useStore((st) => st.profile?.tips)
   const r = recipes.find((x) => x.id === id)
   const servings = Number(params.get('s')) || r?.servings || 1

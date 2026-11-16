@@ -39,7 +39,13 @@ export type Recipe = {
   createdAt: number
   /** Set when the recipe belongs to a linked family member (not stored in the cloud copy). */
   ownerId?: string
+  /** Language the recipe was written in. Older recipes don't have it, so it's guessed. */
+  lang?: Lang
+  /** Translations, line for line with the original. Dropped whenever the recipe is edited. */
+  tr?: Partial<Record<Lang, RecipeText>>
 }
+
+export type RecipeText = { title: string; ingredients: string[]; steps: string[]; equipment: string[] }
 
 /** A food in a logged meal. `per` is per 100g when unit is 'g', or per 1 serving when unit is 'serving'. */
 export type FoodItem = { id: string; name: string; amount: number; unit: 'g' | 'serving'; per: Macros }

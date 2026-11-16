@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
+import { useRecipes } from '../lib/recipeLang'
 import { useUI } from '../ui-state'
 import { useT } from '../i18n'
 import type { Meal, Recipe } from '../types'
@@ -14,7 +15,8 @@ import AddToPlanSheet from '../components/AddToPlanSheet'
 export default function Plan() {
   const t = useT()
   const nav = useNavigate()
-  const { plan, recipes, removePlan, shopping } = useStore()
+  const { plan, removePlan, shopping } = useStore()
+  const recipes = useRecipes()
   const { planWeek, setPlanWeek } = useUI()
   const [pickFor, setPickFor] = useState<{ date: string; meal: Meal } | null>(null)
   const [planMeal, setPlanMeal] = useState<Meal | undefined>()
@@ -118,7 +120,8 @@ export default function Plan() {
 
 function RecipePicker({ open, meal, days, onClose, onPick }: { open: boolean; meal?: Meal; days: string[]; onClose: () => void; onPick: (r: Recipe) => void }) {
   const t = useT()
-  const { recipes, plan } = useStore()
+  const { plan } = useStore()
+  const recipes = useRecipes()
   const [q, setQ] = useState('')
   const [cat, setCat] = useState<Meal | 'all'>('all')
   const [openFor, setOpenFor] = useState<Meal | undefined>()

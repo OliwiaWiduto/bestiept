@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../store'
+import { useRecipes } from '../lib/recipeLang'
 import { useT } from '../i18n'
 import { ingredientText, siteName } from '../lib/util'
 import { usePhoto } from '../lib/sync'
@@ -11,8 +12,10 @@ export default function RecipeDetail() {
   const t = useT()
   const nav = useNavigate()
   const { id } = useParams()
-  const { recipes, toggleFavourite, deleteRecipe, saveRecipe } = useStore()
+  const { recipes: originals, toggleFavourite, deleteRecipe, saveRecipe } = useStore()
+  const recipes = useRecipes()
   const r = recipes.find((x) => x.id === id)
+  const original = originals.find((x) => x.id === id)
   const [servings, setServings] = useState(r?.servings ?? 2)
   const [planOpen, setPlanOpen] = useState(false)
   const photo = usePhoto(r?.photo)
@@ -27,7 +30,7 @@ export default function RecipeDetail() {
         <button className="icon-btn" style={{ right: 24, color: 'var(--cherry)' }} aria-pressed={r.favourite} aria-label={r.favourite ? t('unfavourite') : t('favourite')} onClick={() => toggleFavourite(r.id)}>
           <Icon name="heart" fill={r.favourite} />
         </button>
-        <PhotoButton onPhoto={(photo) => saveRecipe({ ...r, photo })} label={r.photo ? t('changePhoto') : t('addPhoto')} className="btn secondary small"
+        <PhotoButton onPhoto={(photo) => original && saveRecipe({ ...original, photo })} label={r.photo ? t('changePhoto') : t('addPhoto')} className="btn secondary small"
           style={{ position: 'absolute', right: 24, bottom: 16 }}>
           <Icon name="camera" size={16} />{r.photo ? t('changePhoto') : t('addPhoto')}
         </PhotoButton>

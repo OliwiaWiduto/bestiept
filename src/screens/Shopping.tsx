@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../store'
+import { useRecipes } from '../lib/recipeLang'
 import { useUI } from '../ui-state'
 import { useT } from '../i18n'
 import { addDays, fmt, today, weekDays, weekStart } from '../lib/dates'
@@ -12,7 +13,8 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 export default function Shopping() {
   const t = useT()
-  const { plan, recipes, shopping, setShopping } = useStore()
+  const { plan, shopping, setShopping } = useStore()
+  const recipes = useRecipes()
   const { planWeek, setPlanWeek } = useUI()
   const [newItem, setNewItem] = useState('')
   const days = weekDays(planWeek)

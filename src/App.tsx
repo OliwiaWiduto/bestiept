@@ -1,3 +1,4 @@
+import { useRecipeTranslator } from './lib/recipeLang'
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
@@ -69,6 +70,7 @@ export default function App() {
 
   return (
     <>
+      <RecipeTranslator />
       <Routes>
         <Route path="/" element={<Today />} />
         <Route path="/recipes" element={<Recipes />} />
@@ -91,4 +93,9 @@ export default function App() {
       <ToastHost />
     </>
   )
+}
+
+function RecipeTranslator() {
+  useRecipeTranslator()
+  return null
 }

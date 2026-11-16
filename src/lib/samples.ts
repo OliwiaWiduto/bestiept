@@ -69,11 +69,29 @@ const PL: Sample[] = [
   },
 ]
 
+const asText = (s: Sample) => ({ title: s.title, ingredients: s.ingredients.map((l) => parseIngredient(l).name), steps: s.steps, equipment: s.equipment })
+
 export function sampleRecipes(lang: Lang): Recipe[] {
-  return (lang === 'pl' ? PL : EN).map((s, i) => ({
+  const other: Lang = lang === 'pl' ? 'en' : 'pl'
+  const mine = lang === 'pl' ? PL : EN
+  const theirs = lang === 'pl' ? EN : PL
+  return mine.map((s, i) => ({
     ...s,
     id: uid(),
     createdAt: Date.now() - i * 1000,
     ingredients: s.ingredients.map(parseIngredient),
+    lang,
+    tr: theirs[i] ? { [other]: asText(theirs[i]) } : undefined,
   }))
+}
+
+/** Our sample recipes in the other language, found by title (for accounts made before translations were stored). */
+export function sampleText(title: string, lang: Lang): ReturnType<typeof asText> | undefined {
+  const t = title.trim().toLowerCase()
+  const i = EN.findIndex((s) => s.title.toLowerCase() === t)
+  const j = PL.findIndex((s) => s.title.toLowerCase() === t)
+  const k = i >= 0 ? i : j
+  if (k < 0) return undefined
+  const s = (lang === 'pl' ? PL : EN)[k]
+  return s ? asText(s) : undefined
 }

@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { Macros } from '../types'
+import type { Macros, RecipeText } from '../types'
 
 /** AI features run as Supabase Edge Functions (supabase/functions). They need ai.sql and an Anthropic API key. */
 
@@ -27,6 +27,9 @@ async function call<T>(fn: string, body: object): Promise<{ data?: T; error?: Ai
 
 export const importRecipe = (input: { url?: string; image?: string; images?: string[]; text?: string }, lang: string) =>
   call<{ recipe: RecipeDraft }>('import-recipe', { ...input, lang })
+
+export const translateRecipe = (recipe: RecipeText, lang: string) =>
+  call<{ translation: RecipeText }>('import-recipe', { translate: recipe, lang })
 
 export const scanMeal = (image: string, lang: string) =>
   call<{ meal: { name: string; items: ScannedItem[] } }>('scan-meal', { image, lang })

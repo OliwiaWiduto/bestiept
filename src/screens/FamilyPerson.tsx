@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { useStore } from '../store'
+import { useRecipes } from '../lib/recipeLang'
 import { useT } from '../i18n'
 import { BackButton, Icon, MacroBar } from '../components/ui'
 import { fetchTheirDay, fetchTheirPlan, shareOf, useFamily } from '../lib/family'
@@ -14,7 +14,7 @@ const ZERO: Macros = { kcal: 0, protein: 0, carbs: 0, fat: 0, fibre: 0, sugar: 0
 export default function FamilyPerson() {
   const t = useT()
   const { id = '' } = useParams()
-  const recipes = useStore((s) => s.recipes)
+  const recipes = useRecipes()
   const link = useFamily((s) => s.links.find((l) => l.person.id === id && l.status === 'accepted'))
   const theirs = useFamily((s) => shareOf(s.theirs, id))
   const [date, setDate] = useState(today())

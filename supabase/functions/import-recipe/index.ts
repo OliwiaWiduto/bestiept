@@ -1,4 +1,5 @@
 // POST { url } | { image: dataUrl } | { images: dataUrl[] } | { text }  ->  a recipe draft the app shows for review.
+// POST { translate: { title, ingredients, steps, equipment }, lang }  ->  the same recipe text in another language, line for line.
 import { askClaude, checkUser, cors, imageBlock, json, MACROS_SCHEMA } from '../_shared/ai.ts'
 import { isPinterest, metaContent, pageText, pinterestTarget, recipeFromJsonLd } from '../_shared/recipe-page.ts'
 
@@ -50,12 +51,43 @@ Write ingredients and steps in ${lang === 'pl' ? 'Polish' : 'British English'} (
 Split long method paragraphs into separate short steps. List equipment that's needed (pans, trays, blender...).
 If nutrition isn't given, estimate it per serving from the ingredients.`
 
+const TRANSLATE_TOOL = {
+  name: 'save_translation',
+  description: 'Save the translated recipe text.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      title: { type: 'string' },
+      ingredients: { type: 'array', items: { type: 'string' }, description: 'same number and order as the input' },
+      steps: { type: 'array', items: { type: 'string' }, description: 'same number and order as the input' },
+      equipment: { type: 'array', items: { type: 'string' }, description: 'same number and order as the input' },
+    },
+    required: ['title', 'ingredients', 'steps', 'equipment'],
+  },
+}
+
+async function translate(input: { title?: unknown; ingredients?: unknown; steps?: unknown; equipment?: unknown }, lang: string) {
+  const list = (v: unknown) => (Array.isArray(v) ? v.map((x) => String(x).slice(0, 600)).slice(0, 80) : [])
+  const src = { title: String(input.title ?? '').slice(0, 200), ingredients: list(input.ingredients), steps: list(input.steps), equipment: list(input.equipment) }
+  const target = lang === 'pl' ? 'Polish' : 'British English'
+  const r = await askClaude<{ title: string; ingredients: string[]; steps: string[]; equipment: string[] }>({
+    system: `You translate recipes for a cooking app into natural, friendly ${target}, the way a home cook would write it. Translate every line; keep the same number of lines in the same order. Ingredient lines are ingredient names with any preparation notes (no amounts): translate them as names, e.g. "garlic cloves, crushed". Keep numbers, temperatures and times exactly. Use ingredient names people in ${lang === 'pl' ? 'Poland' : 'the UK'} would find in shops.`,
+    content: [{ type: 'text', text: JSON.stringify(src) }],
+    tool: TRANSLATE_TOOL,
+    maxTokens: 4000,
+  })
+  const same = (a: unknown, b: string[]) => Array.isArray(a) && a.length === b.length
+  if (!r.title || !same(r.ingredients, src.ingredients) || !same(r.steps, src.steps) || !same(r.equipment, src.equipment)) throw new Error('bad_translation')
+  return r
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   try {
     const user = await checkUser(req, 'import')
     if (!user.ok) return user.res
-    const { url, image, images, text, lang = 'en' } = await req.json()
+    const { url, image, images, text, translate: toTranslate, lang = 'en' } = await req.json()
+    if (toTranslate) return json({ translation: await translate(toTranslate, lang) })
     const pics: string[] = (Array.isArray(images) ? images : image ? [image] : []).map(String).slice(0, 6)
 
     let content

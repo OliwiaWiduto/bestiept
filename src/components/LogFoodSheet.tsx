@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useStore } from '../store'
+import { useRecipes } from '../lib/recipeLang'
 import { defaultMeal, useUI } from '../ui-state'
 import { useT } from '../i18n'
 import { MEALS, type FoodItem, type LogEntry, type Macros, type Meal } from '../types'
@@ -18,7 +19,8 @@ type Picked = { name: string; per: Macros; portion: number; source?: string }
 export default function LogFoodSheet() {
   const t = useT()
   const { logOpen, logMeal, closeLog, viewDate } = useUI()
-  const { recipes, saveLog, logs, seeTip } = useStore()
+  const { saveLog, logs, seeTip } = useStore()
+  const recipes = useRecipes()
   const tips = useStore((st) => st.profile?.tips)
   const [mode, setMode] = useState<Mode>('menu')
   const [meal, setMeal] = useState<Meal>(defaultMeal())

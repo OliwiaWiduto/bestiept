@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
+import { useRecipes } from '../lib/recipeLang'
 import { useT } from '../i18n'
 import { MEALS, type Meal, type Recipe } from '../types'
 import { usePhoto } from '../lib/sync'
@@ -12,7 +13,7 @@ type Filter = 'all' | 'fav' | Meal
 export default function Recipes() {
   const t = useT()
   const nav = useNavigate()
-  const recipes = useStore((s) => s.recipes)
+  const recipes = useRecipes()
   const seeTip = useStore((s) => s.seeTip)
   const [filter, setFilter] = useState<Filter>('all')
   const [q, setQ] = useState('')

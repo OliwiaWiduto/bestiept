@@ -5,6 +5,7 @@ import { useT } from '../i18n'
 import { MEALS, type Ingredient, type Macros, type Meal } from '../types'
 import { formatAmount, ingredientText, parseIngredient, splitName, uid } from '../lib/util'
 import { equipmentIcon } from '../lib/equipment'
+import { recipeLang } from '../lib/recipeLang'
 import { usePhoto } from '../lib/sync'
 import { importRecipe } from '../lib/ai'
 import { BackButton, Icon, MacroGrid, PhotoButton, Sheet, Stepper, toast } from '../components/ui'
@@ -81,6 +82,7 @@ export default function RecipeEdit() {
       steps: steps.map((s) => s.trim()).filter(Boolean),
       equipment: equip,
       nutrition,
+      lang: existing ? recipeLang(existing) : t.lang,
     })
     toast(t('saved'))
     nav(`/recipes/${rid}`, { replace: true })
