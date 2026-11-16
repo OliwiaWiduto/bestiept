@@ -271,3 +271,6 @@ input, textarea, select { font-size: max(16px, 1em); }
 .home-steps { margin: 0; padding: 0; list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: 10px; }
 .home-steps li { counter-increment: step; display: flex; align-items: center; gap: 12px; background: var(--surface-raised); border-radius: var(--radius-md); padding: 14px 16px; font-size: 15px; line-height: 21px; font-weight: 500; }
 .home-steps li::before { content: counter(step); flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--lime); color: var(--green-deep); display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+.home-steps li.done::before { content: '✓'; }
+.home-steps li.action { align-items: flex-start; }
+.link-btn { align-self: flex-start; border: none; background: none; padding: 0; color: var(--green); font-size: 13px; font-weight: 600; text-decoration: underline; }

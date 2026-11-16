@@ -5,7 +5,7 @@ import type { Activity, Goal, Profile, Sex } from '../types'
 import { calcTargets } from '../lib/nutrition'
 import { sampleRecipes } from '../lib/samples'
 import { DEFAULT_STAPLES, DEFAULT_STAPLES_PL } from '../lib/shopping'
-import { canPromptInstall, isInstalled, promptInstall, whereOpen } from '../lib/install'
+import { canPromptInstall, isInstalled, isIos, openInBrowserUrl, promptInstall, whereOpen } from '../lib/install'
 import { Icon, NumberField } from '../components/ui'
 import { HeightField, UnitsToggle, WeightField } from '../components/BodyFields'
 
@@ -146,18 +146,20 @@ export default function Onboarding() {
             <img src="/pwa-192.png" alt="" width={72} height={72} style={{ width: 72, height: 72, borderRadius: 18 }} />
             <h1 className="title">{t('homeTitle')}</h1>
             <p className="muted" style={{ margin: 0, fontSize: 15 }}>{t('homeWhy')}</p>
-            {(where === 'ios-other' || where === 'in-app') && (
-              <div className="tip" style={{ alignItems: 'center' }}>
-                <span className="grow">{t(where === 'in-app' ? 'homeInApp' : 'homeOtherBrowser')}</span>
-                <button className="btn small" style={{ background: 'var(--green)', color: 'var(--on-green)', flex: 'none' }}
-                  onClick={async () => { try { await navigator.clipboard.writeText(location.origin); setCopied(true) } catch { /* blocked */ } }}>{copied ? t('copied') : t('copyLink')}</button>
-              </div>
-            )}
             {where === 'android' && canPromptInstall() ? (
               <button className="btn green block" onClick={async () => { await promptInstall(); rerender((n) => n + 1) }}><Icon name="plus" size={18} />{t('install')}</button>
             ) : (
               <ol className="home-steps">
-                {where !== 'android' && <li><span>{t('homeStep0')}</span></li>}
+                {where === 'ios-safari' && <li className="done"><span>{t('homeInSafari')}</span></li>}
+                {(where === 'ios-other' || where === 'in-app') && (
+                  <li className="action">
+                    <span className="grow stack" style={{ gap: 8 }}>
+                      <span>{t(isIos() ? 'homeOpenSafariStep' : 'homeOpenChromeStep')}</span>
+                      <a className="btn green small" style={{ alignSelf: 'flex-start', textDecoration: 'none' }} href={openInBrowserUrl()}><Icon name="compass" size={18} />{t(isIos() ? 'openSafari' : 'openChrome')}</a>
+                      <button className="link-btn" onClick={async () => { try { await navigator.clipboard.writeText(location.origin); setCopied(true) } catch { /* blocked */ } }}>{copied ? t('copiedPaste') : t('orCopyLink')}</button>
+                    </span>
+                  </li>
+                )}
                 {steps.map((s, i) => <li key={i}><span>{s}</span></li>)}
               </ol>
             )}

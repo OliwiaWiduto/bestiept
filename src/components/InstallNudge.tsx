@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { useStore } from '../store'
 import { useT } from '../i18n'
 import { Icon } from './ui'
+import { openInBrowserUrl } from '../lib/install'
 
 type InstallEvent = Event & { prompt: () => Promise<void> }
 const SHOW_AGAIN_AFTER = 3 * 24 * 60 * 60 * 1000
@@ -22,7 +23,6 @@ export default function InstallNudge({ onAuth = false, inline = false }: { onAut
   const { pathname } = useLocation()
   const { pwaDismissedAt, dismissPwa } = useStore()
   const logTipShowing = useStore((s) => !!s.profile && s.logs.length === 0 && !(s.profile.tips ?? []).includes('log'))
-  const [copied, setCopied] = useState(false)
   const [installed, setInstalled] = useState(isInstalled)
   const [deferred, setDeferred] = useState<InstallEvent | null>(null)
 
@@ -50,7 +50,7 @@ export default function InstallNudge({ onAuth = false, inline = false }: { onAut
   if (where === 'none') return inline ? <p className="small muted" style={{ margin: 0 }}>{t('pwaGeneric')}</p> : null
 
   const copy = async () => {
-    try { await navigator.clipboard.writeText(location.origin); setCopied(true); setTimeout(() => setCopied(false), 2500) } catch { /* clipboard blocked */ }
+    try { await navigator.clipboard.writeText(location.origin) } catch { /* clipboard blocked */ }
   }
   const [before, after] = t('pwaIos').split('{share}')
   const text = where === 'ios-safari' ? <>{before}<Icon name="share" size={15} className="inline-icon" />{after}</>
@@ -65,7 +65,7 @@ export default function InstallNudge({ onAuth = false, inline = false }: { onAut
         {text}
       </span>
       {(where === 'ios-other' || where === 'in-app') && (
-        <button className="btn small" style={{ background: 'var(--lime)', color: 'var(--green)', height: 36, padding: '0 14px', flexShrink: 0 }} onClick={copy}>{copied ? t('copied') : t('copyLink')}</button>
+        <a className="btn small" style={{ background: 'var(--lime)', color: 'var(--green)', height: 36, padding: '0 14px', flexShrink: 0, textDecoration: 'none' }} href={openInBrowserUrl()} onClick={copy}><Icon name="compass" size={16} />{t(isIos() ? 'openSafariShort' : 'openChromeShort')}</a>
       )}
       {where === 'installable' && deferred && (
         <button className="btn small" style={{ background: 'var(--lime)', color: 'var(--green)', height: 36, padding: '0 14px' }}

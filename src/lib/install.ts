@@ -27,3 +27,10 @@ export async function promptInstall(): Promise<boolean> {
   deferred = null
   return true
 }
+
+/** A link that opens this app in the phone's main browser: Safari on iPhone (iOS 17+), Chrome on Android. */
+export function openInBrowserUrl(): string {
+  const { host, pathname } = location
+  if (isIos()) return `x-safari-https://${host}${pathname}`
+  return `intent://${host}${pathname}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(location.href)};end`
+}
