@@ -64,7 +64,7 @@ export default function App() {
 
   if (!hydrated || session === undefined) return null
   if (recovery && session) return <Auth recovery onDone={() => setRecovery(false)} />
-  if (!session) return <><Auth /><ToastHost /></>
+  if (!session) return <><Auth /><InstallNudge onAuth /><ToastHost /></>
   if (synced !== uid) return <main className="empty" style={{ minHeight: '100dvh', justifyContent: 'center' }}><img src="/icons/cat-fruitveg.png" alt="" /><p>{translate(lang, 'syncing')}</p></main>
   if (!profile) return <><Onboarding /><ToastHost /></>
 

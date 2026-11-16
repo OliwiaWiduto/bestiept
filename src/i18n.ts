@@ -71,6 +71,7 @@ const en = {
   editStep: 'Edit step', removeStep: 'Remove step', addIngredient: 'Add ingredient', addStep: 'Add a step', editDetails: 'Edit details', serves: 'Serves {n}', addTime: 'Add time', editEquipment: 'Edit equipment', addEquipment: 'Add equipment', editNutrition: 'Edit nutrition', checkTap: 'Have a quick look. Tap anything to change it.', stepText: 'What to do',
   yourList: 'Your shopping list', toBuyN: '{n} things to buy', allBought: 'All bought, nice', addSnack: 'Add a snack', pickFor: 'Pick a {meal}', pickedBefore: 'Picked before', healthiestFirst: 'Healthiest first', results: 'Results',
   searchFoodsRecipes: 'Search foods and recipes', foodsTab: 'Foods', recentlyLogged: 'Recently logged', clear: 'Clear',
+  pwaOpenSafari: 'To add BestiePT to your home screen, open this page in Safari. Copy the link and paste it there.', pwaInAppIos: 'You’re in another app’s browser. Open BestiePT in Safari to add it to your home screen.', pwaInApp: 'You’re in another app’s browser. Open BestiePT in Chrome to install it.', copyLink: 'Copy link', copied: 'Copied',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -209,6 +210,7 @@ const pl: Dict = {
   editStep: 'Edytuj krok', removeStep: 'Usuń krok', addIngredient: 'Dodaj składnik', addStep: 'Dodaj krok', editDetails: 'Edytuj szczegóły', serves: 'Porcje: {n}', addTime: 'Dodaj czas', editEquipment: 'Edytuj sprzęt', addEquipment: 'Dodaj sprzęt', editNutrition: 'Edytuj wartości', checkTap: 'Rzuć okiem. Kliknij cokolwiek, żeby zmienić.', stepText: 'Co zrobić',
   yourList: 'Twoja lista zakupów', toBuyN: 'Do kupienia: {n}', allBought: 'Wszystko kupione', addSnack: 'Dodaj przekąskę', pickFor: 'Wybierz: {meal}', pickedBefore: 'Wybierane wcześniej', healthiestFirst: 'Najzdrowsze najpierw', results: 'Wyniki',
   searchFoodsRecipes: 'Szukaj produktów i przepisów', foodsTab: 'Produkty', recentlyLogged: 'Ostatnio dodane', clear: 'Wyczyść',
+  pwaOpenSafari: 'Żeby dodać BestiePT do ekranu głównego, otwórz tę stronę w Safari. Skopiuj link i wklej go tam.', pwaInAppIos: 'Jesteś w przeglądarce innej aplikacji. Otwórz BestiePT w Safari, żeby dodać ją do ekranu głównego.', pwaInApp: 'Jesteś w przeglądarce innej aplikacji. Otwórz BestiePT w Chrome, żeby ją zainstalować.', copyLink: 'Kopiuj link', copied: 'Skopiowano',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 

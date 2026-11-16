@@ -47,7 +47,7 @@ export default function Auth({ recovery = false, onDone }: { recovery?: boolean;
   const pwValid = password.length >= 8
 
   return (
-    <main className="screen no-nav" style={{ minHeight: '100dvh', paddingTop: 'calc(env(safe-area-inset-top) + 48px)' }}>
+    <main className="screen no-nav" style={{ minHeight: '100dvh', paddingTop: 'calc(env(safe-area-inset-top) + 48px)', paddingBottom: 'calc(env(safe-area-inset-bottom) + 150px)' }}>
       <img src="/icons/cat-fruitveg.png" alt="" style={{ width: 80, height: 80 }} />
       <h1 className="display" style={{ fontSize: 40, lineHeight: '42px' }}>{t('obWelcome')}</h1>
       <p className="muted" style={{ margin: 0 }}>{t('authSub')}</p>
