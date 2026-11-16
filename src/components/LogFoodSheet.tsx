@@ -3,7 +3,7 @@ import { useStore } from '../store'
 import { defaultMeal, useUI } from '../ui-state'
 import { useT } from '../i18n'
 import { MEALS, type FoodItem, type Macros, type Meal } from '../types'
-import { FOODS } from '../lib/foods'
+import { useFoodSearch } from '../lib/foodSearch'
 import { uid } from '../lib/util'
 import { BarcodeScanner } from './BarcodeScanner'
 import { Icon, Sheet, Stepper, Thumb, toast, type IconName } from './ui'
@@ -37,10 +37,7 @@ export default function LogFoodSheet() {
     }
   }, [logOpen, logMeal])
 
-  const foods = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return FOODS.filter((f) => !q || f[t.lang].toLowerCase().includes(q) || f.en.toLowerCase().includes(q)).slice(0, 30)
-  }, [query, t.lang])
+  const foods = useFoodSearch(mode === 'search' ? query : '', t.lang)
   const recipeList = useMemo(() => recipes.filter((r) => !query || r.title.toLowerCase().includes(query.toLowerCase())), [recipes, query])
 
   const mealChips = (
@@ -198,9 +195,9 @@ export default function LogFoodSheet() {
           {foods.length === 0 && <p className="muted">{t('noResults')}</p>}
           <div className="card tight">
             {foods.map((f) => (
-              <button key={f.en} className="list-row" style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--line)', textAlign: 'left' }}
-                onClick={() => { setPicked({ name: f[t.lang], per: f.per, portion: f.portion }); setGrams(String(f.portion)) }}>
-                <span className="grow" style={{ fontWeight: 600, fontSize: 15 }}>{f[t.lang]}</span>
+              <button key={f.key} className="list-row" style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--line)', textAlign: 'left' }}
+                onClick={() => { setPicked({ name: f.name, per: f.per, portion: f.portion, source: f.uk ? t('ukFoodData') : undefined }); setGrams(String(f.portion)) }}>
+                <span className="grow" style={{ fontWeight: 600, fontSize: 15 }}>{f.name}</span>
                 <span className="small muted">{f.per.kcal} {t('kcal')} / 100g</span>
               </button>
             ))}

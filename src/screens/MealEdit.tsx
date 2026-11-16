@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../store'
 import { useT } from '../i18n'
 import { MEALS, type FoodItem, type LogEntry } from '../types'
 import { itemMacros, sumItems } from '../lib/nutrition'
-import { FOODS } from '../lib/foods'
+import { useFoodSearch } from '../lib/foodSearch'
 import { uid } from '../lib/util'
 import { usePhoto } from '../lib/sync'
 import { BackButton, Icon, MacroGrid, PhotoButton, Sheet, Stepper } from '../components/ui'
@@ -93,15 +93,15 @@ function AddItemSheet({ open, onClose, onAdd }: { open: boolean; onClose: () => 
   const t = useT()
   const [q, setQ] = useState('')
   const [custom, setCustom] = useState({ name: '', kcal: '', protein: '', carbs: '', fat: '' })
-  const list = useMemo(() => FOODS.filter((f) => !q || f[t.lang].toLowerCase().includes(q.toLowerCase())).slice(0, 12), [q, t.lang])
+  const list = useFoodSearch(q, t.lang, 12)
   return (
     <Sheet open={open} onClose={onClose} title={t('addSomething')}>
       <input className="input" placeholder={t('searchPh')} value={q} onChange={(e) => setQ(e.target.value)} />
       <div className="card tight">
         {list.map((f) => (
-          <button key={f.en} className="list-row" style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--line)', textAlign: 'left' }}
-            onClick={() => onAdd({ id: uid(), name: f[t.lang], amount: f.portion, unit: 'g', per: f.per })}>
-            <span className="grow" style={{ fontWeight: 600, fontSize: 15 }}>{f[t.lang]}</span>
+          <button key={f.key} className="list-row" style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--line)', textAlign: 'left' }}
+            onClick={() => onAdd({ id: uid(), name: f.name, amount: f.portion, unit: 'g', per: f.per })}>
+            <span className="grow" style={{ fontWeight: 600, fontSize: 15 }}>{f.name}</span>
             <span className="small muted">{f.portion}g</span>
           </button>
         ))}

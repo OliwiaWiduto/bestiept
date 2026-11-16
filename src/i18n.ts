@@ -42,6 +42,7 @@ const en = {
   today: 'Today', kcalLeft: 'kcal left today', kcalOver: 'kcal over today', yourMeals: 'Your meals',
   dinnerEmpty: 'What are we having tonight?', addMeal: 'Add a meal', mealEmpty: 'Nothing logged yet',
   scanBarcode: 'Barcode scanner', pointAtBarcode: 'Point your camera at the barcode', startingCamera: 'Starting camera…', typeInstead: 'Type the number instead', cameraDenied: 'Camera access is off. Allow it in your browser settings, or type the number below.', cameraUnavailable: 'Can’t use the camera here. Type the number below instead.',
+  ukFoodData: 'UK food data: McCance & Widdowson (CoFID)',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -151,6 +152,7 @@ const pl: Dict = {
   today: 'Dziś', kcalLeft: 'kcal zostało na dziś', kcalOver: 'kcal ponad cel', yourMeals: 'Twoje posiłki',
   dinnerEmpty: 'Co dziś na kolację?', addMeal: 'Dodaj posiłek', mealEmpty: 'Nic jeszcze nie dodano',
   scanBarcode: 'Skaner kodów', pointAtBarcode: 'Skieruj aparat na kod kreskowy', startingCamera: 'Włączam aparat…', typeInstead: 'Wpisz numer ręcznie', cameraDenied: 'Dostęp do aparatu jest wyłączony. Włącz go w ustawieniach przeglądarki albo wpisz numer poniżej.', cameraUnavailable: 'Nie da się tu użyć aparatu. Wpisz numer poniżej.',
+  ukFoodData: 'Dane: brytyjska baza McCance & Widdowson (CoFID)',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 
