@@ -71,7 +71,7 @@ export default function Today() {
           <span className="label" style={{ fontWeight: 400 }}><b>{Math.round(totals.kcal).toLocaleString()}</b> / {targets.kcal.toLocaleString()}</span>
         </div>
         <div role="img" aria-label={`${Math.round(totals.kcal)} / ${targets.kcal} ${t('kcal')}`} style={{ height: 20, borderRadius: 999, background: over ? 'rgba(213, 0, 66, .14)' : 'var(--green-deep)', overflow: 'hidden', display: 'flex', gap: over ? 3 : 0 }}>
-          <div style={{ width: `${over ? (targets.kcal / totals.kcal) * 100 : Math.min(100, (totals.kcal / targets.kcal) * 100)}%`, height: '100%', borderRadius: 999, background: over ? 'var(--green)' : 'var(--on-green)', transition: 'width .3s' }} />
+          <div style={{ width: `${over ? (targets.kcal / totals.kcal) * 100 : Math.min(100, (totals.kcal / targets.kcal) * 100)}%`, height: '100%', borderRadius: 999, background: over ? '#fff' : 'var(--on-green)', transition: 'width .3s' }} />
           {over && <div style={{ flex: 1, minWidth: 10, height: '100%', borderRadius: 999, background: 'var(--cherry)' }} />}
         </div>
       </section>

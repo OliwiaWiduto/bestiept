@@ -248,3 +248,4 @@ input, textarea, select { font-size: max(16px, 1em); }
 .slot-snack { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 4px; border: none; background: none; color: var(--green); font-size: 14px; font-weight: 600; }
 .shop-card { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 16px 12px 12px; border: none; border-radius: var(--radius-md); background: var(--green); color: var(--on-green); text-align: left; }
 .shop-card img { width: 44px; height: 44px; flex: none; }
+.card.tight > .list-row:last-child { border-bottom: none !important; }
