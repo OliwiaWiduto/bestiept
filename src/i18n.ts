@@ -7,6 +7,12 @@ import type { Lang } from './types'
  * Polish copy should be checked by a native speaker before public launch.
  */
 const en = {
+  importTitle: 'Import a recipe', importLinkPh: 'Paste a link (Pinterest, any recipe site)', import: 'Import', importPhoto: 'From a photo or screenshot',
+  importing: 'Reading the recipe… this takes a few seconds', importHint: 'Works with links, screenshots and photos of cookbook pages. You’ll check everything before it saves.', importDone: 'Got it! Check it over, then tap Next',
+  photoScanSub: 'Snap your plate, we’ll guess the macros', takeMealPhoto: 'Take a photo of your meal', scanning: 'Looking at your food…', scanHint: 'Works best from above, with everything on the plate in view.',
+  scanCheck: 'These are guesses. Fix the names and grams so they’re right.', total: 'Total',
+  ai_not_set_up: 'This isn’t switched on yet. Coming very soon!', ai_daily_limit: 'You’ve hit today’s limit. Try again tomorrow', ai_no_recipe: 'Couldn’t find a recipe there. Try a screenshot instead?',
+  ai_no_food: 'Couldn’t spot any food in that photo', ai_page_unreachable: 'Couldn’t open that link. Try a screenshot instead?', ai_offline: 'You’re offline right now', ai_failed: 'Something went wrong, try again', ai_signed_out: 'Please sign in again',
   signIn: 'Sign in', signUp: 'Create account', email: 'Email', password: 'Password', passwordHint: 'At least 8 characters',
   haveAccount: 'Already have an account? Sign in', noAccount: 'New here? Create an account', forgot: 'Forgot your password?', sendReset: 'Send reset link',
   resetSent: 'Check your email for a link to reset your password.', checkEmail: 'Nearly there. Check your email to confirm your account, then come back and sign in.',
@@ -43,12 +49,6 @@ const en = {
   dinnerEmpty: 'What are we having tonight?', addMeal: 'Add a meal', mealEmpty: 'Nothing logged yet',
   scanBarcode: 'Barcode scanner', pointAtBarcode: 'Point your camera at the barcode', startingCamera: 'Starting camera…', typeInstead: 'Type the number instead', cameraDenied: 'Camera access is off. Allow it in your browser settings, or type the number below.', cameraUnavailable: 'Can’t use the camera here. Type the number below instead.',
   ukFoodData: 'UK food data: McCance & Widdowson (CoFID)',
-  importTitle: 'Import a recipe', importLinkPh: 'Paste a link (Pinterest, any recipe site)', import: 'Import', importPhoto: 'From a photo or screenshot',
-  importing: 'Reading the recipe… this takes a few seconds', importHint: 'Works with links, screenshots and photos of cookbook pages. You’ll check everything before it saves.', importDone: 'Got it! Check it over, then tap Next',
-  photoScanSub: 'Snap your plate, we’ll guess the macros', takeMealPhoto: 'Take a photo of your meal', scanning: 'Looking at your food…', scanHint: 'Works best from above, with everything on the plate in view.',
-  scanCheck: 'These are guesses. Fix the names and grams so they’re right.', total: 'Total',
-  ai_not_set_up: 'This isn’t switched on yet. Coming very soon!', ai_daily_limit: 'You’ve hit today’s limit. Try again tomorrow', ai_no_recipe: 'Couldn’t find a recipe there. Try a screenshot instead?',
-  ai_no_food: 'Couldn’t spot any food in that photo', ai_page_unreachable: 'Couldn’t open that link. Try a screenshot instead?', ai_offline: 'You’re offline right now', ai_failed: 'Something went wrong, try again', ai_signed_out: 'Please sign in again',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -123,6 +123,12 @@ type Dict = typeof en
 export type TKey = keyof Dict
 
 const pl: Dict = {
+  importTitle: 'Importuj przepis', importLinkPh: 'Wklej link (Pinterest, dowolna strona)', import: 'Importuj', importPhoto: 'Ze zdjęcia lub zrzutu ekranu',
+  importing: 'Czytam przepis… to potrwa kilka sekund', importHint: 'Działa z linkami, zrzutami ekranu i zdjęciami stron z książek. Wszystko sprawdzisz przed zapisaniem.', importDone: 'Mam! Sprawdź i kliknij Dalej',
+  photoScanSub: 'Zrób zdjęcie talerza, zgadniemy makro', takeMealPhoto: 'Zrób zdjęcie posiłku', scanning: 'Patrzę na Twoje jedzenie…', scanHint: 'Najlepiej z góry, z całym talerzem w kadrze.',
+  scanCheck: 'To tylko szacunki. Popraw nazwy i gramy.', total: 'Razem',
+  ai_not_set_up: 'To jeszcze nie jest włączone. Już niedługo!', ai_daily_limit: 'Dzisiejszy limit wykorzystany. Spróbuj jutro', ai_no_recipe: 'Nie znalazłam tam przepisu. Może zrzut ekranu?',
+  ai_no_food: 'Nie widzę jedzenia na tym zdjęciu', ai_page_unreachable: 'Nie udało się otworzyć linku. Może zrzut ekranu?', ai_offline: 'Jesteś offline', ai_failed: 'Coś poszło nie tak, spróbuj ponownie', ai_signed_out: 'Zaloguj się ponownie',
   signIn: 'Zaloguj się', signUp: 'Załóż konto', email: 'E-mail', password: 'Hasło', passwordHint: 'Co najmniej 8 znaków',
   haveAccount: 'Masz już konto? Zaloguj się', noAccount: 'Pierwszy raz tutaj? Załóż konto', forgot: 'Nie pamiętasz hasła?', sendReset: 'Wyślij link do resetu',
   resetSent: 'Sprawdź skrzynkę, wysłałyśmy link do zmiany hasła.', checkEmail: 'Prawie gotowe. Sprawdź skrzynkę, potwierdź konto i wróć, żeby się zalogować.',
@@ -159,12 +165,6 @@ const pl: Dict = {
   dinnerEmpty: 'Co dziś na kolację?', addMeal: 'Dodaj posiłek', mealEmpty: 'Nic jeszcze nie dodano',
   scanBarcode: 'Skaner kodów', pointAtBarcode: 'Skieruj aparat na kod kreskowy', startingCamera: 'Włączam aparat…', typeInstead: 'Wpisz numer ręcznie', cameraDenied: 'Dostęp do aparatu jest wyłączony. Włącz go w ustawieniach przeglądarki albo wpisz numer poniżej.', cameraUnavailable: 'Nie da się tu użyć aparatu. Wpisz numer poniżej.',
   ukFoodData: 'Dane: brytyjska baza McCance & Widdowson (CoFID)',
-  importTitle: 'Importuj przepis', importLinkPh: 'Wklej link (Pinterest, dowolna strona)', import: 'Importuj', importPhoto: 'Ze zdjęcia lub zrzutu ekranu',
-  importing: 'Czytam przepis… to potrwa kilka sekund', importHint: 'Działa z linkami, zrzutami ekranu i zdjęciami stron z książek. Wszystko sprawdzisz przed zapisaniem.', importDone: 'Mam! Sprawdź i kliknij Dalej',
-  photoScanSub: 'Zrób zdjęcie talerza, zgadniemy makro', takeMealPhoto: 'Zrób zdjęcie posiłku', scanning: 'Patrzę na Twoje jedzenie…', scanHint: 'Najlepiej z góry, z całym talerzem w kadrze.',
-  scanCheck: 'To tylko szacunki. Popraw nazwy i gramy.', total: 'Razem',
-  ai_not_set_up: 'To jeszcze nie jest włączone. Już niedługo!', ai_daily_limit: 'Dzisiejszy limit wykorzystany. Spróbuj jutro', ai_no_recipe: 'Nie znalazłam tam przepisu. Może zrzut ekranu?',
-  ai_no_food: 'Nie widzę jedzenia na tym zdjęciu', ai_page_unreachable: 'Nie udało się otworzyć linku. Może zrzut ekranu?', ai_offline: 'Jesteś offline', ai_failed: 'Coś poszło nie tak, spróbuj ponownie', ai_signed_out: 'Zaloguj się ponownie',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 
