@@ -93,7 +93,7 @@ export default function Plan() {
                 return (
                   <div key={p.id} className="meal-row">
                     <button onClick={() => nav(`/recipes/${r.id}`)} style={{ display: 'flex', gap: 12, alignItems: 'center', flex: 1, minWidth: 0, background: 'none', border: 'none', textAlign: 'left', padding: 0 }}>
-                      <Thumb photo={r.photo} />
+                      <Thumb photo={r.photo} cat={r.category} />
                       <span className="grow stack" style={{ gap: 2 }}>
                         <span className="row caption" style={{ gap: 6, whiteSpace: 'nowrap' }}>{t(p.meal)}{p.leftoverOf && <span className="tag" style={{ whiteSpace: 'nowrap' }}>{t('leftovers')}</span>}</span>
                         <span style={{ fontSize: 15, lineHeight: '20px', fontWeight: 600 }}>{r.title}</span>
@@ -131,7 +131,7 @@ function RecipePicker({ open, meal, days, onClose, onPick }: { open: boolean; me
   const { recent, rest } = rankRecipes(recipes.filter(matches), plan, days)
   const row = (r: Recipe) => (
     <button key={r.id} className="meal-row" onClick={() => onPick(r)}>
-      <Thumb photo={r.photo} size={48} />
+      <Thumb photo={r.photo} size={48} cat={r.category} />
       <span className="grow stack" style={{ gap: 2, minWidth: 0 }}>
         <span style={{ fontWeight: 600 }}>{r.title}</span>
         <span className="caption">{Math.round(r.nutrition.kcal)} {t('kcal')} · {Math.round(r.nutrition.protein)}g {t('protein').toLowerCase()}{r.minutes ? ` · ${t('minutes', { n: r.minutes })}` : ''}</span>

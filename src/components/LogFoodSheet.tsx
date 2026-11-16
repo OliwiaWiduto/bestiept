@@ -82,7 +82,7 @@ export default function LogFoodSheet() {
           {dayLogs.map((l) => (
             <button key={l.id} className="meal-row" aria-pressed={targetId === l.id} onClick={() => setTargetId(l.id)}
               style={{ border: `2px solid ${targetId === l.id ? 'var(--green)' : 'transparent'}`, padding: 10 }}>
-              <Thumb photo={l.photo} size={40} />
+              <Thumb cat={l.meal} photo={l.photo} size={40} />
               <span className="grow stack" style={{ gap: 0 }}><span className="caption">{t(l.meal)}</span><span style={{ fontWeight: 600, fontSize: 15 }}>{l.name}</span></span>
             </button>
           ))}
@@ -241,7 +241,7 @@ export default function LogFoodSheet() {
               ))}
               {tab === 'recipe' && (recipeList.length === 0 ? <p className="muted" style={{ margin: 0 }}>{t('noResults')}</p> : recipeList.map((x) => (
                 <button key={x.id} className="meal-row" onClick={() => { setRecipeId(x.id); setMeal(x.category); setMode('recipe') }}>
-                  <Thumb photo={x.photo} size={48} />
+                  <Thumb cat={x.category} photo={x.photo} size={48} />
                   <span className="grow" style={{ fontWeight: 600 }}>{x.title}</span>
                   <span className="small muted" style={{ whiteSpace: 'nowrap' }}>{x.nutrition.kcal} {t('kcal')}</span>
                 </button>
@@ -254,7 +254,7 @@ export default function LogFoodSheet() {
               <div className="card tight">
                 {recent.map((l) => (
                   <button key={l.id} className="list-row" style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--line)', textAlign: 'left' }} onClick={() => logAgain(l)}>
-                    <Thumb photo={l.photo} size={40} />
+                    <Thumb cat={l.meal} photo={l.photo} size={40} />
                     <span className="grow stack" style={{ gap: 0, minWidth: 0 }}>
                       <span style={{ fontWeight: 600, fontSize: 15 }}>{l.name}</span>
                       <span className="caption">{Math.round(sumItems(l.items).kcal)} {t('kcal')}</span>
@@ -282,7 +282,7 @@ export default function LogFoodSheet() {
           {recipeList.length === 0 && <p className="muted">{t('emptyRecipes')}</p>}
           {recipeList.map((x) => (
             <button key={x.id} className="meal-row" onClick={() => { setRecipeId(x.id); setMeal(x.category) }}>
-              <Thumb photo={x.photo} size={48} />
+              <Thumb cat={x.category} photo={x.photo} size={48} />
               <span className="grow" style={{ fontWeight: 600 }}>{x.title}</span>
               <span className="small muted">{x.nutrition.kcal} {t('kcal')}</span>
             </button>
@@ -291,7 +291,7 @@ export default function LogFoodSheet() {
       )}
       {mode === 'recipe' && r && (
         <div className="stack" style={{ gap: 16 }}>
-          <div className="meal-row"><Thumb photo={r.photo} /><span className="grow" style={{ fontWeight: 600 }}>{r.title}</span></div>
+          <div className="meal-row"><Thumb cat={r.category} photo={r.photo} /><span className="grow" style={{ fontWeight: 600 }}>{r.title}</span></div>
           <div className="between"><span className="label">{t('servingsEaten')}</span><Stepper value={servings} onChange={setServings} label={t('servings')} /></div>
           {mealChips}
           <button className="btn primary block" onClick={() => save(r.title, [{ id: uid(), name: r.title, amount: servings, unit: 'serving', per: r.nutrition }], { photo: r.photo, recipeId: r.id })}>
