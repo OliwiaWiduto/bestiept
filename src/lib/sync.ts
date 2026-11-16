@@ -38,7 +38,8 @@ type Remote = {
 async function pull(uid: string): Promise<Remote> {
   const [p, r, l, pl, w] = await Promise.all([
     supabase.from('profiles').select('data').eq('id', uid).maybeSingle(),
-    supabase.from('recipes').select('data').eq('user_id', uid),
+    // Includes recipes of linked family members (see family.sql)
+    supabase.from('recipes').select('data, user_id'),
     supabase.from('log_entries').select('data').eq('user_id', uid),
     supabase.from('plan_items').select('data').eq('user_id', uid),
     supabase.from('weights').select('date, kg').eq('user_id', uid).order('date'),
@@ -47,7 +48,10 @@ async function pull(uid: string): Promise<Remote> {
   if (err) throw err
   return {
     profile: (p.data?.data as Remote['profile']) ?? null,
-    recipes: (r.data ?? []).map((x) => x.data as Recipe),
+    recipes: (r.data ?? []).map((x) => {
+      const { ownerId: _drop, ...rec } = x.data as Recipe // eslint-disable-line @typescript-eslint/no-unused-vars
+      return x.user_id === uid ? rec : { ...rec, ownerId: x.user_id as string }
+    }),
     logs: (l.data ?? []).map((x) => x.data as LogEntry),
     plan: (pl.data ?? []).map((x) => x.data as PlanItem),
     weights: (w.data ?? []).map((x) => ({ date: x.date as string, kg: Number(x.kg) })),
@@ -178,8 +182,9 @@ async function pushOnce(uid: string) {
         const rows = []
         for (const x of changed as (Recipe | LogEntry | PlanItem)[]) {
           const photo = 'photo' in x ? await photoForCloud(uid, c, x.id, x.photo, photos) : undefined
-          const data = 'photo' in x ? { ...x, photo } : x
-          rows.push({ id: x.id, user_id: uid, data, updated_at: now, ...('date' in x ? { date: x.date } : {}) })
+          const { ownerId, ...plain } = x as Recipe
+          const data = 'photo' in x ? { ...plain, photo } : plain
+          rows.push({ id: x.id, user_id: ownerId ?? uid, data, updated_at: now, ...('date' in x ? { date: x.date } : {}) })
         }
         const { error } = await supabase.from(TABLE[c]).upsert(rows)
         if (error) throw error

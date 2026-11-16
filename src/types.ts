@@ -35,6 +35,8 @@ export type Recipe = {
   steps: string[]
   nutrition: Macros // per serving
   createdAt: number
+  /** Set when the recipe belongs to a linked family member (not stored in the cloud copy). */
+  ownerId?: string
 }
 
 /** A food in a logged meal. `per` is per 100g when unit is 'g', or per 1 serving when unit is 'serving'. */

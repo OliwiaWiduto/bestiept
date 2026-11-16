@@ -4,12 +4,14 @@ import { useT } from '../i18n'
 import type { Activity, Goal, Macros, Profile, Sex } from '../types'
 import { BackButton, Icon, NumberField, toast } from '../components/ui'
 import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { signOutEverywhere } from '../lib/sync'
 import { HeightField, UnitsToggle, WeightField } from '../components/BodyFields'
 
 export default function Settings() {
   const t = useT()
+  const nav = useNavigate()
   const { lang, setLang, profile, targets, updateProfile, setTargets, shopping, setShopping, resetAll } = useStore()
   const [p, setP] = useState<Profile | null>(profile)
   const [tg, setTg] = useState<Macros | null>(targets)
@@ -71,10 +73,10 @@ export default function Settings() {
         <button className="btn secondary" onClick={() => { setShopping({ staples: staples.split('\n').map((s) => s.trim()).filter(Boolean), staplesAsked: true }); toast(t('saved')) }}>{t('save')}</button>
       </section>
 
-      <section className="card stack" style={{ gap: 8 }}>
-        <h2 className="heading">{t('family')}</h2>
-        <span className="small muted">{t('familySoon')}</span>
-      </section>
+      <button className="card stack" style={{ gap: 8, border: 'none', textAlign: 'left' }} onClick={() => nav('/family')}>
+        <span className="between"><h2 className="heading">{t('family')}</h2><Icon name="forward" /></span>
+        <span className="small muted">{t('familySummary')}</span>
+      </button>
 
       <section className="card stack" style={{ gap: 12 }}>
         <h2 className="heading">{t('account')}</h2>
