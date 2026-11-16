@@ -4,7 +4,7 @@ import { useRecipes } from '../lib/recipeLang'
 import { useUI } from '../ui-state'
 import { useT } from '../i18n'
 import { addDays, fmt, today, weekDays, weekStart } from '../lib/dates'
-import { buildList, CATEGORIES, CATEGORY_ICON, DEFAULT_STAPLES, DEFAULT_STAPLES_PL, displayAmount, type ShoppingLine } from '../lib/shopping'
+import { buildList, CATEGORIES, CATEGORY_ICON, DEFAULT_STAPLES, DEFAULT_STAPLES_PL, displayAmount, staplesIn, type ShoppingLine } from '../lib/shopping'
 import { uid } from '../lib/util'
 import { Icon } from '../components/ui'
 import { useFamilyLists } from '../lib/family'
@@ -39,8 +39,8 @@ export default function Shopping() {
   const allKeys = [...need.map((l) => l.key), ...shopping.extras.map((e) => `extra:${e.id}`)]
   const done = allKeys.filter(isTicked).length
 
-  const [staplePick, setStaplePick] = useState<string[]>(shopping.staples)
-  const stapleOptions = Array.from(new Set([...(t.lang === 'pl' ? DEFAULT_STAPLES_PL : DEFAULT_STAPLES), ...shopping.staples]))
+  const [staplePick, setStaplePick] = useState<string[]>(() => staplesIn(shopping.staples, t.lang))
+  const stapleOptions = Array.from(new Set([...(t.lang === 'pl' ? DEFAULT_STAPLES_PL : DEFAULT_STAPLES), ...staplesIn(shopping.staples, t.lang)]))
 
   const row = (key: string, name: string, amount: string, caption: string, last: boolean) => {
     const on = isTicked(key)

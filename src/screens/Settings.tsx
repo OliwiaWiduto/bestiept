@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../store'
 import { useT } from '../i18n'
+import { staplesIn } from '../lib/shopping'
 import type { Activity, Goal, Macros, Profile, Sex } from '../types'
 import { BackButton, Icon, NumberField, toast } from '../components/ui'
 import { useEffect } from 'react'
@@ -15,7 +16,7 @@ export default function Settings() {
   const { lang, setLang, profile, targets, updateProfile, setTargets, shopping, setShopping, resetAll } = useStore()
   const [p, setP] = useState<Profile | null>(profile)
   const [tg, setTg] = useState<Macros | null>(targets)
-  const [staples, setStaples] = useState(shopping.staples.join('\n'))
+  const [staples, setStaples] = useState(staplesIn(shopping.staples, t.lang).join('\n'))
   const [email, setEmail] = useState('')
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? '')) }, [])
   if (!p || !tg) return null

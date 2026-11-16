@@ -35,6 +35,32 @@ export function categorise(name: string): Category {
 export const DEFAULT_STAPLES = ['salt', 'pepper', 'olive oil', 'vegetable oil', 'soy sauce', 'stock', 'cumin', 'paprika', 'oregano', 'chilli flakes', 'garlic', 'flour', 'sugar', 'honey', 'vinegar']
 export const DEFAULT_STAPLES_PL = ['sól', 'pieprz', 'oliwa', 'olej', 'sos sojowy', 'bulion', 'kmin', 'papryka słodka', 'oregano', 'płatki chili', 'czosnek', 'mąka', 'cukier', 'miód', 'ocet']
 
+/** A default staple in the other language ("salt" ↔ "sól"); anything she typed herself stays as it is. */
+function swapStaple(s: string): string | undefined {
+  const k = s.trim().toLowerCase()
+  const i = DEFAULT_STAPLES.indexOf(k)
+  if (i >= 0) return DEFAULT_STAPLES_PL[i]
+  const j = DEFAULT_STAPLES_PL.indexOf(k)
+  return j >= 0 ? DEFAULT_STAPLES[j] : undefined
+}
+
+/** Polish ingredient names change their endings ("czosnek" → "czosnku"), so the default staples match on these too. */
+const PL_FORMS: Record<string, string[]> = {
+  'sól': ['soli'], 'pieprz': ['pieprzu'], 'oliwa': ['oliwy', 'oliwę', 'oliwą'], 'olej': ['oleju', 'olejem'], 'sos sojowy': ['sosu sojowego', 'sosem sojowym'],
+  'bulion': ['bulionu', 'bulionem'], 'kmin': ['kminu', 'kminku'], 'papryka słodka': ['papryki słodkiej', 'słodkiej papryki', 'słodka papryka'], 'płatki chili': ['płatków chili'],
+  'czosnek': ['czosnku', 'czosnkiem'], 'mąka': ['mąki', 'mąkę'], 'cukier': ['cukru'], 'miód': ['miodu', 'miodem'], 'ocet': ['octu', 'octem'],
+}
+const forms = (s: string) => { const k = s.toLowerCase(); return [k, ...(PL_FORMS[k] ?? [])] }
+
+/** Her staples shown in the app's language, without duplicates. */
+export function staplesIn(staples: string[], lang: 'en' | 'pl'): string[] {
+  const own = lang === 'pl' ? DEFAULT_STAPLES_PL : DEFAULT_STAPLES
+  return Array.from(new Set(staples.map((s) => {
+    const k = s.trim().toLowerCase()
+    return own.includes(k) ? k : swapStaple(k) ?? s.trim()
+  })))
+}
+
 export type ShoppingLine = {
   key: string
   name: string
@@ -80,7 +106,7 @@ export function buildList(plan: PlanItem[], recipes: Recipe[], shop: ShoppingSta
   const probably: ShoppingLine[] = []
   for (const line of map.values()) {
     const out = shop.out.includes(line.key)
-    const isStaple = shop.staples.some((s) => line.name.includes(s.toLowerCase()))
+    const isStaple = shop.staples.flatMap((s) => [...forms(s), ...forms(swapStaple(s) ?? '')]).some((s) => s && line.name.includes(s))
     const small = ['tsp', 'tbsp', 'pinch', 'łyżeczka', 'łyżeczki', 'łyżka', 'łyżki', 'szczypta'].includes(line.unit) && !PERISHABLE.includes(line.category)
     const last = shop.lastBought[line.key]
     const recent = !!last && !PERISHABLE.includes(line.category) && daysBetween(last, todayKey) <= 28
