@@ -6,9 +6,11 @@ import { MEALS, type FoodItem, type Macros, type Meal } from '../types'
 import { useFoodSearch } from '../lib/foodSearch'
 import { uid } from '../lib/util'
 import { BarcodeScanner } from './BarcodeScanner'
-import { Icon, Sheet, Stepper, Thumb, toast, type IconName } from './ui'
+import { scanMeal, type ScannedItem } from '../lib/ai'
+import { itemMacros } from '../lib/nutrition'
+import { Icon, PhotoButton, Sheet, Stepper, Thumb, toast, type IconName } from './ui'
 
-type Mode = 'menu' | 'recipe' | 'search' | 'quick' | 'barcode'
+type Mode = 'menu' | 'recipe' | 'search' | 'quick' | 'barcode' | 'scan'
 type Picked = { name: string; per: Macros; portion: number; source?: string }
 
 export default function LogFoodSheet() {
@@ -26,6 +28,8 @@ export default function LogFoodSheet() {
   const [code, setCode] = useState('')
   const [lookup, setLookup] = useState<'idle' | 'loading' | 'notfound'>('idle')
   const [typing, setTyping] = useState(false)
+  const [scan, setScan] = useState<{ photo: string; name: string; items: (ScannedItem & { id: string })[] } | null>(null)
+  const [scanning, setScanning] = useState(false)
   const [scanError, setScanError] = useState<'denied' | 'unavailable' | null>(null)
   const [dest, setDest] = useState<'own' | 'existing'>('own')
   const [targetId, setTargetId] = useState<string | null>(null)
@@ -33,7 +37,7 @@ export default function LogFoodSheet() {
   useEffect(() => {
     if (logOpen) {
       setMode('menu'); setMeal(logMeal ?? defaultMeal()); setQuery(''); setRecipeId(null); setServings(1); setPicked(null)
-      setQuick({ name: '', kcal: '', protein: '', carbs: '', fat: '' }); setCode(''); setLookup('idle'); setTyping(false); setScanError(null); setDest('own'); setTargetId(null)
+      setQuick({ name: '', kcal: '', protein: '', carbs: '', fat: '' }); setCode(''); setLookup('idle'); setTyping(false); setScan(null); setScanning(false); setScanError(null); setDest('own'); setTargetId(null)
     }
   }, [logOpen, logMeal])
 
@@ -150,6 +154,16 @@ export default function LogFoodSheet() {
 
   const onScanFail = useCallback((why: 'denied' | 'unavailable') => { setScanError(why); setTyping(true) }, [])
 
+  const runScan = async (photo: string) => {
+    setScanning(true)
+    const { data, error } = await scanMeal(photo, t.lang)
+    setScanning(false)
+    if (!data) { toast(t(`ai_${error ?? 'failed'}`)); return }
+    setScan({ photo, name: data.meal.name, items: data.meal.items.map((i) => ({ ...i, grams: Math.round(i.grams), id: uid() })) })
+  }
+  const setScanItem = (id: string, patch: Partial<ScannedItem>) => scan && setScan({ ...scan, items: scan.items.map((i) => (i.id === id ? { ...i, ...patch } : i)) })
+  const scanFoods: FoodItem[] = (scan?.items ?? []).filter((i) => i.name.trim() && i.grams > 0).map((i) => ({ id: i.id, name: i.name.trim(), amount: i.grams, unit: 'g', per: i.per100 }))
+
   const r = recipes.find((x) => x.id === recipeId)
 
   return (
@@ -161,7 +175,7 @@ export default function LogFoodSheet() {
           {option('search', t('searchFoods'), () => setMode('search'))}
           {option('barcode', t('barcode'), () => setMode('barcode'))}
           {option('bolt', t('quickAdd'), () => setMode('quick'))}
-          {option('camera', t('photoScan'), undefined, t('comingSoon'))}
+          {option('camera', t('photoScan'), () => setMode('scan'), t('photoScanSub'))}
         </div>
       )}
 
@@ -219,6 +233,41 @@ export default function LogFoodSheet() {
           <button className="btn green block" disabled={code.length < 8 || lookup === 'loading'} onClick={() => lookUp()}>{lookup === 'loading' ? t('lookingUp') : t('lookUp')}</button>
           </>}
           <span className="caption">{t('foodData')}</span>
+        </div>
+      )}
+
+      {mode === 'scan' && !scan && (
+        <div className="stack" style={{ gap: 12 }}>
+          <PhotoButton max={1200} disabled={scanning} onPhoto={runScan} label={t('takeMealPhoto')} className="thumb"
+            style={{ width: '100%', height: 200, borderRadius: 28, flexDirection: 'column', gap: 8, border: 'none' }}>
+            <Icon name="camera" size={36} sw={1.5} /><span className="label">{scanning ? t('scanning') : t('takeMealPhoto')}</span>
+          </PhotoButton>
+          <span className="caption">{t('scanHint')}</span>
+        </div>
+      )}
+      {mode === 'scan' && scan && (
+        <div className="stack" style={{ gap: 12 }}>
+          <div className="row" style={{ gap: 12 }}>
+            <Thumb photo={scan.photo} size={64} />
+            <label className="field grow"><span className="sr-only">{t('quickName')}</span><input className="input" value={scan.name} onChange={(e) => setScan({ ...scan, name: e.target.value })} /></label>
+          </div>
+          <div className="tip"><Icon name="check" size={22} /><span>{t('scanCheck')}</span></div>
+          <div className="card tight">
+            {scan.items.map((i) => (
+              <div key={i.id} className="list-row" style={{ gap: 8 }}>
+                <input className="input grow" aria-label={t('itemName')} style={{ height: 44, padding: '0 10px' }} value={i.name} onChange={(e) => setScanItem(i.id, { name: e.target.value })} />
+                <label className="grams" style={{ height: 44, width: 76, flex: "none" }}><span className="sr-only">{t('grams')}</span>
+                  <input type="number" inputMode="decimal" value={i.grams || ''} onChange={(e) => setScanItem(i.id, { grams: Number(e.target.value) || 0 })} /><span className="muted">g</span></label>
+                <span className="small muted" style={{ width: 34, textAlign: "right", flex: "none" }}>{Math.round(itemMacros({ id: i.id, name: i.name, amount: i.grams, unit: 'g', per: i.per100 }).kcal)}</span>
+                <button className="icon-btn" style={{ width: 32, height: 32, background: 'transparent', color: 'var(--ink-muted)' }} aria-label={`${t('remove')} ${i.name}`} onClick={() => setScan({ ...scan, items: scan.items.filter((x) => x.id !== i.id) })}><Icon name="close" size={16} /></button>
+              </div>
+            ))}
+          </div>
+          <div className="between"><span className="label">{t('total')}</span><b>{Math.round(scanFoods.reduce((a, f) => a + itemMacros(f).kcal, 0))} {t('kcal')}</b></div>
+          {mealChips}
+          <button className="btn primary block" disabled={!scanFoods.length} onClick={() => save(scan.name.trim() || t('photoScan'), scanFoods, { photo: scan.photo })}>
+            {t('addToMeal', { meal: t(meal) })}
+          </button>
         </div>
       )}
 

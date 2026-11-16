@@ -159,16 +159,16 @@ export function NumberField({ label, value, onChange, step = 1 }: { label: strin
 }
 
 /** Opens the photo library / camera. Uses a real button so it works reliably on iPhone. */
-export function PhotoButton({ onPhoto, className, style, children, label }: { onPhoto: (dataUrl: string) => void; className?: string; style?: React.CSSProperties; children: ReactNode; label: string }) {
+export function PhotoButton({ onPhoto, className, style, children, label, max, disabled }: { onPhoto: (dataUrl: string) => void; className?: string; style?: React.CSSProperties; children: ReactNode; label: string; max?: number; disabled?: boolean }) {
   const ref = useRef<HTMLInputElement>(null)
   return (
     <>
-      <button type="button" className={className} style={style} aria-label={label} onClick={() => ref.current?.click()}>{children}</button>
+      <button type="button" className={className} style={style} aria-label={label} disabled={disabled} onClick={() => ref.current?.click()}>{children}</button>
       <input ref={ref} type="file" accept="image/*" className="sr-only" tabIndex={-1} aria-hidden="true"
         onChange={async (e) => {
           const f = e.target.files?.[0]
           e.target.value = ''
-          if (f) onPhoto(await fileToDataUrl(f))
+          if (f) onPhoto(await fileToDataUrl(f, max))
         }} />
     </>
   )

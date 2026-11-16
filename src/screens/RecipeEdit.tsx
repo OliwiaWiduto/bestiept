@@ -5,6 +5,7 @@ import { useT } from '../i18n'
 import { MEALS, type Ingredient, type Macros, type Meal } from '../types'
 import { formatAmount, parseIngredient, uid } from '../lib/util'
 import { usePhoto } from '../lib/sync'
+import { importRecipe } from '../lib/ai'
 import { BackButton, Icon, PhotoButton, Stepper, toast } from '../components/ui'
 
 export default function RecipeEdit() {
@@ -27,6 +28,22 @@ export default function RecipeEdit() {
   const [nutrition, setNutrition] = useState<Macros>(existing?.nutrition ?? { kcal: 0, protein: 0, carbs: 0, fat: 0, fibre: 0, sugar: 0 })
   const [parsed, setParsed] = useState<Ingredient[]>([])
   const photoUrl = usePhoto(photo)
+  const [link, setLink] = useState('')
+  const [importing, setImporting] = useState(false)
+
+  const runImport = async (input: { url?: string; image?: string }) => {
+    setImporting(true)
+    const { data, error } = await importRecipe(input, t.lang)
+    setImporting(false)
+    if (!data) { toast(t(`ai_${error ?? 'failed'}`)); return }
+    const r = data.recipe
+    setTitle(r.title); setCategory(r.category); setServings(r.servings || 2); setMinutes(r.minutes ? String(r.minutes) : '')
+    setSource(r.source ?? ''); if (r.photo) setPhoto(r.photo)
+    setIngText(r.ingredients.join('\n')); setStepText(r.steps.join('\n')); setEquipText(r.equipment.join(', '))
+    setNutrition({ kcal: Math.round(r.nutrition.kcal), protein: Math.round(r.nutrition.protein), carbs: Math.round(r.nutrition.carbs), fat: Math.round(r.nutrition.fat), fibre: Math.round(r.nutrition.fibre), sugar: Math.round(r.nutrition.sugar) })
+    setLink('')
+    toast(t('importDone'))
+  }
 
   const toReview = () => {
     if (!title.trim()) { toast(t('titleNeeded')); return }
@@ -82,7 +99,21 @@ export default function RecipeEdit() {
   return (
     <main className="screen no-nav">
       <div className="between"><BackButton /><span style={{ fontWeight: 600 }}>{existing ? t('editRecipe') : t('newRecipe')}</span><span style={{ width: 44 }} /></div>
-      {!existing && <div className="tip"><Icon name="camera" size={22} /><span>{t('importSoon')}</span></div>}
+      {!existing && (
+        <section className="card stack" style={{ gap: 10 }}>
+          <h2 className="heading" style={{ fontSize: 17 }}>{t('importTitle')}</h2>
+          <div className="row" style={{ gap: 8 }}>
+            <input className="input grow" inputMode="url" autoCapitalize="none" autoCorrect="off" placeholder={t('importLinkPh')} value={link} onChange={(e) => setLink(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && link.trim()) runImport({ url: link.trim() }) }} disabled={importing} />
+            <button className="btn green small" disabled={!link.trim() || importing} onClick={() => runImport({ url: link.trim() })}>{t('import')}</button>
+          </div>
+          <PhotoButton max={1600} disabled={importing} onPhoto={(img) => runImport({ image: img })} label={t('importPhoto')} className="btn secondary block">
+            <Icon name="camera" size={18} />{t('importPhoto')}
+          </PhotoButton>
+          {importing && <span className="small muted" role="status">{t('importing')}</span>}
+          <span className="caption">{t('importHint')}</span>
+        </section>
+      )}
 
       <PhotoButton onPhoto={setPhoto} label={photo ? t('changePhoto') : t('addPhoto')} className="thumb"
         style={{ width: '100%', height: 180, borderRadius: 28, backgroundImage: photoUrl ? `url(${photoUrl})` : undefined, flexDirection: 'column', gap: 6, border: 'none', position: 'relative' }}>
