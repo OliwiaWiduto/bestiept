@@ -6,6 +6,7 @@ import { MEALS, type FoodItem, type LogEntry } from '../types'
 import { itemMacros, sumItems } from '../lib/nutrition'
 import { FOODS } from '../lib/foods'
 import { uid } from '../lib/util'
+import { usePhoto } from '../lib/sync'
 import { BackButton, Icon, MacroGrid, PhotoButton, Sheet, Stepper } from '../components/ui'
 
 export default function MealEdit() {
@@ -16,6 +17,7 @@ export default function MealEdit() {
   const original = logs.find((l) => l.id === id)
   const [draft, setDraft] = useState<LogEntry | null>(original ?? null)
   const [adding, setAdding] = useState(false)
+  const photoUrl = usePhoto(draft?.photo)
   if (!draft) return <main className="screen"><BackButton to="/" /></main>
 
   const totals = sumItems(draft.items)
@@ -29,7 +31,7 @@ export default function MealEdit() {
         <PhotoButton className="icon-btn" label={draft.photo ? t('changePhoto') : t('addPhoto')} onPhoto={(photo) => setDraft({ ...draft, photo })}><Icon name="camera" /></PhotoButton>
       </div>
 
-      {draft.photo && <div role="img" aria-label={draft.name} style={{ height: 220, borderRadius: 28, background: `url(${draft.photo}) center / cover` }} />}
+      {draft.photo && <div role="img" aria-label={draft.name} style={{ height: 220, borderRadius: 28, background: `url(${photoUrl}) center / cover` }} />}
 
       <div className="stack">
         <input className="title" aria-label={t('itemName')} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })}

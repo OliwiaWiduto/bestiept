@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { fileToDataUrl } from '../lib/util'
+import { usePhoto } from '../lib/sync'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useT } from '../i18n'
 
@@ -117,7 +118,8 @@ export function BackButton({ to }: { to?: string }) {
   return <button className="icon-btn" aria-label={t('back')} onClick={() => (to ? nav(to) : nav(-1))}><Icon name="back" /></button>
 }
 
-export function Thumb({ photo, size = 56 }: { photo?: string; size?: number }) {
+export function Thumb({ photo: src, size = 56 }: { photo?: string; size?: number }) {
+  const photo = usePhoto(src)
   return (
     <div className="thumb" aria-hidden="true" style={{ width: size, height: size, backgroundImage: photo ? `url(${photo})` : undefined }}>
       {!photo && <Icon name="bowl" size={26} sw={1.75} />}

@@ -4,6 +4,7 @@ import { useStore } from '../store'
 import { useT } from '../i18n'
 import { MEALS, type Ingredient, type Macros, type Meal } from '../types'
 import { formatAmount, parseIngredient, uid } from '../lib/util'
+import { usePhoto } from '../lib/sync'
 import { BackButton, Icon, PhotoButton, Stepper, toast } from '../components/ui'
 
 export default function RecipeEdit() {
@@ -25,6 +26,7 @@ export default function RecipeEdit() {
   const [equipText, setEquipText] = useState(existing?.equipment.join(', ') ?? '')
   const [nutrition, setNutrition] = useState<Macros>(existing?.nutrition ?? { kcal: 0, protein: 0, carbs: 0, fat: 0, fibre: 0, sugar: 0 })
   const [parsed, setParsed] = useState<Ingredient[]>([])
+  const photoUrl = usePhoto(photo)
 
   const toReview = () => {
     if (!title.trim()) { toast(t('titleNeeded')); return }
@@ -83,7 +85,7 @@ export default function RecipeEdit() {
       {!existing && <div className="tip"><Icon name="camera" size={22} /><span>{t('importSoon')}</span></div>}
 
       <PhotoButton onPhoto={setPhoto} label={photo ? t('changePhoto') : t('addPhoto')} className="thumb"
-        style={{ width: '100%', height: 180, borderRadius: 28, backgroundImage: photo ? `url(${photo})` : undefined, flexDirection: 'column', gap: 6, border: 'none', position: 'relative' }}>
+        style={{ width: '100%', height: 180, borderRadius: 28, backgroundImage: photoUrl ? `url(${photoUrl})` : undefined, flexDirection: 'column', gap: 6, border: 'none', position: 'relative' }}>
         {!photo && <><Icon name="camera" size={32} sw={1.5} /><span className="label">{t('addPhoto')}</span></>}
         {photo && <span className="btn secondary small" style={{ position: 'absolute', right: 12, bottom: 12 }}><Icon name="camera" size={16} />{t('changePhoto')}</span>}
       </PhotoButton>

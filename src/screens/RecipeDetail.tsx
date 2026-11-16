@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../store'
 import { useT } from '../i18n'
 import { ingredientText } from '../lib/util'
+import { usePhoto } from '../lib/sync'
 import { Icon, MacroGrid, PhotoButton, Stepper } from '../components/ui'
 import AddToPlanSheet from '../components/AddToPlanSheet'
 
@@ -14,12 +15,13 @@ export default function RecipeDetail() {
   const r = recipes.find((x) => x.id === id)
   const [servings, setServings] = useState(r?.servings ?? 2)
   const [planOpen, setPlanOpen] = useState(false)
+  const photo = usePhoto(r?.photo)
   if (!r) return <main className="screen"><button className="btn ghost" onClick={() => nav('/recipes')}>{t('back')}</button></main>
   const factor = servings / (r.servings || 1)
 
   return (
     <main className="screen no-nav" style={{ paddingTop: 24 }}>
-      <div className="hero-photo" role="img" aria-label={r.title} style={{ backgroundImage: r.photo ? `url(${r.photo})` : undefined }}>
+      <div className="hero-photo" role="img" aria-label={r.title} style={{ backgroundImage: photo ? `url(${photo})` : undefined }}>
         {!r.photo && <Icon name="bowl" size={56} sw={1.5} />}
         <button className="icon-btn" style={{ left: 24 }} aria-label={t('back')} onClick={() => nav(-1)}><Icon name="back" /></button>
         <button className="icon-btn" style={{ right: 24, color: 'var(--cherry)' }} aria-pressed={r.favourite} aria-label={r.favourite ? t('unfavourite') : t('favourite')} onClick={() => toggleFavourite(r.id)}>

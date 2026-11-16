@@ -7,6 +7,12 @@ import type { Lang } from './types'
  * Polish copy should be checked by a native speaker before public launch.
  */
 const en = {
+  signIn: 'Sign in', signUp: 'Create account', email: 'Email', password: 'Password', passwordHint: 'At least 8 characters',
+  haveAccount: 'Already have an account? Sign in', noAccount: 'New here? Create an account', forgot: 'Forgot your password?', sendReset: 'Send reset link',
+  resetSent: 'Check your email for a link to reset your password.', checkEmail: 'Nearly there. Check your email to confirm your account, then come back and sign in.',
+  newPassword: 'Choose a new password', setPassword: 'Save new password', authError: 'That didn’t work. Check your email and password and try again.',
+  emailTaken: 'There’s already an account with that email. Try signing in.', syncing: 'Getting your things…', account: 'Account', signOut: 'Sign out',
+  signedInAs: 'Signed in as {email}', syncError: 'Couldn’t sync just now. Your changes are safe on this phone and will sync later.', authSub: 'Sign in so your recipes and progress are saved, whatever phone you’re on.',
   units: 'Units', metric: 'Metric (kg, cm)', imperial: 'Imperial (st, lb, ft)', height: 'Height',
   tgIntro: 'These are worked out from your details and goal. You don’t need to do anything with them, we’ll keep an eye on them for you.',
   ex_kcal: 'Energy for your day, set to match your goal.', ex_protein: 'Keeps you full and helps your muscles.', ex_carbs: 'Your main source of energy.',
@@ -110,6 +116,12 @@ type Dict = typeof en
 export type TKey = keyof Dict
 
 const pl: Dict = {
+  signIn: 'Zaloguj się', signUp: 'Załóż konto', email: 'E-mail', password: 'Hasło', passwordHint: 'Co najmniej 8 znaków',
+  haveAccount: 'Masz już konto? Zaloguj się', noAccount: 'Pierwszy raz tutaj? Załóż konto', forgot: 'Nie pamiętasz hasła?', sendReset: 'Wyślij link do resetu',
+  resetSent: 'Sprawdź skrzynkę, wysłałyśmy link do zmiany hasła.', checkEmail: 'Prawie gotowe. Sprawdź skrzynkę, potwierdź konto i wróć, żeby się zalogować.',
+  newPassword: 'Wybierz nowe hasło', setPassword: 'Zapisz nowe hasło', authError: 'Nie udało się. Sprawdź e-mail i hasło i spróbuj jeszcze raz.',
+  emailTaken: 'Konto z tym adresem już istnieje. Spróbuj się zalogować.', syncing: 'Pobieram Twoje dane…', account: 'Konto', signOut: 'Wyloguj się',
+  signedInAs: 'Zalogowano jako {email}', syncError: 'Nie udało się teraz zsynchronizować. Zmiany są bezpieczne na tym telefonie i zsynchronizują się później.', authSub: 'Zaloguj się, żeby Twoje przepisy i postępy były zapisane na każdym telefonie.',
   units: 'Jednostki', metric: 'Metryczne (kg, cm)', imperial: 'Imperialne (st, lb, ft)', height: 'Wzrost',
   tgIntro: 'Wyliczyłyśmy je na podstawie Twoich danych i celu. Nie musisz nic z nimi robić, my będziemy ich pilnować.',
   ex_kcal: 'Energia na cały dzień, dopasowana do Twojego celu.', ex_protein: 'Daje sytość i wspiera mięśnie.', ex_carbs: 'Twoje główne źródło energii.',

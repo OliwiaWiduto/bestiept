@@ -15,8 +15,11 @@ const idbStorage: StateStorage = {
   removeItem: async (name) => { await del(name) },
 }
 
+export type SyncMeta = { ownerId: string | null; snap: Record<string, Record<string, string>> }
+
 type State = {
   lang: Lang
+  sync: SyncMeta
   units: Units
   pwaDismissedAt: number | null
   profile: Profile | null
@@ -48,6 +51,9 @@ type State = {
   setShopping: (patch: Partial<ShoppingState>) => void
   logWeight: (kg: number, date?: string) => void
   resetAll: () => void
+  setSync: (s: SyncMeta) => void
+  /** Replace everything with data loaded from the cloud. */
+  loadRemote: (d: Pick<State, 'profile' | 'targets' | 'recipes' | 'logs' | 'plan' | 'weights' | 'shopping'> & Partial<Pick<State, 'lang' | 'units' | 'pwaDismissedAt'>>) => void
 }
 
 const emptyShopping: ShoppingState = { ticked: {}, extras: [], staples: [], staplesAsked: false, out: [], lastBought: {} }
@@ -56,6 +62,7 @@ export const useStore = create<State>()(
   persist(
     (setState, getState) => ({
       lang: (navigator.language || '').toLowerCase().startsWith('pl') ? 'pl' : 'en',
+      sync: { ownerId: null, snap: {} },
       units: 'metric',
       pwaDismissedAt: null,
       profile: null,
@@ -107,6 +114,8 @@ export const useStore = create<State>()(
         } else setState({ weights })
       },
       resetAll: () => setState({ profile: null, targets: null, recipes: [], logs: [], plan: [], shopping: emptyShopping, weights: [] }),
+      setSync: (sync) => setState({ sync }),
+      loadRemote: (d) => setState({ ...d }),
     }),
     { name: 'bestiept', storage: createJSONStorage(() => idbStorage), version: 1 },
   ),

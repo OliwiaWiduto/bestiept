@@ -1,8 +1,13 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import type { Session } from '@supabase/supabase-js'
+import { supabase } from './lib/supabase'
+import { startAutoSync, syncNow } from './lib/sync'
+import Auth from './screens/Auth'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useHydrated, useStore } from './store'
 import { useUI } from './ui-state'
-import { BottomNav, ToastHost } from './components/ui'
+import { BottomNav, ToastHost, toast } from './components/ui'
+import { translate } from './i18n'
 import LogFoodSheet from './components/LogFoodSheet'
 import InstallNudge from './components/InstallNudge'
 import Onboarding from './screens/Onboarding'
@@ -26,11 +31,38 @@ export default function App() {
   const openLog = useUI((s) => s.openLog)
   const { pathname } = useLocation()
 
+  const [session, setSession] = useState<Session | null | undefined>(undefined)
+  const [recovery, setRecovery] = useState(false)
+  const [synced, setSynced] = useState<string | null>(null)
+  const uid = session?.user.id
+
   useEffect(() => { document.documentElement.lang = lang }, [lang])
   useEffect(() => { window.scrollTo(0, 0) }, [pathname])
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session))
+    const { data } = supabase.auth.onAuthStateChange((event, s) => {
+      setSession(s)
+      if (event === 'PASSWORD_RECOVERY') setRecovery(true)
+    })
+    return () => data.subscription.unsubscribe()
+  }, [])
 
-  if (!hydrated) return null
-  if (!profile) return <Onboarding />
+  // After signing in (and once saved data has loaded), pull from the cloud, then keep syncing.
+  useEffect(() => {
+    if (!hydrated || !uid) return
+    let stop: (() => void) | undefined
+    let alive = true
+    syncNow(uid)
+      .catch((e) => { console.error(e); toast(translate(useStore.getState().lang, 'syncError')) })
+      .finally(() => { if (alive) { setSynced(uid); stop = startAutoSync(uid) } })
+    return () => { alive = false; stop?.() }
+  }, [hydrated, uid])
+
+  if (!hydrated || session === undefined) return null
+  if (recovery && session) return <Auth recovery onDone={() => setRecovery(false)} />
+  if (!session) return <><Auth /><ToastHost /></>
+  if (synced !== uid) return <main className="empty" style={{ minHeight: '100dvh', justifyContent: 'center' }}><img src="/icons/cat-fruitveg.png" alt="" /><p>{translate(lang, 'syncing')}</p></main>
+  if (!profile) return <><Onboarding /><ToastHost /></>
 
   return (
     <>

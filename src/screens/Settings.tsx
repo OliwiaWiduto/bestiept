@@ -3,6 +3,9 @@ import { useStore } from '../store'
 import { useT } from '../i18n'
 import type { Activity, Goal, Macros, Profile, Sex } from '../types'
 import { BackButton, Icon, NumberField, toast } from '../components/ui'
+import { useEffect } from 'react'
+import { supabase } from '../lib/supabase'
+import { signOutEverywhere } from '../lib/sync'
 import { HeightField, UnitsToggle, WeightField } from '../components/BodyFields'
 
 export default function Settings() {
@@ -11,6 +14,8 @@ export default function Settings() {
   const [p, setP] = useState<Profile | null>(profile)
   const [tg, setTg] = useState<Macros | null>(targets)
   const [staples, setStaples] = useState(shopping.staples.join('\n'))
+  const [email, setEmail] = useState('')
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? '')) }, [])
   if (!p || !tg) return null
 
   const select = <T extends string>(label: string, value: T, options: [T, string][], on: (v: T) => void) => (
@@ -69,6 +74,12 @@ export default function Settings() {
       <section className="card stack" style={{ gap: 8 }}>
         <h2 className="heading">{t('family')}</h2>
         <span className="small muted">{t('familySoon')}</span>
+      </section>
+
+      <section className="card stack" style={{ gap: 12 }}>
+        <h2 className="heading">{t('account')}</h2>
+        {email && <span className="small muted">{t('signedInAs', { email })}</span>}
+        <button className="btn secondary" onClick={() => signOutEverywhere()}>{t('signOut')}</button>
       </section>
 
       <button className="btn ghost" style={{ color: 'var(--cherry)', alignSelf: 'center', border: 'none' }} onClick={() => { if (confirm(t('resetConfirm'))) resetAll() }}>
