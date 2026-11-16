@@ -62,19 +62,18 @@ export default function Today() {
         <button className="icon-btn" style={{ background: 'transparent' }} aria-label={t('nextDay')} disabled={isToday} onClick={() => setViewDate(addDays(viewDate, 1))}><Icon name="forward" /></button>
       </div>
 
-      <section className="card green stack" style={{ gap: 14, padding: 24 }}>
+      <section className={`card stack${over ? '' : ' green'}`} style={{ gap: 14, padding: 24, ...(over ? { background: 'var(--cherry-soft)', color: 'var(--ink)' } : {}) }}>
         <div className="between" style={{ alignItems: 'flex-end' }}>
           <div className="stack" style={{ gap: 4 }}>
-            <span className="number-hero" style={{ color: over ? 'var(--butter)' : 'var(--lime)' }}>{over ? '+' : ''}{Math.abs(Math.round(left))}</span>
+            <span className="number-hero" style={{ color: over ? 'var(--cherry)' : 'var(--lime)' }}>{over ? '+' : ''}{Math.abs(Math.round(left))}</span>
             <span className="label" style={{ fontWeight: over ? 600 : 500 }}>{over ? t('kcalOver') : t('kcalLeft')}</span>
           </div>
           <span className="label" style={{ fontWeight: 400 }}><b>{Math.round(totals.kcal).toLocaleString()}</b> / {targets.kcal.toLocaleString()}</span>
         </div>
-        <div role="img" aria-label={`${Math.round(totals.kcal)} / ${targets.kcal} ${t('kcal')}`} style={{ height: 20, borderRadius: 999, background: 'var(--green-deep)', overflow: 'hidden', display: 'flex', gap: over ? 3 : 0 }}>
-          <div style={{ width: `${over ? (targets.kcal / totals.kcal) * 100 : Math.min(100, (totals.kcal / targets.kcal) * 100)}%`, height: '100%', borderRadius: 999, background: 'var(--on-green)', transition: 'width .3s' }} />
+        <div role="img" aria-label={`${Math.round(totals.kcal)} / ${targets.kcal} ${t('kcal')}`} style={{ height: 20, borderRadius: 999, background: over ? 'rgba(213, 0, 66, .14)' : 'var(--green-deep)', overflow: 'hidden', display: 'flex', gap: over ? 3 : 0 }}>
+          <div style={{ width: `${over ? (targets.kcal / totals.kcal) * 100 : Math.min(100, (totals.kcal / targets.kcal) * 100)}%`, height: '100%', borderRadius: 999, background: over ? 'var(--green)' : 'var(--on-green)', transition: 'width .3s' }} />
           {over && <div style={{ flex: 1, minWidth: 10, height: '100%', borderRadius: 999, background: 'var(--cherry)' }} />}
         </div>
-        {over && <span className="small" style={{ color: 'var(--green-soft)' }}>{t('kcalOverNote')}</span>}
       </section>
 
       <section className="card stack" style={{ gap: 16 }} aria-label="Macros">
