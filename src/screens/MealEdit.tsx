@@ -5,8 +5,8 @@ import { useT } from '../i18n'
 import { MEALS, type FoodItem, type LogEntry } from '../types'
 import { itemMacros, sumItems } from '../lib/nutrition'
 import { FOODS } from '../lib/foods'
-import { fileToDataUrl, uid } from '../lib/util'
-import { BackButton, Icon, MacroGrid, Sheet, Stepper } from '../components/ui'
+import { uid } from '../lib/util'
+import { BackButton, Icon, MacroGrid, PhotoButton, Sheet, Stepper } from '../components/ui'
 
 export default function MealEdit() {
   const t = useT()
@@ -26,10 +26,7 @@ export default function MealEdit() {
       <div className="between">
         <BackButton />
         <span style={{ fontSize: 15, fontWeight: 600 }}>{t('yourMeal')}</span>
-        <label className="icon-btn" aria-label={draft.photo ? t('changePhoto') : t('addPhoto')} style={{ cursor: 'pointer' }}>
-          <Icon name="camera" />
-          <input type="file" accept="image/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; if (f) setDraft({ ...draft, photo: await fileToDataUrl(f) }) }} />
-        </label>
+        <PhotoButton className="icon-btn" label={draft.photo ? t('changePhoto') : t('addPhoto')} onPhoto={(photo) => setDraft({ ...draft, photo })}><Icon name="camera" /></PhotoButton>
       </div>
 
       {draft.photo && <div role="img" aria-label={draft.name} style={{ height: 220, borderRadius: 28, background: `url(${draft.photo}) center / cover` }} />}

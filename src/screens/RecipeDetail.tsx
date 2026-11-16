@@ -3,14 +3,14 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../store'
 import { useT } from '../i18n'
 import { ingredientText } from '../lib/util'
-import { Icon, MacroGrid, Stepper } from '../components/ui'
+import { Icon, MacroGrid, PhotoButton, Stepper } from '../components/ui'
 import AddToPlanSheet from '../components/AddToPlanSheet'
 
 export default function RecipeDetail() {
   const t = useT()
   const nav = useNavigate()
   const { id } = useParams()
-  const { recipes, toggleFavourite, deleteRecipe } = useStore()
+  const { recipes, toggleFavourite, deleteRecipe, saveRecipe } = useStore()
   const r = recipes.find((x) => x.id === id)
   const [servings, setServings] = useState(r?.servings ?? 2)
   const [planOpen, setPlanOpen] = useState(false)
@@ -25,6 +25,10 @@ export default function RecipeDetail() {
         <button className="icon-btn" style={{ right: 24, color: 'var(--cherry)' }} aria-pressed={r.favourite} aria-label={r.favourite ? t('unfavourite') : t('favourite')} onClick={() => toggleFavourite(r.id)}>
           <Icon name="heart" fill={r.favourite} />
         </button>
+        <PhotoButton onPhoto={(photo) => saveRecipe({ ...r, photo })} label={r.photo ? t('changePhoto') : t('addPhoto')} className="btn secondary small"
+          style={{ position: 'absolute', right: 24, bottom: 16 }}>
+          <Icon name="camera" size={16} />{r.photo ? t('changePhoto') : t('addPhoto')}
+        </PhotoButton>
       </div>
 
       <div className="stack" style={{ marginTop: 4 }}>

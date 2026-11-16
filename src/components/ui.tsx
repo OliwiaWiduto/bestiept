@@ -1,4 +1,5 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { fileToDataUrl } from '../lib/util'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useT } from '../i18n'
 
@@ -27,6 +28,7 @@ const PATHS = {
   trend: 'M3 17l6-6 4 4 8-8|M15 7h6v6',
   trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
   edit: 'M4 20h4L19 9l-4-4L4 16z',
+  share: 'M12 3v12|M8 7l4-4 4 4|M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7',
 }
 export type IconName = keyof typeof PATHS
 
@@ -151,5 +153,21 @@ export function NumberField({ label, value, onChange, step = 1 }: { label: strin
       <span>{label}</span>
       <input className="input" type="number" inputMode="decimal" step={step} value={Number.isFinite(value) ? value : ''} onChange={(e) => onChange(e.target.value === '' ? NaN : Number(e.target.value))} />
     </label>
+  )
+}
+
+/** Opens the photo library / camera. Uses a real button so it works reliably on iPhone. */
+export function PhotoButton({ onPhoto, className, style, children, label }: { onPhoto: (dataUrl: string) => void; className?: string; style?: React.CSSProperties; children: ReactNode; label: string }) {
+  const ref = useRef<HTMLInputElement>(null)
+  return (
+    <>
+      <button type="button" className={className} style={style} aria-label={label} onClick={() => ref.current?.click()}>{children}</button>
+      <input ref={ref} type="file" accept="image/*" className="sr-only" tabIndex={-1} aria-hidden="true"
+        onChange={async (e) => {
+          const f = e.target.files?.[0]
+          e.target.value = ''
+          if (f) onPhoto(await fileToDataUrl(f))
+        }} />
+    </>
   )
 }

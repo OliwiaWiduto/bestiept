@@ -3,6 +3,7 @@ import { useStore } from '../store'
 import { useT } from '../i18n'
 import type { Activity, Goal, Macros, Profile, Sex } from '../types'
 import { BackButton, Icon, NumberField, toast } from '../components/ui'
+import { HeightField, UnitsToggle, WeightField } from '../components/BodyFields'
 
 export default function Settings() {
   const t = useT()
@@ -36,8 +37,9 @@ export default function Settings() {
         <label className="field"><span>{t('obNamePh')}</span><input className="input" value={p.name} onChange={(e) => setP({ ...p, name: e.target.value })} /></label>
         {select<Sex>(t('sex'), p.sex, [['female', t('female')], ['male', t('male')]], (v) => setP({ ...p, sex: v }))}
         <NumberField label={t('age')} value={p.age} onChange={(v) => setP({ ...p, age: v })} />
-        <NumberField label={t('heightCm')} value={p.heightCm} onChange={(v) => setP({ ...p, heightCm: v })} />
-        <NumberField label={t('weightKg')} value={p.weightKg} step={0.1} onChange={(v) => setP({ ...p, weightKg: v })} />
+        <div className="stack"><span className="label">{t('units')}</span><UnitsToggle /></div>
+        <HeightField cm={p.heightCm} onChange={(v) => setP({ ...p, heightCm: v })} />
+        <WeightField kg={p.weightKg} onChange={(v) => setP({ ...p, weightKg: v })} />
         {select<Activity>(t('obActivity'), p.activity, [['low', t('actLow')], ['light', t('actLight')], ['moderate', t('actModerate')], ['high', t('actHigh')]], (v) => setP({ ...p, activity: v }))}
         {select<Goal>(t('obGoal'), p.goal, [['lose', t('goalLose')], ['maintain', t('goalMaintain')], ['gain', t('goalGain')]], (v) => setP({ ...p, goal: v }))}
         <div className="row">

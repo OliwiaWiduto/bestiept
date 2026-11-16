@@ -5,10 +5,11 @@ import { ZERO, type Macros } from '../types'
 import { add, scale, sumItems } from '../lib/nutrition'
 import { addDays, fmt, today } from '../lib/dates'
 import { BackButton, Icon, MacroBar } from '../components/ui'
+import { formatWeight } from '../lib/units'
 
 export default function Trends() {
   const t = useT()
-  const { logs, targets, weights } = useStore()
+  const { logs, targets, weights, units } = useStore()
   const [range, setRange] = useState<7 | 30>(7)
   const days = useMemo(() => Array.from({ length: range }, (_, i) => addDays(today(), i - range + 1)), [range])
 
@@ -79,7 +80,7 @@ export default function Trends() {
       <section className="card stack" style={{ gap: 12 }}>
         <div className="between">
           <span className="label">{t('weightTrend')}</span>
-          {wIn.length > 0 && <span className="small muted">{wIn[wIn.length - 1].kg} kg</span>}
+          {wIn.length > 0 && <span className="small muted">{formatWeight(wIn[wIn.length - 1].kg, units)}</span>}
         </div>
         {wIn.length < 2 ? (
           <div className="row muted small" style={{ gap: 8 }}><Icon name="trend" size={20} />{t('noWeight')}</div>

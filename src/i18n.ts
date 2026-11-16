@@ -7,6 +7,13 @@ import type { Lang } from './types'
  * Polish copy should be checked by a native speaker before public launch.
  */
 const en = {
+  units: 'Units', metric: 'Metric (kg, cm)', imperial: 'Imperial (st, lb, ft)', height: 'Height',
+  tgIntro: 'These are worked out from your details and goal. You don’t need to do anything with them, we’ll keep an eye on them for you.',
+  ex_kcal: 'Energy for your day, set to match your goal.', ex_protein: 'Keeps you full and helps your muscles.', ex_carbs: 'Your main source of energy.',
+  ex_fat: 'Helps your body use vitamins and keeps hormones happy.', ex_fibre: 'Good for digestion and keeps you fuller for longer.', ex_sugar: 'A limit, not a target. Going over now and then is fine.',
+  customise: 'I know my numbers, let me change them', customiseHint: 'Only change these if you’ve been given numbers by a coach or dietitian.', useRecommended: 'Use the recommended targets',
+  pwaIos: 'Add BestiePT to your home screen: tap {share} then “Add to Home Screen”.', pwaOther: 'Install BestiePT on your phone for the full app feel.', install: 'Install', dismiss: 'Dismiss',
+  ownMeal: 'Its own meal', addToExisting: 'Add to a meal', noMealsYet: 'Nothing logged on this day yet, so pick a meal and we’ll start it.', addToNamed: 'Add to {name}', addedToNamed: 'Added to {name}',
   save: 'Save', cancel: 'Cancel', delete: 'Delete', edit: 'Edit', back: 'Back', done: 'Done', add: 'Add', close: 'Close',
   next: 'Next', continue: 'Continue', skip: 'Skip', kcal: 'kcal', g: 'g', remove: 'Remove', search: 'Search',
 
@@ -30,7 +37,7 @@ const en = {
   today: 'Today', kcalLeft: 'kcal left today', kcalOver: 'kcal over today', yourMeals: 'Your meals',
   dinnerEmpty: 'What are we having tonight?', addMeal: 'Add a meal', mealEmpty: 'Nothing logged yet',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
-  weightDown: 'Down {n} kg this week', weightUp: 'Up {n} kg this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
+  weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
   nProteinToGo: 'Only {n}g of protein to go. A Greek yoghurt would do it.',
   nProteinDone: 'Protein goal smashed. Proud of you.',
@@ -84,7 +91,7 @@ const en = {
   shopping: 'Shopping list', forWeek: 'For {range}', inBasket: '{a} of {b} in the basket', toGo: '{n} to go', addOwn: 'Add your own item',
   probably: 'Probably in your cupboard', probablyHint: 'We think you’ve already got these, so they’re not on the list. Worth a quick check before you go.',
   imOut: 'I’m out', reasonStaple: 'you always have this', reasonSmall: 'small amount', reasonRecent: 'bought recently',
-  staplesTitle: 'Quick one: what do you always have in?', staplesHint: 'We’ll leave these off your list. You can change them in Settings.',
+  staplesTitle: 'What do you always have in stock?', staplesHint: 'We’ll leave these off your list. You can change them in Settings.',
   emptyList: 'Your list is empty. Plan some meals and we’ll build it for you.', yourExtras: 'Your extras', addedByYou: 'Added by you', clearTicked: 'Clear ticked items',
   cat_fruitveg: 'Fruit & veg', cat_meatfish: 'Meat & fish', cat_dairy: 'Dairy & eggs', cat_bakery: 'Bakery', cat_cupboard: 'Cupboard', cat_frozen: 'Frozen', cat_drinks: 'Drinks', cat_household: 'Household', cat_other: 'Other',
   itemsN: '{n} items', itemN: '{n} item',
@@ -103,6 +110,13 @@ type Dict = typeof en
 export type TKey = keyof Dict
 
 const pl: Dict = {
+  units: 'Jednostki', metric: 'Metryczne (kg, cm)', imperial: 'Imperialne (st, lb, ft)', height: 'Wzrost',
+  tgIntro: 'Wyliczyłyśmy je na podstawie Twoich danych i celu. Nie musisz nic z nimi robić, my będziemy ich pilnować.',
+  ex_kcal: 'Energia na cały dzień, dopasowana do Twojego celu.', ex_protein: 'Daje sytość i wspiera mięśnie.', ex_carbs: 'Twoje główne źródło energii.',
+  ex_fat: 'Pomaga przyswajać witaminy i wspiera hormony.', ex_fibre: 'Dobry dla trawienia i na dłużej daje sytość.', ex_sugar: 'To limit, a nie cel. Czasem przekroczyć to nic złego.',
+  customise: 'Znam swoje liczby, chcę je zmienić', customiseHint: 'Zmieniaj je tylko, jeśli dostałaś liczby od trenera lub dietetyka.', useRecommended: 'Użyj zalecanych celów',
+  pwaIos: 'Dodaj BestiePT do ekranu głównego: dotknij {share}, a potem „Do ekranu początkowego”.', pwaOther: 'Zainstaluj BestiePT na telefonie, żeby działała jak aplikacja.', install: 'Zainstaluj', dismiss: 'Zamknij',
+  ownMeal: 'Osobny posiłek', addToExisting: 'Dodaj do posiłku', noMealsYet: 'Tego dnia nic jeszcze nie zapisano, więc wybierz posiłek, a my go zaczniemy.', addToNamed: 'Dodaj do: {name}', addedToNamed: 'Dodano do: {name}',
   save: 'Zapisz', cancel: 'Anuluj', delete: 'Usuń', edit: 'Edytuj', back: 'Wstecz', done: 'Gotowe', add: 'Dodaj', close: 'Zamknij',
   next: 'Dalej', continue: 'Dalej', skip: 'Pomiń', kcal: 'kcal', g: 'g', remove: 'Usuń', search: 'Szukaj',
 
@@ -126,7 +140,7 @@ const pl: Dict = {
   today: 'Dziś', kcalLeft: 'kcal zostało na dziś', kcalOver: 'kcal ponad cel', yourMeals: 'Twoje posiłki',
   dinnerEmpty: 'Co dziś na kolację?', addMeal: 'Dodaj posiłek', mealEmpty: 'Nic jeszcze nie dodano',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
-  weightDown: 'Mniej o {n} kg w tym tygodniu', weightUp: 'Więcej o {n} kg w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
+  weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 
   nProteinToGo: 'Zostało tylko {n}g białka. Jogurt grecki załatwi sprawę.',
   nProteinDone: 'Cel białkowy zaliczony. Jestem dumna.',
@@ -180,7 +194,7 @@ const pl: Dict = {
   shopping: 'Lista zakupów', forWeek: 'Na {range}', inBasket: 'W koszyku: {a} z {b}', toGo: 'Zostało: {n}', addOwn: 'Dodaj własną rzecz',
   probably: 'Pewnie masz w szafce', probablyHint: 'Myślimy, że to już masz, więc nie ma tego na liście. Warto szybko sprawdzić przed wyjściem.',
   imOut: 'Skończyło się', reasonStaple: 'zawsze to masz', reasonSmall: 'mała ilość', reasonRecent: 'niedawno kupione',
-  staplesTitle: 'Szybkie pytanie: co zawsze masz w domu?', staplesHint: 'Nie dodamy tego do listy. Możesz to zmienić w Ustawieniach.',
+  staplesTitle: 'Co zawsze masz w zapasie?', staplesHint: 'Nie dodamy tego do listy. Możesz to zmienić w Ustawieniach.',
   emptyList: 'Lista jest pusta. Zaplanuj kilka posiłków, a my ją przygotujemy.', yourExtras: 'Twoje dodatki', addedByYou: 'Dodane przez Ciebie', clearTicked: 'Usuń odhaczone',
   cat_fruitveg: 'Owoce i warzywa', cat_meatfish: 'Mięso i ryby', cat_dairy: 'Nabiał i jajka', cat_bakery: 'Pieczywo', cat_cupboard: 'Spiżarnia', cat_frozen: 'Mrożonki', cat_drinks: 'Napoje', cat_household: 'Dom', cat_other: 'Inne',
   itemsN: 'Produkty: {n}', itemN: 'Produkty: {n}',

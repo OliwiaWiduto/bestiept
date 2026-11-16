@@ -151,3 +151,5 @@ select.input { appearance: none; }
 .hero-photo { height: 300px; margin: calc(-24px - env(safe-area-inset-top)) -24px 0; border-radius: 0 0 var(--radius-lg) var(--radius-lg); background: var(--butter-soft) center / cover no-repeat; position: relative; display: flex; align-items: center; justify-content: center; color: var(--green); }
 .hero-photo .icon-btn { position: absolute; top: calc(env(safe-area-inset-top) + 24px); }
 .toast { width: max-content; max-width: calc(100% - 48px); text-align: center; position: fixed; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top) + 12px); background: var(--green); color: var(--on-green); padding: 12px 18px; border-radius: 18px; font-size: 14px; line-height: 20px; font-weight: 600; z-index: 60; box-shadow: 0 6px 20px rgba(0,0,0,.15); }
+
+.inline-icon { display: inline-block; vertical-align: -2px; margin: 0 3px; }

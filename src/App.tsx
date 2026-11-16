@@ -4,6 +4,7 @@ import { useHydrated, useStore } from './store'
 import { useUI } from './ui-state'
 import { BottomNav, ToastHost } from './components/ui'
 import LogFoodSheet from './components/LogFoodSheet'
+import InstallNudge from './components/InstallNudge'
 import Onboarding from './screens/Onboarding'
 import Today from './screens/Today'
 import Recipes from './screens/Recipes'
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {NAV_SCREENS.includes(pathname) && <BottomNav onLog={() => openLog()} />}
+      <InstallNudge />
       <LogFoodSheet />
       <ToastHost />
     </>

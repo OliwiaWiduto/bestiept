@@ -6,6 +6,7 @@ import type { Lang, LogEntry, Macros, PlanItem, Profile, Recipe, ShoppingState, 
 import { calcTargets } from './lib/nutrition'
 import { today } from './lib/dates'
 import { uid } from './lib/util'
+import type { Units } from './lib/units'
 
 /** Everything is saved on the phone in IndexedDB (photos included). */
 const idbStorage: StateStorage = {
@@ -16,6 +17,8 @@ const idbStorage: StateStorage = {
 
 type State = {
   lang: Lang
+  units: Units
+  pwaDismissedAt: number | null
   profile: Profile | null
   targets: Macros | null
   recipes: Recipe[]
@@ -25,6 +28,8 @@ type State = {
   weights: WeightEntry[]
 
   setLang: (l: Lang) => void
+  setUnits: (u: Units) => void
+  dismissPwa: () => void
   completeOnboarding: (p: Profile, recipes: Recipe[], staples: string[]) => void
   updateProfile: (p: Profile, recalc: boolean) => void
   setTargets: (t: Macros) => void
@@ -51,6 +56,8 @@ export const useStore = create<State>()(
   persist(
     (setState, getState) => ({
       lang: (navigator.language || '').toLowerCase().startsWith('pl') ? 'pl' : 'en',
+      units: 'metric',
+      pwaDismissedAt: null,
       profile: null,
       targets: null,
       recipes: [],
@@ -60,6 +67,8 @@ export const useStore = create<State>()(
       weights: [],
 
       setLang: (lang) => setState({ lang }),
+      setUnits: (units) => setState({ units }),
+      dismissPwa: () => setState({ pwaDismissedAt: Date.now() }),
       completeOnboarding: (profile, recipes, staples) =>
         setState({
           profile,

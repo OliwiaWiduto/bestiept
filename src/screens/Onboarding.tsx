@@ -6,6 +6,7 @@ import { calcTargets } from '../lib/nutrition'
 import { sampleRecipes } from '../lib/samples'
 import { DEFAULT_STAPLES, DEFAULT_STAPLES_PL } from '../lib/shopping'
 import { Icon, NumberField } from '../components/ui'
+import { HeightField, UnitsToggle, WeightField } from '../components/BodyFields'
 
 export default function Onboarding() {
   const t = useT()
@@ -15,6 +16,7 @@ export default function Onboarding() {
   const [samples, setSamples] = useState(true)
   const auto = useMemo(() => calcTargets(p), [p])
   const [custom, setCustom] = useState<Macros | null>(null)
+  const [editing, setEditing] = useState(false)
   const targets = custom ?? auto
   const set = <K extends keyof Profile>(k: K, v: Profile[K]) => { setP({ ...p, [k]: v }); setCustom(null) }
 
@@ -78,8 +80,9 @@ export default function Onboarding() {
             </div>
           </div>
           <NumberField label={t('age')} value={p.age} onChange={(v) => set('age', v)} />
-          <NumberField label={t('heightCm')} value={p.heightCm} onChange={(v) => set('heightCm', v)} />
-          <NumberField label={t('weightKg')} value={p.weightKg} step={0.1} onChange={(v) => set('weightKg', v)} />
+          <div className="stack"><span className="label">{t('units')}</span><UnitsToggle /></div>
+          <HeightField cm={p.heightCm} onChange={(v) => set('heightCm', v)} />
+          <WeightField kg={p.weightKg} onChange={(v) => set('weightKg', v)} />
         </div>
       )}
 
@@ -102,18 +105,34 @@ export default function Onboarding() {
       {step === 5 && (
         <div className="stack" style={{ gap: 16 }}>
           <h1 className="title">{t('obTargets')}</h1>
-          <p className="muted" style={{ margin: 0 }}>{t('obTargetsSub')}</p>
           <div className="card green" style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
             <span className="number-hero" style={{ color: 'var(--lime)' }}>{targets.kcal}</span><span>{t('kcal')}</span>
           </div>
-          <div className="card stack" style={{ gap: 12 }}>
-            {(['kcal', 'protein', 'carbs', 'fat', 'fibre', 'sugar'] as (keyof Macros)[]).map((k) => (
-              <label key={k} className="between">
-                <span className="label">{k === 'kcal' ? t('calories') : t(k)}{k === 'sugar' ? ` (${t('limit')})` : ''}</span>
-                <span className="grams"><input type="number" inputMode="numeric" value={targets[k]} onChange={(e) => setCustom({ ...targets, [k]: Number(e.target.value) || 0 })} /><span className="muted">{k === 'kcal' ? '' : 'g'}</span></span>
-              </label>
+          <span className="small muted" style={{ marginTop: -6 }}>{t('ex_kcal')}</span>
+          <p style={{ margin: 0 }}>{t('tgIntro')}</p>
+          <div className="card tight">
+            {(['protein', 'carbs', 'fat', 'fibre', 'sugar'] as (keyof Macros)[]).map((k) => (
+              <div key={k} className="list-row" style={{ alignItems: 'flex-start' }}>
+                <span className="grow stack" style={{ gap: 2 }}>
+                  <span className="label">{t(k)}{k === 'sugar' ? ` (${t('limit')})` : ''}</span>
+                  <span className="small muted">{t(`ex_${k}` as const)}</span>
+                </span>
+                {editing
+                  ? <span className="grams"><input type="number" inputMode="numeric" aria-label={t(k)} value={targets[k]} onChange={(e) => setCustom({ ...targets, [k]: Number(e.target.value) || 0 })} /><span className="muted">g</span></span>
+                  : <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: 'var(--green)', whiteSpace: 'nowrap' }}>{targets[k]}g</span>}
+              </div>
             ))}
           </div>
+          {!editing && <button className="btn ghost small" style={{ alignSelf: 'center', border: 'none', textDecoration: 'underline' }} onClick={() => setEditing(true)}>{t('customise')}</button>}
+          {editing && (
+            <div className="stack" style={{ gap: 10 }}>
+              <span className="small muted">{t('customiseHint')}</span>
+              <label className="between"><span className="label">{t('calories')}</span>
+                <span className="grams"><input type="number" inputMode="numeric" aria-label={t('calories')} style={{ width: 60 }} value={targets.kcal} onChange={(e) => setCustom({ ...targets, kcal: Number(e.target.value) || 0 })} /><span className="muted">kcal</span></span>
+              </label>
+              <button className="btn ghost small" style={{ alignSelf: 'center', border: 'none', textDecoration: 'underline' }} onClick={() => { setCustom(null); setEditing(false) }}>{t('useRecommended')}</button>
+            </div>
+          )}
           <button className="meal-row" onClick={() => setSamples(!samples)} aria-pressed={samples} style={{ fontWeight: 500 }}>
             <span className={`check ${samples ? 'on' : ''}`}>{samples && <Icon name="check" size={16} sw={2.5} />}</span>{t('obSamples')}
           </button>

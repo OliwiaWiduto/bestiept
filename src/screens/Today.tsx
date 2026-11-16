@@ -7,11 +7,13 @@ import { MEALS, ZERO, type Macros } from '../types'
 import { add, sumItems } from '../lib/nutrition'
 import { addDays, fmt, today } from '../lib/dates'
 import { Icon, MacroBar, Sheet, Thumb, toast } from '../components/ui'
+import { WeightField } from '../components/BodyFields'
+import { formatDiff, formatWeight } from '../lib/units'
 
 export default function Today() {
   const t = useT()
   const nav = useNavigate()
-  const { profile, targets, logs, weights, logWeight } = useStore()
+  const { profile, targets, logs, weights, logWeight, units } = useStore()
   const { viewDate, setViewDate, openLog } = useUI()
   const [weightOpen, setWeightOpen] = useState(false)
   const isToday = viewDate === today()
@@ -112,9 +114,9 @@ export default function Today() {
       <section className="card between" style={{ marginTop: 4 }}>
         <div className="stack" style={{ gap: 2 }}>
           <span className="caption">{t('weight')}</span>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 28, lineHeight: '32px', fontWeight: 700, color: 'var(--green)' }}>{latest ? `${latest.kg} kg` : '—'}</span>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 28, lineHeight: '32px', fontWeight: 700, color: 'var(--green)' }}>{latest ? formatWeight(latest.kg, units) : '—'}</span>
           <span className="small" style={{ color: 'var(--green)', fontWeight: 500 }}>
-            {diff === null ? (latest ? '' : t('weightNone')) : diff < 0 ? t('weightDown', { n: Math.abs(diff) }) : diff > 0 ? t('weightUp', { n: diff }) : t('weightSame')}
+            {diff === null ? (latest ? '' : t('weightNone')) : diff < 0 ? t('weightDown', { n: formatDiff(diff, units) }) : diff > 0 ? t('weightUp', { n: formatDiff(diff, units) }) : t('weightSame')}
           </span>
         </div>
         <div className="stack" style={{ gap: 8, alignItems: 'flex-end' }}>
@@ -123,7 +125,7 @@ export default function Today() {
         </div>
       </section>
 
-      <WeightSheet open={weightOpen} onClose={() => setWeightOpen(false)} last={latest?.kg ?? profile.weightKg}
+      <WeightSheet key={String(weightOpen)} open={weightOpen} onClose={() => setWeightOpen(false)} last={latest?.kg ?? profile.weightKg}
         onSave={(kg) => {
           const before = useStore.getState().targets
           logWeight(kg)
@@ -137,14 +139,10 @@ export default function Today() {
 
 function WeightSheet({ open, onClose, last, onSave }: { open: boolean; onClose: () => void; last: number; onSave: (kg: number) => void }) {
   const t = useT()
-  const [v, setV] = useState(String(last))
-  const kg = Number(v.replace(',', '.'))
+  const [kg, setKg] = useState(last)
   return (
     <Sheet open={open} onClose={onClose} title={t('logWeight')}>
-      <label className="field"><span>{t('weightKg')}</span>
-        <input className="input" type="text" inputMode="decimal" autoFocus value={v} onChange={(e) => setV(e.target.value)}
-          style={{ fontFamily: 'var(--font-display)', fontSize: 32, height: 72, fontWeight: 700, color: 'var(--green)' }} />
-      </label>
+      <WeightField kg={kg} onChange={setKg} big />
       <button className="btn primary block" disabled={!(kg >= 30 && kg <= 300)} onClick={() => onSave(Math.round(kg * 10) / 10)}>{t('save')}</button>
     </Sheet>
   )
