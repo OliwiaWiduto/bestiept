@@ -250,3 +250,5 @@ input, textarea, select { font-size: max(16px, 1em); }
 .shop-card img { width: 44px; height: 44px; flex: none; }
 .card.tight > .list-row:last-child { border-bottom: none !important; }
 .screen > .hero-photo { max-width: none; }
+.screen > .chips.scroll { max-width: none; }
+.sheet > .chips.scroll { max-width: none; }
