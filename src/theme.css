@@ -97,6 +97,7 @@ img { display: block; max-width: 100%; }
 .btn.small { height: 44px; padding: 0 18px; font-size: 14px; }
 .btn.primary { background: var(--cherry); color: #fff; }
 .btn.secondary { background: var(--peach-soft); color: var(--green); }
+.btn.lime { background: var(--lime); color: var(--ink); }
 .btn.green { background: var(--green); color: var(--on-green); }
 .btn.ghost { background: transparent; color: var(--green); border: 1.5px solid var(--line); }
 .btn.block { width: 100%; }
@@ -167,3 +168,42 @@ select.input { appearance: none; }
 .switch-row[aria-checked="true"] .switch { background: var(--green); }
 .switch-row[aria-checked="true"] .switch > span { transform: translateX(18px); }
 .divider { height: 1px; background: var(--line); margin: 4px 0; }
+
+/* Never let the page be wider than the phone */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overflow-x: clip; }
+body { overflow-x: clip; max-width: 100%; }
+#root, .screen { min-width: 0; max-width: 100%; }
+.screen > *, .card, .sheet, .sheet > * { min-width: 0; max-width: 100%; }
+img, video, canvas, svg { max-width: 100%; }
+h1, h2, h3, p, span, label, button, .heading, .display, .title { overflow-wrap: anywhere; }
+input, textarea, select { max-width: 100%; min-width: 0; }
+/* iPhones zoom into any input under 16px and leave the page shifted sideways */
+input, textarea, select { font-size: max(16px, 1em); }
+
+/* First-use tips */
+.coach { position: absolute; z-index: 45; width: max-content; max-width: min(250px, 72vw); display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 12px 14px; border: none; border-radius: 16px; background: var(--green); color: var(--on-green); font-size: 14px; line-height: 20px; box-shadow: 0 8px 24px rgba(42, 48, 14, .28); animation: coach-in .35s ease-out both; }
+.coach.below { top: calc(100% + 12px); }
+.coach.above { bottom: calc(100% + 12px); }
+.coach.end { right: 0; }
+.coach.start { left: 0; }
+.coach.center { left: 50%; transform: translateX(-50%); }
+.coach::after { content: ''; position: absolute; width: 14px; height: 14px; background: var(--green); transform: rotate(45deg); border-radius: 3px; }
+.coach.below::after { top: -6px; } .coach.above::after { bottom: -6px; }
+.coach.end::after { right: 22px; } .coach.start::after { left: 22px; } .coach.center::after { left: calc(50% - 7px); }
+.coach-ok { font-size: 13px; font-weight: 700; color: var(--lime); }
+@keyframes coach-in { from { opacity: 0; translate: 0 6px; } to { opacity: 1; translate: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .coach { animation: none; } }
+
+/* Voice logging (full screen, like cooking mode) */
+.voice { position: fixed; inset: 0; z-index: 200; background: var(--green); color: var(--on-green); padding: calc(env(safe-area-inset-top) + 20px) 20px calc(20px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
+.voice .icon-btn { background: var(--green-deep); color: var(--on-green); }
+.voice-text { flex: 1; min-height: 160px; width: 100%; background: transparent; border: none; color: var(--on-green); font-family: var(--font-display); font-size: 28px; line-height: 34px; font-weight: 700; resize: none; padding: 0; }
+.voice-text::placeholder { color: var(--green-soft); opacity: .8; }
+.voice-text:focus { outline: none; }
+.voice-mic { width: 88px; height: 88px; border-radius: 50%; border: none; background: var(--lime); color: var(--ink); display: grid; place-items: center; align-self: center; flex: none; }
+.voice-mic.on { animation: voice-pulse 1.4s ease-out infinite; }
+@keyframes voice-pulse { 0% { box-shadow: 0 0 0 0 rgba(222, 242, 120, .55); } 100% { box-shadow: 0 0 0 28px rgba(222, 242, 120, 0); } }
+@media (prefers-reduced-motion: reduce) { .voice-mic.on { animation: none; } }
+.pen { width: 36px; height: 36px; flex: none; border-radius: 50%; border: none; background: var(--surface-raised); color: var(--ink-muted); display: grid; place-items: center; }
+.btn svg { flex: none; }
+.voice .display { color: var(--on-green); }

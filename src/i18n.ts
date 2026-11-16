@@ -20,7 +20,7 @@ const en = {
   emailTaken: 'There’s already an account with that email. Try signing in.', syncing: 'Getting your things…', account: 'Account', signOut: 'Sign out',
   signedInAs: 'Signed in as {email}', syncError: 'Couldn’t sync just now. Your changes are safe on this phone and will sync later.', authSub: 'Sign in so your recipes and progress are saved, whatever phone you’re on.',
   units: 'Units', metric: 'Metric (kg, cm)', imperial: 'Imperial (st, lb, ft)', height: 'Height',
-  tgIntro: 'These are worked out from your details and goal. You don’t need to do anything with them, we’ll keep an eye on them for you.',
+  tgIntro: 'We worked these out from your age, height, weight, activity and goal. Nothing to set up, we’ll keep an eye on them for you.', tgLater: 'You can fine-tune these any time in Settings.',
   ex_kcal: 'Energy for your day, set to match your goal.', ex_protein: 'Keeps you full and helps your muscles.', ex_carbs: 'Your main source of energy.',
   ex_fat: 'Helps your body use vitamins and keeps hormones happy.', ex_fibre: 'Good for digestion and keeps you fuller for longer.', ex_sugar: 'A limit, not a target. Going over now and then is fine.',
   customise: 'I know my numbers, let me change them', customiseHint: 'Only change these if you’ve been given numbers by a coach or dietitian.', useRecommended: 'Use the recommended targets',
@@ -34,10 +34,10 @@ const en = {
 
   navToday: 'Today', navRecipes: 'Recipes', navPlan: 'Plan', navShopping: 'Shopping', logFood: 'Log food', settings: 'Settings',
 
-  obWelcome: 'Hey, I’m your food bestie', obWelcomeSub: 'Save recipes from anywhere, cook hands-free, plan your week and keep track of what you eat.',
+  obWelcome: 'Hey, I’m your food bestie', obWelcomeSub: 'Plan it. Cook it. Track it.',
   obLanguage: 'Language', obStart: 'Get started',
   obName: 'What should we call you?', obNamePh: 'Your name',
-  obAbout: 'A bit about you', obAboutSub: 'We use this to work out your daily targets. It stays on your phone.',
+  obAbout: 'A bit about you', obAboutSub: 'We use this to work out your daily targets.',
   age: 'Age', heightCm: 'Height (cm)', weightKg: 'Weight (kg)', sex: 'Sex', female: 'Female', male: 'Male',
   obActivity: 'How active are you?',
   actLow: 'Mostly sitting', actLight: 'Light exercise 1–3 days a week', actModerate: 'Exercise 3–5 days a week', actHigh: 'Exercise most days',
@@ -64,6 +64,9 @@ const en = {
   seeTheirDay: 'See their day', unlink: 'Unlink', unlinkConfirm: 'Unlink from {name}? You’ll stop seeing each other’s recipes and anything shared.',
   notLinked: 'You’re not linked with this person.', theirWeek: '{name}’s week', nothingPlanned: 'Nothing planned this week.',
   fromPerson: 'From {name}', includeFamily: 'Include family meals', includeMeals: '{name}’s meals ({n})',
+  gotIt: 'Got it', tipLog: 'Tap + to log your first meal. Snap a photo, scan a barcode, search or just say it.', tipRecipes: 'Add your own recipes here: paste a link, snap a cookbook page or type it in.',
+  voiceLog: 'Say it', voiceLogSub: 'Tell me what you ate, I’ll sort the rest', voicePrompt: 'What did you eat?', voiceTap: 'Tap the mic and tell me', voiceListening: 'Listening…', voiceGo: 'Work it out', voiceWorking: 'Working it out…', voiceAgain: 'Start over', voiceNoMic: 'Voice isn’t available here. Type it below, or tap the mic on your keyboard to dictate.', voicePh: 'e.g. two scrambled eggs on toast with butter, and a latte', voiceDenied: 'I can’t use the microphone. Check it’s allowed for this site, or type it below.', editIngredient: 'Edit ingredient', totalsFor: 'Totals for this amount', removeIngredient: 'Remove ingredient', editName: 'Edit name', amountLabel: 'Amount',
+  typeItIn: 'Type it in myself', orWord: 'or',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -151,7 +154,7 @@ const pl: Dict = {
   emailTaken: 'Konto z tym adresem już istnieje. Spróbuj się zalogować.', syncing: 'Pobieram Twoje dane…', account: 'Konto', signOut: 'Wyloguj się',
   signedInAs: 'Zalogowano jako {email}', syncError: 'Nie udało się teraz zsynchronizować. Zmiany są bezpieczne na tym telefonie i zsynchronizują się później.', authSub: 'Zaloguj się, żeby Twoje przepisy i postępy były zapisane na każdym telefonie.',
   units: 'Jednostki', metric: 'Metryczne (kg, cm)', imperial: 'Imperialne (st, lb, ft)', height: 'Wzrost',
-  tgIntro: 'Wyliczyłyśmy je na podstawie Twoich danych i celu. Nie musisz nic z nimi robić, my będziemy ich pilnować.',
+  tgIntro: 'Wyliczyłyśmy je na podstawie Twojego wieku, wzrostu, wagi, aktywności i celu. Nic nie musisz ustawiać, my będziemy ich pilnować.', tgLater: 'Możesz je zmienić w każdej chwili w Ustawieniach.',
   ex_kcal: 'Energia na cały dzień, dopasowana do Twojego celu.', ex_protein: 'Daje sytość i wspiera mięśnie.', ex_carbs: 'Twoje główne źródło energii.',
   ex_fat: 'Pomaga przyswajać witaminy i wspiera hormony.', ex_fibre: 'Dobry dla trawienia i na dłużej daje sytość.', ex_sugar: 'To limit, a nie cel. Czasem przekroczyć to nic złego.',
   customise: 'Znam swoje liczby, chcę je zmienić', customiseHint: 'Zmieniaj je tylko, jeśli dostałaś liczby od trenera lub dietetyka.', useRecommended: 'Użyj zalecanych celów',
@@ -165,10 +168,10 @@ const pl: Dict = {
 
   navToday: 'Dziś', navRecipes: 'Przepisy', navPlan: 'Plan', navShopping: 'Zakupy', logFood: 'Dodaj posiłek', settings: 'Ustawienia',
 
-  obWelcome: 'Hej, jestem Twoją jedzeniową bestie', obWelcomeSub: 'Zapisuj przepisy skądkolwiek, gotuj bez dotykania ekranu, planuj tydzień i śledź, co jesz.',
+  obWelcome: 'Hej, jestem Twoją jedzeniową bestie', obWelcomeSub: 'Planuj. Gotuj. Śledź.',
   obLanguage: 'Język', obStart: 'Zaczynamy',
   obName: 'Jak mamy się do Ciebie zwracać?', obNamePh: 'Twoje imię',
-  obAbout: 'Kilka słów o Tobie', obAboutSub: 'Na tej podstawie wyliczymy Twoje dzienne cele. Dane zostają na Twoim telefonie.',
+  obAbout: 'Kilka słów o Tobie', obAboutSub: 'Na tej podstawie wyliczymy Twoje dzienne cele.',
   age: 'Wiek', heightCm: 'Wzrost (cm)', weightKg: 'Waga (kg)', sex: 'Płeć', female: 'Kobieta', male: 'Mężczyzna',
   obActivity: 'Jak bardzo jesteś aktywna?',
   actLow: 'Głównie siedzę', actLight: 'Lekki ruch 1–3 dni w tygodniu', actModerate: 'Trening 3–5 dni w tygodniu', actHigh: 'Trening prawie codziennie',
@@ -195,6 +198,9 @@ const pl: Dict = {
   seeTheirDay: 'Zobacz dzień', unlink: 'Rozłącz', unlinkConfirm: 'Rozłączyć się z: {name}? Przestaniecie widzieć swoje przepisy i wszystko, co udostępnione.',
   notLinked: 'Nie jesteście połączeni.', theirWeek: 'Tydzień: {name}', nothingPlanned: 'Nic nie zaplanowano w tym tygodniu.',
   fromPerson: 'Od: {name}', includeFamily: 'Dodaj posiłki rodziny', includeMeals: 'Posiłki: {name} ({n})',
+  gotIt: 'Jasne', tipLog: 'Kliknij +, żeby dodać pierwszy posiłek. Zrób zdjęcie, zeskanuj kod, wyszukaj albo po prostu powiedz.', tipRecipes: 'Tu dodasz własne przepisy: wklej link, zrób zdjęcie strony z książki albo wpisz ręcznie.',
+  voiceLog: 'Powiedz', voiceLogSub: 'Powiedz, co zjadłaś, resztą zajmę się ja', voicePrompt: 'Co zjadłaś?', voiceTap: 'Kliknij mikrofon i powiedz', voiceListening: 'Słucham…', voiceGo: 'Policz', voiceWorking: 'Liczę…', voiceAgain: 'Zacznij od nowa', voiceNoMic: 'Głos nie działa tutaj. Wpisz poniżej albo użyj mikrofonu na klawiaturze.', voicePh: 'np. dwie jajecznice na tosta z masłem i latte', voiceDenied: 'Nie mogę użyć mikrofonu. Sprawdź uprawnienia strony albo wpisz poniżej.', editIngredient: 'Edytuj składnik', totalsFor: 'Wartości dla tej ilości', removeIngredient: 'Usuń składnik', editName: 'Edytuj nazwę', amountLabel: 'Ilość',
+  typeItIn: 'Wpiszę sama', orWord: 'lub',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 

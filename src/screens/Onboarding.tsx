@@ -1,28 +1,33 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../store'
 import { useT } from '../i18n'
-import type { Activity, Goal, Macros, Profile, Sex } from '../types'
+import type { Activity, Goal, Profile, Sex } from '../types'
 import { calcTargets } from '../lib/nutrition'
 import { sampleRecipes } from '../lib/samples'
 import { DEFAULT_STAPLES, DEFAULT_STAPLES_PL } from '../lib/shopping'
 import { Icon, NumberField } from '../components/ui'
 import { HeightField, UnitsToggle, WeightField } from '../components/BodyFields'
 
+// Same colours as the bars on the Today screen
+const TARGET_CARDS: ['protein' | 'carbs' | 'fat' | 'fibre', string, string][] = [
+  ['protein', 'var(--cherry)', '#fff'],
+  ['carbs', 'var(--butter)', 'var(--ink)'],
+  ['fat', 'var(--olive)', 'var(--ink)'],
+  ['fibre', 'var(--lime)', 'var(--ink)'],
+]
+
 export default function Onboarding() {
   const t = useT()
-  const { lang, setLang, completeOnboarding, setTargets } = useStore()
+  const { lang, setLang, completeOnboarding } = useStore()
   const [step, setStep] = useState(0)
   const [p, setP] = useState<Profile>({ name: '', sex: 'female', age: 28, heightCm: 165, weightKg: 65, activity: 'light', goal: 'maintain' })
   const auto = useMemo(() => calcTargets(p), [p])
-  const [custom, setCustom] = useState<Macros | null>(null)
-  const [editing, setEditing] = useState(false)
-  const targets = custom ?? auto
-  const set = <K extends keyof Profile>(k: K, v: Profile[K]) => { setP({ ...p, [k]: v }); setCustom(null) }
+  const targets = auto
+  const set = <K extends keyof Profile>(k: K, v: Profile[K]) => setP({ ...p, [k]: v })
 
   const valid = [true, p.name.trim().length > 0, p.age >= 13 && p.age <= 100 && p.heightCm >= 120 && p.heightCm <= 230 && p.weightKg >= 30 && p.weightKg <= 300, true, true, true][step]
   const finish = () => {
     completeOnboarding({ ...p, name: p.name.trim() }, sampleRecipes(lang), lang === 'pl' ? DEFAULT_STAPLES_PL : DEFAULT_STAPLES)
-    if (custom) setTargets(custom)
   }
 
   const option = (selected: boolean, label: string, onClick: () => void) => (
@@ -102,36 +107,26 @@ export default function Onboarding() {
       )}
 
       {step === 5 && (
-        <div className="stack" style={{ gap: 16 }}>
+        <div className="stack" style={{ gap: 12 }}>
           <h1 className="title">{t('obTargets')}</h1>
-          <div className="card green" style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-            <span className="number-hero" style={{ color: 'var(--lime)' }}>{targets.kcal}</span><span>{t('kcal')}</span>
+          <p className="muted" style={{ margin: 0, fontSize: 15 }}>{t('tgIntro')}</p>
+          <div className="card green" style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '16px 18px' }}>
+            <span style={{ fontSize: 13, fontWeight: 600, opacity: 0.85 }}>{t('calories')}</span>
+            <span style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+              <span className="number-hero" style={{ color: 'var(--lime)' }}>{targets.kcal}</span><span>{t('kcal')}</span>
+            </span>
+            <span style={{ fontSize: 13, lineHeight: '18px', opacity: 0.85 }}>{t('ex_kcal')}</span>
           </div>
-          <span className="small muted" style={{ marginTop: -6 }}>{t('ex_kcal')}</span>
-          <p style={{ margin: 0 }}>{t('tgIntro')}</p>
-          <div className="card tight">
-            {(['protein', 'carbs', 'fat', 'fibre', 'sugar'] as (keyof Macros)[]).map((k) => (
-              <div key={k} className="list-row" style={{ alignItems: 'flex-start' }}>
-                <span className="grow stack" style={{ gap: 2 }}>
-                  <span className="label">{t(k)}{k === 'sugar' ? ` (${t('limit')})` : ''}</span>
-                  <span className="small muted">{t(`ex_${k}` as const)}</span>
-                </span>
-                {editing
-                  ? <span className="grams"><input type="number" inputMode="numeric" aria-label={t(k)} value={targets[k]} onChange={(e) => setCustom({ ...targets, [k]: Number(e.target.value) || 0 })} /><span className="muted">g</span></span>
-                  : <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: 'var(--green)', whiteSpace: 'nowrap' }}>{targets[k]}g</span>}
-              </div>
-            ))}
-          </div>
-          {!editing && <button className="btn ghost small" style={{ alignSelf: 'center', border: 'none', textDecoration: 'underline' }} onClick={() => setEditing(true)}>{t('customise')}</button>}
-          {editing && (
-            <div className="stack" style={{ gap: 10 }}>
-              <span className="small muted">{t('customiseHint')}</span>
-              <label className="between"><span className="label">{t('calories')}</span>
-                <span className="grams"><input type="number" inputMode="numeric" aria-label={t('calories')} style={{ width: 60 }} value={targets.kcal} onChange={(e) => setCustom({ ...targets, kcal: Number(e.target.value) || 0 })} /><span className="muted">kcal</span></span>
-              </label>
-              <button className="btn ghost small" style={{ alignSelf: 'center', border: 'none', textDecoration: 'underline' }} onClick={() => { setCustom(null); setEditing(false) }}>{t('useRecommended')}</button>
+          {TARGET_CARDS.map(([k, bg, fg]) => (
+            <div key={k} className="card" style={{ background: bg, color: fg, display: 'flex', flexDirection: 'column', gap: 2, padding: '14px 18px', border: 'none' }}>
+              <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+                <span style={{ fontSize: 13, fontWeight: 600 }}>{t(k)}</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700, whiteSpace: 'nowrap' }}>{targets[k]}g</span>
+              </span>
+              <span style={{ fontSize: 13, lineHeight: '18px', opacity: 0.9 }}>{t(`ex_${k}` as const)}</span>
             </div>
-          )}
+          ))}
+          <span className="caption" style={{ textAlign: 'center' }}>{t('tgLater')}</span>
         </div>
       )}
 

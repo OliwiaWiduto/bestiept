@@ -4,7 +4,7 @@ import { useStore } from '../store'
 import { useT } from '../i18n'
 import { MEALS, type Meal, type Recipe } from '../types'
 import { usePhoto } from '../lib/sync'
-import { Icon } from '../components/ui'
+import { CoachTip, Icon } from '../components/ui'
 import { personName, useFamily } from '../lib/family'
 
 type Filter = 'all' | 'fav' | Meal
@@ -13,6 +13,7 @@ export default function Recipes() {
   const t = useT()
   const nav = useNavigate()
   const recipes = useStore((s) => s.recipes)
+  const seeTip = useStore((s) => s.seeTip)
   const [filter, setFilter] = useState<Filter>('all')
   const [q, setQ] = useState('')
 
@@ -28,7 +29,10 @@ export default function Recipes() {
     <main className="screen">
       <div className="between" style={{ paddingTop: 8 }}>
         <h1 className="display">{t('recipes')}</h1>
-        <button className="btn secondary small" onClick={() => nav('/recipes/new')}><Icon name="plus" size={18} />{t('add')}</button>
+        <span style={{ position: 'relative' }}>
+          <button className="btn secondary small" onClick={() => { seeTip('recipes'); nav('/recipes/new') }}><Icon name="plus" size={18} />{t('add')}</button>
+          <CoachTip id="recipes">{t('tipRecipes')}</CoachTip>
+        </span>
       </div>
 
       <label className="row input" style={{ gap: 10, borderRadius: 999 }}>

@@ -29,8 +29,7 @@ export default function Today() {
   // One nudge, most useful first. Never judgy.
   let nudge: TKey | null = null
   const proteinLeft = Math.round(targets.protein - totals.protein)
-  if (dayLogs.length === 0) nudge = isToday && hour < 11 ? 'nMorning' : 'nNothing'
-  else if (totals.sugar > targets.sugar) nudge = 'nSugarOver'
+  if (dayLogs.length === 0) nudge = null // no empty-state nagging; the + button tip handles first use
   else if (totals.kcal > targets.kcal * 1.05) nudge = 'nKcalOver'
   else if (proteinLeft <= 0) nudge = 'nProteinDone'
   else if (proteinLeft <= 30) nudge = 'nProteinToGo'

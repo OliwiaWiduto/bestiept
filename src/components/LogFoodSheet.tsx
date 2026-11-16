@@ -6,17 +6,20 @@ import { MEALS, type FoodItem, type Macros, type Meal } from '../types'
 import { useFoodSearch } from '../lib/foodSearch'
 import { uid } from '../lib/util'
 import { BarcodeScanner } from './BarcodeScanner'
-import { scanMeal, type ScannedItem } from '../lib/ai'
+import { scanMeal, scanMealText } from '../lib/ai'
+import { IngredientForm, IngredientRow, MealHeader } from './MealParts'
+import { VoiceLog } from './VoiceLog'
 import { itemMacros } from '../lib/nutrition'
 import { Icon, PhotoButton, Sheet, Stepper, Thumb, toast, type IconName } from './ui'
 
-type Mode = 'menu' | 'recipe' | 'search' | 'quick' | 'barcode' | 'scan'
+type Mode = 'menu' | 'recipe' | 'search' | 'quick' | 'barcode' | 'scan' | 'voice'
 type Picked = { name: string; per: Macros; portion: number; source?: string }
 
 export default function LogFoodSheet() {
   const t = useT()
   const { logOpen, logMeal, closeLog, viewDate } = useUI()
-  const { recipes, saveLog, logs } = useStore()
+  const { recipes, saveLog, logs, seeTip } = useStore()
+  const tips = useStore((st) => st.profile?.tips)
   const [mode, setMode] = useState<Mode>('menu')
   const [meal, setMeal] = useState<Meal>(defaultMeal())
   const [query, setQuery] = useState('')
@@ -28,7 +31,9 @@ export default function LogFoodSheet() {
   const [code, setCode] = useState('')
   const [lookup, setLookup] = useState<'idle' | 'loading' | 'notfound'>('idle')
   const [typing, setTyping] = useState(false)
-  const [scan, setScan] = useState<{ photo: string; name: string; items: (ScannedItem & { id: string })[] } | null>(null)
+  const [scan, setScan] = useState<{ photo?: string; name: string; items: FoodItem[] } | null>(null)
+  const [editId, setEditId] = useState<string | null>(null)
+  const [guessNote, setGuessNote] = useState(false)
   const [scanning, setScanning] = useState(false)
   const [scanError, setScanError] = useState<'denied' | 'unavailable' | null>(null)
   const [dest, setDest] = useState<'own' | 'existing'>('own')
@@ -37,7 +42,7 @@ export default function LogFoodSheet() {
   useEffect(() => {
     if (logOpen) {
       setMode('menu'); setMeal(logMeal ?? defaultMeal()); setQuery(''); setRecipeId(null); setServings(1); setPicked(null)
-      setQuick({ name: '', kcal: '', protein: '', carbs: '', fat: '' }); setCode(''); setLookup('idle'); setTyping(false); setScan(null); setScanning(false); setScanError(null); setDest('own'); setTargetId(null)
+      setQuick({ name: '', kcal: '', protein: '', carbs: '', fat: '' }); setCode(''); setLookup('idle'); setTyping(false); setScan(null); setEditId(null); setGuessNote(false); setScanning(false); setScanError(null); setDest('own'); setTargetId(null)
     }
   }, [logOpen, logMeal])
 
@@ -106,21 +111,23 @@ export default function LogFoodSheet() {
   )
 
 
-  const back = mode !== 'menu' && (
-    <button className="btn ghost small" style={{ alignSelf: 'flex-start' }} onClick={() => { setMode('menu'); setPicked(null); setRecipeId(null); setQuery('') }}>
-      <Icon name="back" size={18} />{t('back')}
-    </button>
+  const goBack = () => { setMode('menu'); setPicked(null); setRecipeId(null); setQuery(''); setScan(null); setEditId(null) }
+  const back = mode !== 'menu' && !editId && (
+    <button className="icon-btn" style={{ alignSelf: 'flex-start' }} aria-label={t('back')} onClick={goBack}><Icon name="back" /></button>
   )
 
   const gramsStep = picked && (
     <div className="stack" style={{ gap: 16 }}>
-      <div className="card stack" style={{ gap: 4 }}>
-        <span style={{ fontWeight: 600, fontSize: 17 }}>{picked.name}</span>
-        <span className="caption">{Math.round(picked.per.kcal)} {t('kcal')} {t('per100')} · {picked.source ?? t('approx')}</span>
+      <div className="card stack" style={{ gap: 6 }}>
+        <div className="between" style={{ gap: 12, alignItems: 'flex-start' }}>
+          <span style={{ fontWeight: 600, fontSize: 17 }}>{picked.name}</span>
+          <label className="grams" style={{ height: 44, flex: 'none' }}><span className="sr-only">{t('howMuch')}</span>
+            <input autoFocus type="number" inputMode="decimal" value={grams} onChange={(e) => setGrams(e.target.value)} /><span className="muted">g</span></label>
+        </div>
+        {(() => { const m = itemMacros({ id: 'x', name: '', amount: Number(grams) || 0, unit: 'g', per: picked.per }); return (
+          <span className="caption">{Math.round(m.kcal)} {t('kcal')} · P {Math.round(m.protein)} · C {Math.round(m.carbs)} · F {Math.round(m.fat)}</span>) })()}
+        <span className="caption">{picked.source ?? t('approx')} · {Math.round(picked.per.kcal)} {t('kcal')} {t('per100')}</span>
       </div>
-      <label className="between"><span className="label">{t('howMuch')}</span>
-        <span className="grams" style={{ height: 52 }}><input autoFocus type="number" inputMode="decimal" value={grams} onChange={(e) => setGrams(e.target.value)} /><span className="muted">g</span></span>
-      </label>
       {destination}
       <button className="btn primary block" disabled={!(Number(grams) > 0)}
         onClick={() => saveItem(picked.name, { id: uid(), name: picked.name, amount: Number(grams), unit: 'g', per: picked.per })}>
@@ -154,15 +161,29 @@ export default function LogFoodSheet() {
 
   const onScanFail = useCallback((why: 'denied' | 'unavailable') => { setScanError(why); setTyping(true) }, [])
 
+  const toItems = (items: { name: string; grams: number; per100: Macros }[]): FoodItem[] =>
+    items.map((i) => ({ id: uid(), name: i.name, amount: Math.max(1, Math.round(i.grams)), unit: 'g', per: i.per100 }))
+  const showGuess = () => {
+    if (!(tips ?? []).includes('scanGuess')) { setGuessNote(true); seeTip('scanGuess') }
+  }
   const runScan = async (photo: string) => {
     setScanning(true)
     const { data, error } = await scanMeal(photo, t.lang)
     setScanning(false)
     if (!data) { toast(t(`ai_${error ?? 'failed'}`)); return }
-    setScan({ photo, name: data.meal.name, items: data.meal.items.map((i) => ({ ...i, grams: Math.round(i.grams), id: uid() })) })
+    showGuess()
+    setScan({ photo, name: data.meal.name, items: toItems(data.meal.items) })
   }
-  const setScanItem = (id: string, patch: Partial<ScannedItem>) => scan && setScan({ ...scan, items: scan.items.map((i) => (i.id === id ? { ...i, ...patch } : i)) })
-  const scanFoods: FoodItem[] = (scan?.items ?? []).filter((i) => i.name.trim() && i.grams > 0).map((i) => ({ id: i.id, name: i.name.trim(), amount: i.grams, unit: 'g', per: i.per100 }))
+  const runVoice = async (text: string) => {
+    const { data, error } = await scanMealText(text, t.lang)
+    if (!data) { toast(t(`ai_${error ?? 'failed'}`)); return false }
+    showGuess()
+    setScan({ name: data.meal.name, items: toItems(data.meal.items) })
+    setMode('scan')
+    return true
+  }
+  const scanFoods: FoodItem[] = (scan?.items ?? []).filter((i) => i.name.trim() && i.amount > 0)
+  const editing = scan?.items.find((i) => i.id === editId)
 
   const r = recipes.find((x) => x.id === recipeId)
 
@@ -171,11 +192,12 @@ export default function LogFoodSheet() {
       {back}
       {mode === 'menu' && (
         <div className="stack">
-          {option('book', t('fromRecipe'), () => setMode('recipe'))}
+          {option('camera', t('photoScan'), () => setMode('scan'), t('photoScanSub'))}
           {option('search', t('searchFoods'), () => setMode('search'))}
           {option('barcode', t('barcode'), () => setMode('barcode'))}
+          {option('mic', t('voiceLog'), () => setMode('voice'), t('voiceLogSub'))}
+          {option('book', t('fromRecipe'), () => setMode('recipe'))}
           {option('bolt', t('quickAdd'), () => setMode('quick'))}
-          {option('camera', t('photoScan'), () => setMode('scan'), t('photoScanSub'))}
         </div>
       )}
 
@@ -245,27 +267,22 @@ export default function LogFoodSheet() {
           <span className="caption">{t('scanHint')}</span>
         </div>
       )}
-      {mode === 'scan' && scan && (
-        <div className="stack" style={{ gap: 12 }}>
-          <div className="row" style={{ gap: 12 }}>
-            <Thumb photo={scan.photo} size={64} />
-            <label className="field grow"><span className="sr-only">{t('quickName')}</span><input className="input" value={scan.name} onChange={(e) => setScan({ ...scan, name: e.target.value })} /></label>
-          </div>
-          <div className="tip"><Icon name="check" size={22} /><span>{t('scanCheck')}</span></div>
+      {mode === 'voice' && <VoiceLog onClose={() => setMode('menu')} onDone={runVoice} />}
+      {mode === 'scan' && scan && editing && (
+        <IngredientForm item={editing} onCancel={() => setEditId(null)}
+          onDelete={() => { setScan({ ...scan, items: scan.items.filter((x) => x.id !== editing.id) }); setEditId(null) }}
+          onSave={(i) => { setScan({ ...scan, items: scan.items.map((x) => (x.id === i.id ? i : x)) }); setEditId(null) }} />
+      )}
+      {mode === 'scan' && scan && !editing && (
+        <div className="stack" style={{ gap: 14 }}>
+          <MealHeader photo={scan.photo} name={scan.name} onName={(name) => setScan({ ...scan, name })} />
+          {guessNote && <div className="tip"><Icon name="check" size={22} /><span>{t('scanCheck')}</span></div>}
           <div className="card tight">
-            {scan.items.map((i) => (
-              <div key={i.id} className="list-row" style={{ gap: 8 }}>
-                <input className="input grow" aria-label={t('itemName')} style={{ height: 44, padding: '0 10px' }} value={i.name} onChange={(e) => setScanItem(i.id, { name: e.target.value })} />
-                <label className="grams" style={{ height: 44, width: 76, flex: "none" }}><span className="sr-only">{t('grams')}</span>
-                  <input type="number" inputMode="decimal" value={i.grams || ''} onChange={(e) => setScanItem(i.id, { grams: Number(e.target.value) || 0 })} /><span className="muted">g</span></label>
-                <span className="small muted" style={{ width: 34, textAlign: "right", flex: "none" }}>{Math.round(itemMacros({ id: i.id, name: i.name, amount: i.grams, unit: 'g', per: i.per100 }).kcal)}</span>
-                <button className="icon-btn" style={{ width: 32, height: 32, background: 'transparent', color: 'var(--ink-muted)' }} aria-label={`${t('remove')} ${i.name}`} onClick={() => setScan({ ...scan, items: scan.items.filter((x) => x.id !== i.id) })}><Icon name="close" size={16} /></button>
-              </div>
-            ))}
+            {scan.items.map((i) => <IngredientRow key={i.id} item={i} onOpen={() => setEditId(i.id)} />)}
           </div>
           <div className="between"><span className="label">{t('total')}</span><b>{Math.round(scanFoods.reduce((a, f) => a + itemMacros(f).kcal, 0))} {t('kcal')}</b></div>
           {mealChips}
-          <button className="btn primary block" disabled={!scanFoods.length} onClick={() => save(scan.name.trim() || t('photoScan'), scanFoods, { photo: scan.photo })}>
+          <button className="btn primary block" disabled={!scanFoods.length} onClick={() => save(scan.name.trim() || t('photoScan'), scanFoods, scan.photo ? { photo: scan.photo } : undefined)}>
             {t('addToMeal', { meal: t(meal) })}
           </button>
         </div>

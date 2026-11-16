@@ -57,9 +57,9 @@ export default function Settings() {
 
       <section className="card stack" style={{ gap: 12 }}>
         <h2 className="heading">{t('dailyTargets')}</h2>
-        {(['kcal', 'protein', 'carbs', 'fat', 'fibre', 'sugar'] as (keyof Macros)[]).map((k) => (
+        {(['kcal', 'protein', 'carbs', 'fat', 'fibre'] as (keyof Macros)[]).map((k) => (
           <label key={k} className="between">
-            <span className="label">{k === 'kcal' ? t('calories') : t(k)}{k === 'sugar' ? ` (${t('limit')})` : ''}</span>
+            <span className="label">{k === 'kcal' ? t('calories') : t(k)}</span>
             <span className="grams"><input type="number" inputMode="numeric" value={tg[k]} onChange={(e) => setTg({ ...tg, [k]: Number(e.target.value) || 0 })} /><span className="muted">{k === 'kcal' ? '' : 'g'}</span></span>
           </label>
         ))}

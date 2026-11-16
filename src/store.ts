@@ -36,6 +36,7 @@ type State = {
   completeOnboarding: (p: Profile, recipes: Recipe[], staples: string[]) => void
   updateProfile: (p: Profile, recalc: boolean) => void
   setTargets: (t: Macros) => void
+  seeTip: (id: string) => void
 
   saveRecipe: (r: Recipe) => void
   deleteRecipe: (id: string) => void
@@ -86,6 +87,7 @@ export const useStore = create<State>()(
         }),
       updateProfile: (profile, recalc) => setState({ profile, ...(recalc ? { targets: calcTargets(profile) } : {}) }),
       setTargets: (targets) => setState({ targets }),
+      seeTip: (id) => { const p = getState().profile; if (p && !(p.tips ?? []).includes(id)) setState({ profile: { ...p, tips: [...(p.tips ?? []), id] } }) },
 
       saveRecipe: (r) => setState({ recipes: getState().recipes.some((x) => x.id === r.id) ? getState().recipes.map((x) => (x.id === r.id ? r : x)) : [r, ...getState().recipes] }),
       deleteRecipe: (id) => setState({ recipes: getState().recipes.filter((r) => r.id !== id), plan: getState().plan.filter((p) => p.recipeId !== id) }),

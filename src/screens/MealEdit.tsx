@@ -3,11 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../store'
 import { useT } from '../i18n'
 import { MEALS, type FoodItem, type LogEntry } from '../types'
-import { itemMacros, sumItems } from '../lib/nutrition'
+import { sumItems } from '../lib/nutrition'
 import { useFoodSearch } from '../lib/foodSearch'
 import { uid } from '../lib/util'
-import { usePhoto } from '../lib/sync'
-import { BackButton, Icon, MacroGrid, PhotoButton, Sheet, Stepper } from '../components/ui'
+import { BackButton, Icon, MacroGrid, PhotoButton, Sheet } from '../components/ui'
+import { IngredientForm, IngredientRow, MealHeader } from '../components/MealParts'
 
 export default function MealEdit() {
   const t = useT()
@@ -17,11 +17,11 @@ export default function MealEdit() {
   const original = logs.find((l) => l.id === id)
   const [draft, setDraft] = useState<LogEntry | null>(original ?? null)
   const [adding, setAdding] = useState(false)
-  const photoUrl = usePhoto(draft?.photo)
+  const [editId, setEditId] = useState<string | null>(null)
   if (!draft) return <main className="screen"><BackButton to="/" /></main>
 
   const totals = sumItems(draft.items)
-  const setItem = (iid: string, patch: Partial<FoodItem>) => setDraft({ ...draft, items: draft.items.map((i) => (i.id === iid ? { ...i, ...patch } : i)) })
+  const editing = draft.items.find((i) => i.id === editId)
 
   return (
     <main className="screen no-nav">
@@ -31,11 +31,9 @@ export default function MealEdit() {
         <PhotoButton className="icon-btn" label={draft.photo ? t('changePhoto') : t('addPhoto')} onPhoto={(photo) => setDraft({ ...draft, photo })}><Icon name="camera" /></PhotoButton>
       </div>
 
-      {draft.photo && <div role="img" aria-label={draft.name} style={{ height: 220, borderRadius: 28, background: `url(${photoUrl}) center / cover` }} />}
+      <MealHeader photo={draft.photo} name={draft.name} onName={(name) => setDraft({ ...draft, name })} />
 
       <div className="stack">
-        <input className="title" aria-label={t('itemName')} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-          style={{ border: 'none', background: 'transparent', padding: 0, width: '100%' }} />
         <div className="chips" role="group" aria-label={t('whichMeal')}>
           {MEALS.map((m) => <button key={m} className="chip" aria-pressed={draft.meal === m} onClick={() => setDraft({ ...draft, meal: m })}>{t(m)}</button>)}
         </div>
@@ -54,26 +52,7 @@ export default function MealEdit() {
         <span className="small muted">{t('ingredientsN', { n: draft.items.length })}</span>
       </div>
       <div className="card tight">
-        {draft.items.map((i) => {
-          const m = itemMacros(i)
-          return (
-            <div key={i.id} className="list-row">
-              <div className="grow stack" style={{ gap: 2 }}>
-                <span style={{ fontSize: 15, fontWeight: 600 }}>{i.name}</span>
-                <span className="caption">{Math.round(m.kcal)} {t('kcal')} · P {Math.round(m.protein)} · C {Math.round(m.carbs)} · F {Math.round(m.fat)}</span>
-              </div>
-              {i.unit === 'g' ? (
-                <label className="grams"><span className="sr-only">{i.name} {t('grams')}</span>
-                  <input type="number" inputMode="decimal" value={i.amount} onChange={(e) => setItem(i.id, { amount: Number(e.target.value) || 0 })} /><span className="muted">g</span>
-                </label>
-              ) : (
-                <Stepper value={i.amount} onChange={(n) => setItem(i.id, { amount: n })} label={t('servings')} />
-              )}
-              <button className="icon-btn" style={{ width: 36, height: 36, background: 'transparent', color: 'var(--ink-muted)' }} aria-label={`${t('remove')} ${i.name}`}
-                onClick={() => setDraft({ ...draft, items: draft.items.filter((x) => x.id !== i.id) })}><Icon name="close" size={18} /></button>
-            </div>
-          )
-        })}
+        {draft.items.map((i) => <IngredientRow key={i.id} item={i} onOpen={() => setEditId(i.id)} />)}
       </div>
       <button className="dashed" onClick={() => setAdding(true)}><Icon name="plus" size={20} />{t('addSomething')}</button>
       <span className="small muted" style={{ textAlign: 'center', marginTop: -8 }}>{t('addHint')}</span>
@@ -84,6 +63,11 @@ export default function MealEdit() {
         <button className="btn primary block" onClick={() => { saveLog(draft); nav('/') }}>{t('saveTo', { meal: t(draft.meal) })}</button>
       </div>
 
+      <Sheet open={!!editing} onClose={() => setEditId(null)} title={t('editIngredient')}>
+        {editing && <IngredientForm item={editing} onCancel={() => setEditId(null)}
+          onDelete={() => { setDraft({ ...draft, items: draft.items.filter((x) => x.id !== editing.id) }); setEditId(null) }}
+          onSave={(i) => { setDraft({ ...draft, items: draft.items.map((x) => (x.id === i.id ? i : x)) }); setEditId(null) }} />}
+      </Sheet>
       <AddItemSheet open={adding} onClose={() => setAdding(false)} onAdd={(item) => { setDraft({ ...draft, items: [...draft.items, item] }); setAdding(false) }} />
     </main>
   )

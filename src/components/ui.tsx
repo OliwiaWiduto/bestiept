@@ -3,6 +3,8 @@ import { fileToDataUrl } from '../lib/util'
 import { usePhoto } from '../lib/sync'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useT } from '../i18n'
+import { useStore } from '../store'
+import { useLocation } from 'react-router-dom'
 
 const PATHS = {
   back: 'M15 18l-6-6 6-6',
@@ -41,8 +43,25 @@ export function Icon({ name, size = 22, sw = 2, fill = false, className }: { nam
   )
 }
 
+/** A small speech bubble that points at what it explains. Put it inside a position: relative wrapper around the target. */
+export function CoachTip({ id, when = true, place = 'below', align = 'end', children }: { id: string; when?: boolean; place?: 'above' | 'below'; align?: 'start' | 'center' | 'end'; children: ReactNode }) {
+  const t = useT()
+  const seen = useStore((s) => !s.profile || (s.profile.tips ?? []).includes(id))
+  const seeTip = useStore((s) => s.seeTip)
+  if (seen || !when) return null
+  return (
+    <button type="button" className={`coach ${place} ${align}`} onClick={() => seeTip(id)} role="status">
+      <span>{children}</span>
+      <span className="coach-ok">{t('gotIt')}</span>
+    </button>
+  )
+}
+
 export function BottomNav({ onLog }: { onLog: () => void }) {
   const t = useT()
+  const onToday = useLocation().pathname === '/'
+  const noLogsYet = useStore((s) => s.logs.length === 0)
+  const seeTip = useStore((s) => s.seeTip)
   const tab = (to: string, icon: IconName, label: string) => (
     <NavLink to={to} end={to === '/'} className={({ isActive }) => (isActive ? 'active' : '')}>
       <Icon name={icon} size={24} />
@@ -53,7 +72,10 @@ export function BottomNav({ onLog }: { onLog: () => void }) {
     <nav className="nav" aria-label="Main">
       {tab('/', 'clock', t('navToday'))}
       {tab('/recipes', 'book', t('navRecipes'))}
-      <button className="fab" aria-label={t('logFood')} onClick={onLog}><Icon name="plus" size={28} sw={2.5} /></button>
+      <span style={{ position: 'relative', marginTop: -30, display: 'flex' }}>
+        <button className="fab" style={{ marginTop: 0 }} aria-label={t('logFood')} onClick={() => { seeTip('log'); onLog() }}><Icon name="plus" size={28} sw={2.5} /></button>
+        <CoachTip id="log" when={onToday && noLogsYet} place="above" align="center">{t('tipLog')}</CoachTip>
+      </span>
       {tab('/plan', 'calendar', t('navPlan'))}
       {tab('/shopping', 'bag', t('navShopping'))}
     </nav>
@@ -98,7 +120,6 @@ export function MacroBar({ label, value, target, color, isLimit, limitLabel }: {
 export function MacroGrid({ m, cols }: { m: { protein: number; carbs: number; fat: number; fibre: number; sugar?: number }; cols?: number }) {
   const t = useT()
   const items: [string, number, string][] = [[t('protein'), m.protein, 'var(--cherry)'], [t('carbs'), m.carbs, 'var(--butter)'], [t('fat'), m.fat, 'var(--olive)'], [t('fibre'), m.fibre, 'var(--lime)']]
-  if (m.sugar !== undefined) items.push([t('sugar'), m.sugar, 'var(--line)'])
   return (
     <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols ?? items.length}, minmax(0, 1fr))`, gap: 8 }}>
       {items.map(([l, v, c]) => (

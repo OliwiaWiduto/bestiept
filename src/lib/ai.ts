@@ -30,3 +30,6 @@ export const importRecipe = (input: { url?: string; image?: string; text?: strin
 
 export const scanMeal = (image: string, lang: string) =>
   call<{ meal: { name: string; items: ScannedItem[] } }>('scan-meal', { image, lang })
+
+export const scanMealText = (text: string, lang: string) =>
+  call<{ meal: { name: string; items: ScannedItem[] } }>('scan-meal', { text, lang })

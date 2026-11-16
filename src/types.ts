@@ -17,6 +17,8 @@ export type Profile = {
   weightKg: number
   activity: Activity
   goal: Goal
+  /** First-use tips this person has already seen (travels with their account) */
+  tips?: string[]
 }
 
 export type Ingredient = { id: string; amount: number | null; unit: string; name: string }

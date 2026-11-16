@@ -15,7 +15,7 @@ export default function RecipeEdit() {
   const { recipes, saveRecipe } = useStore()
   const existing = recipes.find((r) => r.id === id)
 
-  const [stage, setStage] = useState<'form' | 'review'>('form')
+  const [stage, setStage] = useState<'start' | 'form' | 'review'>(existing ? 'form' : 'start')
   const [title, setTitle] = useState(existing?.title ?? '')
   const [category, setCategory] = useState<Meal>(existing?.category ?? 'dinner')
   const [servings, setServings] = useState(existing?.servings ?? 2)
@@ -43,6 +43,8 @@ export default function RecipeEdit() {
     setNutrition({ kcal: Math.round(r.nutrition.kcal), protein: Math.round(r.nutrition.protein), carbs: Math.round(r.nutrition.carbs), fat: Math.round(r.nutrition.fat), fibre: Math.round(r.nutrition.fibre), sugar: Math.round(r.nutrition.sugar) })
     setLink('')
     toast(t('importDone'))
+    setStage('form')
+    window.scrollTo(0, 0)
   }
 
   const toReview = () => {
@@ -96,24 +98,32 @@ export default function RecipeEdit() {
       </main>
     )
 
+  if (stage === 'start')
+    return (
+      <main className="screen no-nav">
+        <div className="between"><BackButton /><span style={{ fontWeight: 600 }}>{t('newRecipe')}</span><span style={{ width: 44 }} /></div>
+        <div className="stack" style={{ gap: 6 }}>
+          <h1 className="title">{t('importTitle')}</h1>
+          <p className="muted" style={{ margin: 0 }}>{t('importHint')}</p>
+        </div>
+        <textarea className="input" rows={3} style={{ height: 'auto', minHeight: 96, padding: 14, resize: 'none' }} inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false}
+          aria-label={t('importLinkPh')} placeholder={t('importLinkPh')} value={link} onChange={(e) => setLink(e.target.value)} disabled={importing} />
+        <button className="btn green block" disabled={!link.trim() || importing} onClick={() => runImport({ url: link.trim() })}>{importing ? t('importing') : t('import')}</button>
+        <PhotoButton max={1600} disabled={importing} onPhoto={(img) => runImport({ image: img })} label={t('importPhoto')} className="btn secondary block">
+          <Icon name="camera" size={18} />{t('importPhoto')}
+        </PhotoButton>
+        <div className="row" style={{ gap: 12 }}><hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--line)' }} /><span className="caption">{t('orWord')}</span><hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--line)' }} /></div>
+        <button className="btn ghost block" disabled={importing} onClick={() => { setStage('form'); window.scrollTo(0, 0) }}><Icon name="edit" size={18} />{t('typeItIn')}</button>
+        {importing && <span className="small muted" role="status" style={{ textAlign: 'center' }}>{t('importing')}</span>}
+      </main>
+    )
+
   return (
     <main className="screen no-nav">
-      <div className="between"><BackButton /><span style={{ fontWeight: 600 }}>{existing ? t('editRecipe') : t('newRecipe')}</span><span style={{ width: 44 }} /></div>
-      {!existing && (
-        <section className="card stack" style={{ gap: 10 }}>
-          <h2 className="heading" style={{ fontSize: 17 }}>{t('importTitle')}</h2>
-          <div className="row" style={{ gap: 8 }}>
-            <input className="input grow" inputMode="url" autoCapitalize="none" autoCorrect="off" placeholder={t('importLinkPh')} value={link} onChange={(e) => setLink(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && link.trim()) runImport({ url: link.trim() }) }} disabled={importing} />
-            <button className="btn green small" disabled={!link.trim() || importing} onClick={() => runImport({ url: link.trim() })}>{t('import')}</button>
-          </div>
-          <PhotoButton max={1600} disabled={importing} onPhoto={(img) => runImport({ image: img })} label={t('importPhoto')} className="btn secondary block">
-            <Icon name="camera" size={18} />{t('importPhoto')}
-          </PhotoButton>
-          {importing && <span className="small muted" role="status">{t('importing')}</span>}
-          <span className="caption">{t('importHint')}</span>
-        </section>
-      )}
+      <div className="between">
+        {existing ? <BackButton /> : <button className="icon-btn" aria-label={t('back')} onClick={() => setStage('start')}><Icon name="back" /></button>}
+        <span style={{ fontWeight: 600 }}>{existing ? t('editRecipe') : t('newRecipe')}</span><span style={{ width: 44 }} />
+      </div>
 
       <PhotoButton onPhoto={setPhoto} label={photo ? t('changePhoto') : t('addPhoto')} className="thumb"
         style={{ width: '100%', height: 180, borderRadius: 28, backgroundImage: photoUrl ? `url(${photoUrl})` : undefined, flexDirection: 'column', gap: 6, border: 'none', position: 'relative' }}>
@@ -134,7 +144,7 @@ export default function RecipeEdit() {
 
       <h2 className="heading">{t('nutritionPer')}</h2>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
-        {(['kcal', 'protein', 'carbs', 'fat', 'fibre', 'sugar'] as (keyof Macros)[]).map((k) => (
+        {(['kcal', 'protein', 'carbs', 'fat', 'fibre'] as (keyof Macros)[]).map((k) => (
           <label key={k} className="field"><span className="caption" style={{ fontWeight: 600 }}>{k === 'kcal' ? t('kcal') : `${t(k)} (g)`}</span>
             <input className="input" type="number" inputMode="decimal" value={nutrition[k] || ''} onChange={(e) => setNutrition({ ...nutrition, [k]: Number(e.target.value) || 0 })} /></label>
         ))}

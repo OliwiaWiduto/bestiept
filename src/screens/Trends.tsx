@@ -74,7 +74,6 @@ export default function Trends() {
         <MacroBar label={t('carbs')} value={avg.carbs} target={targets.carbs} color="var(--butter)" />
         <MacroBar label={t('fat')} value={avg.fat} target={targets.fat} color="var(--olive)" />
         <MacroBar label={t('fibre')} value={avg.fibre} target={targets.fibre} color="var(--lime)" />
-        <MacroBar label={t('sugar')} value={avg.sugar} target={targets.sugar} color="" isLimit limitLabel={t('limit')} />
       </section>
 
       <section className="card stack" style={{ gap: 12 }}>
