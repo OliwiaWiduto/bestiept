@@ -17,7 +17,7 @@ const isIosOtherBrowser = () => /crios|fxios|edgios|opios/i.test(navigator.userA
 type Where = 'ios-safari' | 'ios-other' | 'in-app' | 'installable' | 'none'
 
 /** Small prompt to add the app to the home screen. Disappears once it's installed. */
-export default function InstallNudge({ onAuth = false }: { onAuth?: boolean }) {
+export default function InstallNudge({ onAuth = false, inline = false }: { onAuth?: boolean; inline?: boolean }) {
   const t = useT()
   const { pathname } = useLocation()
   const { pwaDismissedAt, dismissPwa } = useStore()
@@ -43,10 +43,11 @@ export default function InstallNudge({ onAuth = false }: { onAuth?: boolean }) {
 
   const snoozed = pwaDismissedAt !== null && Date.now() - pwaDismissedAt < SHOW_AGAIN_AFTER
   // On the sign-in screen it always shows (that's her first look); in the app, on Today, once the first-meal tip is out of the way.
-  if (installed || snoozed) return null
-  if (!onAuth && (pathname !== '/' || logTipShowing)) return null
+  if (installed) return null
+  if (!inline && snoozed) return null
+  if (!inline && !onAuth && (pathname !== '/' || logTipShowing)) return null
   const where: Where = isInApp() ? 'in-app' : isIos() ? (isIosOtherBrowser() ? 'ios-other' : 'ios-safari') : deferred ? 'installable' : 'none'
-  if (where === 'none') return null
+  if (where === 'none') return inline ? <p className="small muted" style={{ margin: 0 }}>{t('pwaGeneric')}</p> : null
 
   const copy = async () => {
     try { await navigator.clipboard.writeText(location.origin); setCopied(true); setTimeout(() => setCopied(false), 2500) } catch { /* clipboard blocked */ }
@@ -57,7 +58,7 @@ export default function InstallNudge({ onAuth = false }: { onAuth?: boolean }) {
     : where === 'in-app' ? t(isIos() ? 'pwaInAppIos' : 'pwaInApp')
     : t('pwaOther')
   return (
-    <div role="status" style={{ position: 'fixed', left: '50%', transform: 'translateX(-50%)', bottom: onAuth ? 'calc(16px + env(safe-area-inset-bottom))' : 'calc(var(--nav-h) + 16px + env(safe-area-inset-bottom))', width: 'calc(100% - 32px)', maxWidth: 448, zIndex: 30,
+    <div role="status" style={inline ? { background: 'var(--green)', color: 'var(--on-green)', borderRadius: 18, padding: '12px 12px 12px 14px', display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, lineHeight: '20px', fontWeight: 500 } : { position: 'fixed', left: '50%', transform: 'translateX(-50%)', bottom: onAuth ? 'calc(16px + env(safe-area-inset-bottom))' : 'calc(var(--nav-h) + 16px + env(safe-area-inset-bottom))', width: 'calc(100% - 32px)', maxWidth: 448, zIndex: 30,
       background: 'var(--green)', color: 'var(--on-green)', borderRadius: 18, padding: '10px 8px 10px 14px', display: 'flex', alignItems: 'center', gap: 10, boxShadow: '0 6px 20px rgba(0,0,0,.15)', fontSize: 13, lineHeight: '18px', fontWeight: 500 }}>
       <img src="/icons/cat-fruitveg.png" alt="" width={28} height={28} style={{ width: 28, height: 28, flexShrink: 0 }} />
       <span style={{ flex: 1 }}>
@@ -70,9 +71,9 @@ export default function InstallNudge({ onAuth = false }: { onAuth?: boolean }) {
         <button className="btn small" style={{ background: 'var(--lime)', color: 'var(--green)', height: 36, padding: '0 14px' }}
           onClick={async () => { await deferred.prompt(); setDeferred(null) }}>{t('install')}</button>
       )}
-      <button aria-label={t('dismiss')} onClick={() => (onAuth ? setInstalled(true) : dismissPwa())} style={{ width: 32, height: 32, borderRadius: 999, border: 'none', background: 'transparent', color: 'var(--on-green)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      {!inline && <button aria-label={t('dismiss')} onClick={() => (onAuth ? setInstalled(true) : dismissPwa())} style={{ width: 32, height: 32, borderRadius: 999, border: 'none', background: 'transparent', color: 'var(--on-green)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         <Icon name="close" size={16} />
-      </button>
+      </button>}
     </div>
   )
 }

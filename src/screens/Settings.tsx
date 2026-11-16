@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../store'
 import { useT } from '../i18n'
 import { staplesIn } from '../lib/shopping'
+import InstallNudge from '../components/InstallNudge'
 import type { Activity, Goal, Macros, Profile, Sex } from '../types'
 import { BackButton, Icon, NumberField, toast } from '../components/ui'
 import { useEffect } from 'react'
@@ -12,6 +13,7 @@ import { HeightField, UnitsToggle, WeightField } from '../components/BodyFields'
 
 export default function Settings() {
   const t = useT()
+  const installed = window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true
   const nav = useNavigate()
   const { lang, setLang, profile, targets, updateProfile, setTargets, shopping, setShopping, resetAll } = useStore()
   const [p, setP] = useState<Profile | null>(profile)
@@ -74,6 +76,12 @@ export default function Settings() {
         <button className="btn secondary" onClick={() => { setShopping({ staples: staples.split('\n').map((s) => s.trim()).filter(Boolean), staplesAsked: true }); toast(t('saved')) }}>{t('save')}</button>
       </section>
 
+      {!installed && (
+        <section className="stack" style={{ gap: 8 }}>
+          <h2 className="heading">{t('addToHome')}</h2>
+          <InstallNudge inline />
+        </section>
+      )}
       <button className="card stack" style={{ gap: 8, border: 'none', textAlign: 'left' }} onClick={() => nav('/family')}>
         <span className="between"><h2 className="heading">{t('family')}</h2><Icon name="forward" /></span>
         <span className="small muted">{t('familySummary')}</span>

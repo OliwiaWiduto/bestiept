@@ -73,6 +73,7 @@ const en = {
   searchFoodsRecipes: 'Search foods and recipes', foodsTab: 'Foods', recentlyLogged: 'Recently logged', clear: 'Clear',
   pwaOpenSafari: 'To add BestiePT to your home screen, open this page in Safari. Copy the link and paste it there.', pwaInAppIos: 'You’re in another app’s browser. Open BestiePT in Safari to add it to your home screen.', pwaInApp: 'You’re in another app’s browser. Open BestiePT in Chrome to install it.', copyLink: 'Copy link', copied: 'Copied',
   linkRequestFrom: '{name} wants to link with you', linkRequestsN: '{n} people want to link with you', linkRequestSee: 'Tap to accept or decline',
+  addToHome: 'Add to your home screen', pwaGeneric: 'Open BestiePT on your phone in Safari (iPhone) or Chrome (Android) to add it to your home screen.',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -213,6 +214,7 @@ const pl: Dict = {
   searchFoodsRecipes: 'Szukaj produktów i przepisów', foodsTab: 'Produkty', recentlyLogged: 'Ostatnio dodane', clear: 'Wyczyść',
   pwaOpenSafari: 'Żeby dodać BestiePT do ekranu głównego, otwórz tę stronę w Safari. Skopiuj link i wklej go tam.', pwaInAppIos: 'Jesteś w przeglądarce innej aplikacji. Otwórz BestiePT w Safari, żeby dodać ją do ekranu głównego.', pwaInApp: 'Jesteś w przeglądarce innej aplikacji. Otwórz BestiePT w Chrome, żeby ją zainstalować.', copyLink: 'Kopiuj link', copied: 'Skopiowano',
   linkRequestFrom: '{name} chce się z Tobą połączyć', linkRequestsN: 'Prośby o połączenie: {n}', linkRequestSee: 'Kliknij, żeby przyjąć lub odrzucić',
+  addToHome: 'Dodaj do ekranu głównego', pwaGeneric: 'Otwórz BestiePT na telefonie w Safari (iPhone) lub Chrome (Android), żeby dodać ją do ekranu głównego.',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 
