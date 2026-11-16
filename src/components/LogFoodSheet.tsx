@@ -208,20 +208,18 @@ export default function LogFoodSheet() {
       {back}
       {mode === 'menu' && (
         <div className="stack" style={{ gap: 14 }}>
+          <div className="log-tiles">
+            {tile('camera', t('photoScan'), () => setMode('scan'))}
+            {tile('barcode', t('barcode'), () => setMode('barcode'))}
+            {tile('mic', t('voiceLog'), () => setMode('voice'))}
+            {tile('book', t('fromRecipe'), () => { setQuery(''); setMode('recipe') })}
+            {tile('plus', t('quickAdd'), () => setMode('quick'))}
+          </div>
           <label className="search-field">
             <Icon name="search" size={20} />
             <input type="search" placeholder={t('searchFoodsRecipes')} aria-label={t('searchFoodsRecipes')} value={query} onChange={(e) => setQuery(e.target.value)} />
             {query && <button className="icon-btn" style={{ width: 32, height: 32, background: 'transparent' }} aria-label={t('clear')} onClick={() => setQuery('')}><Icon name="close" size={16} /></button>}
           </label>
-          {!searching && (
-            <div className="log-tiles">
-              {tile('camera', t('photoScan'), () => setMode('scan'))}
-              {tile('barcode', t('barcode'), () => setMode('barcode'))}
-              {tile('mic', t('voiceLog'), () => setMode('voice'))}
-              {tile('book', t('fromRecipe'), () => { setQuery(''); setMode('recipe') })}
-              {tile('plus', t('quickAdd'), () => setMode('quick'))}
-            </div>
-          )}
           {searching && (
             <>
               <div className="chips" role="group">
