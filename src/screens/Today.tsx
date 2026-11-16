@@ -24,7 +24,8 @@ export default function Today() {
   if (!profile || !targets) return null
 
   const left = targets.kcal - totals.kcal
-  const requests = useFamily((f) => f.links.filter((l) => l.status === 'pending' && l.incoming))
+  const links = useFamily((f) => f.links)
+  const requests = links.filter((l) => l.status === 'pending' && l.incoming)
   const over = Math.round(left) < 0
   const hour = new Date().getHours()
   const greeting = t(hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening', { name: profile.name })
