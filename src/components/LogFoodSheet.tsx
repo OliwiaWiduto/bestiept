@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useStore } from '../store'
 import { defaultMeal, useUI } from '../ui-state'
 import { useT } from '../i18n'
 import { MEALS, type FoodItem, type Macros, type Meal } from '../types'
 import { FOODS } from '../lib/foods'
 import { uid } from '../lib/util'
+import { BarcodeScanner } from './BarcodeScanner'
 import { Icon, Sheet, Stepper, Thumb, toast, type IconName } from './ui'
 
 type Mode = 'menu' | 'recipe' | 'search' | 'quick' | 'barcode'
@@ -24,13 +25,15 @@ export default function LogFoodSheet() {
   const [quick, setQuick] = useState({ name: '', kcal: '', protein: '', carbs: '', fat: '' })
   const [code, setCode] = useState('')
   const [lookup, setLookup] = useState<'idle' | 'loading' | 'notfound'>('idle')
+  const [typing, setTyping] = useState(false)
+  const [scanError, setScanError] = useState<'denied' | 'unavailable' | null>(null)
   const [dest, setDest] = useState<'own' | 'existing'>('own')
   const [targetId, setTargetId] = useState<string | null>(null)
 
   useEffect(() => {
     if (logOpen) {
       setMode('menu'); setMeal(logMeal ?? defaultMeal()); setQuery(''); setRecipeId(null); setServings(1); setPicked(null)
-      setQuick({ name: '', kcal: '', protein: '', carbs: '', fat: '' }); setCode(''); setLookup('idle'); setDest('own'); setTargetId(null)
+      setQuick({ name: '', kcal: '', protein: '', carbs: '', fat: '' }); setCode(''); setLookup('idle'); setTyping(false); setScanError(null); setDest('own'); setTargetId(null)
     }
   }, [logOpen, logMeal])
 
@@ -125,14 +128,14 @@ export default function LogFoodSheet() {
     </div>
   )
 
-  const lookUp = async () => {
+  const lookUp = async (c: string = code) => {
     setLookup('loading')
     try {
-      const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code.trim())}.json?fields=product_name,brands,nutriments,serving_quantity`)
+      const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(c.trim())}.json?fields=product_name,brands,nutriments,serving_quantity`)
       const data = await res.json()
       const n = data?.product?.nutriments
-      if (!data?.product || !n || n['energy-kcal_100g'] === undefined) { setLookup('notfound'); return }
-      const name = [data.product.brands?.split(',')[0], data.product.product_name].filter(Boolean).join(' ') || code
+      if (!data?.product || !n || n['energy-kcal_100g'] === undefined) { setLookup('notfound'); setTyping(true); return }
+      const name = [data.product.brands?.split(',')[0], data.product.product_name].filter(Boolean).join(' ') || c
       setPicked({
         name,
         per: { kcal: +n['energy-kcal_100g'] || 0, protein: +n.proteins_100g || 0, carbs: +n.carbohydrates_100g || 0, fat: +n.fat_100g || 0, fibre: +n.fiber_100g || 0, sugar: +n.sugars_100g || 0 },
@@ -142,9 +145,13 @@ export default function LogFoodSheet() {
       setGrams(String(Math.round(+data.product.serving_quantity || 100)))
       setLookup('idle')
     } catch {
-      setLookup('notfound')
+      setLookup('notfound'); setTyping(true)
     }
   }
+
+  const onScan = useCallback((c: string) => { setCode(c); lookUp(c) }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const onScanFail = useCallback((why: 'denied' | 'unavailable') => { setScanError(why); setTyping(true) }, [])
 
   const r = recipes.find((x) => x.id === recipeId)
 
@@ -204,11 +211,16 @@ export default function LogFoodSheet() {
 
       {mode === 'barcode' && !picked && (
         <div className="stack" style={{ gap: 16 }}>
+          {lookup === 'loading' ? <p className="muted" style={{ margin: 0 }}>{t('lookingUp')}</p> : !typing && <BarcodeScanner onCode={onScan} onFail={onScanFail} />}
+          {!typing && <button className="btn ghost small" style={{ alignSelf: 'center' }} onClick={() => setTyping(true)}>{t('typeInstead')}</button>}
+          {typing && <>
+          {scanError && <p className="tip" style={{ margin: 0 }}>{t(scanError === 'denied' ? 'cameraDenied' : 'cameraUnavailable')}</p>}
           <label className="field"><span>{t('enterBarcode')}</span>
-            <input className="input" autoFocus inputMode="numeric" value={code} onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setLookup('idle') }} onKeyDown={(e) => e.key === 'Enter' && code.length >= 8 && lookUp()} />
+            <input className="input" inputMode="numeric" value={code} onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setLookup('idle') }} onKeyDown={(e) => { if (e.key === 'Enter' && code.length >= 8) lookUp() }} />
           </label>
           {lookup === 'notfound' && <p className="muted" style={{ margin: 0 }}>{t('notFound')}</p>}
-          <button className="btn green block" disabled={code.length < 8 || lookup === 'loading'} onClick={lookUp}>{lookup === 'loading' ? t('lookingUp') : t('lookUp')}</button>
+          <button className="btn green block" disabled={code.length < 8 || lookup === 'loading'} onClick={() => lookUp()}>{lookup === 'loading' ? t('lookingUp') : t('lookUp')}</button>
+          </>}
           <span className="caption">{t('foodData')}</span>
         </div>
       )}
