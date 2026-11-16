@@ -38,10 +38,10 @@ type Remote = {
 async function pull(uid: string): Promise<Remote> {
   const [p, r, l, pl, w] = await Promise.all([
     supabase.from('profiles').select('data').eq('id', uid).maybeSingle(),
-    supabase.from('recipes').select('data'),
-    supabase.from('log_entries').select('data'),
-    supabase.from('plan_items').select('data'),
-    supabase.from('weights').select('date, kg').order('date'),
+    supabase.from('recipes').select('data').eq('user_id', uid),
+    supabase.from('log_entries').select('data').eq('user_id', uid),
+    supabase.from('plan_items').select('data').eq('user_id', uid),
+    supabase.from('weights').select('date, kg').eq('user_id', uid).order('date'),
   ])
   const err = p.error || r.error || l.error || pl.error || w.error
   if (err) throw err
