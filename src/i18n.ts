@@ -8,7 +8,7 @@ import type { Lang } from './types'
  */
 const en = {
   importTitle: 'Import a recipe', importLinkPh: 'Paste a link (Pinterest, any recipe site)', import: 'Import', importPhoto: 'From photos or screenshots', importAddMore: 'Add another', importMany: 'Recipe spread over a few screenshots? Add them all, in order.', importRead: 'Read the recipe',
-  importing: 'Reading the recipe… this takes a few seconds', importHint: 'Works with links, screenshots and photos of cookbook pages. Add a few screenshots if it doesn’t fit on one. You’ll check everything before it saves.', importDone: 'Got it! Check it over, then tap Next',
+  importing: 'Reading the recipe… this takes a few seconds', importHint: 'Paste a link, or add screenshots or photos of cookbook pages.', importDone: 'Got it! Check it over, then tap Next',
   photoScanSub: 'Snap your plate, we’ll guess the macros', takeMealPhoto: 'Take a photo of your meal', scanning: 'Looking at your food…', scanHint: 'Works best from above, with everything on the plate in view.',
   scanCheck: 'These are guesses. Fix the names and grams so they’re right.', total: 'Total',
   ai_not_set_up: 'This isn’t switched on yet. Coming very soon!', ai_daily_limit: 'You’ve hit today’s limit. Try again tomorrow', ai_no_recipe: 'Couldn’t find a recipe there. Try a screenshot instead?',
@@ -118,7 +118,7 @@ const en = {
   howManyAte: 'How many servings did you eat?',
 
   thisWeek: 'This week', nextWeek: 'Next week', planEmpty: 'Nothing planned yet. Pick a few recipes for the week.', pickRecipe: 'Pick a recipe',
-  whichDay: 'Which day?', cookingFor: 'Servings to cook', leftoversOffer: 'This makes {n} extra servings. Want them on another day?', addLeftovers: 'Add leftovers',
+  whichDay: 'Which day?', cookingFor: 'Servings to cook', leftoversOffer: 'This makes {n} extra servings. Tap the days you’ll eat them.', leftoversLeft: '{n} of {t} placed', openSource: 'Open the original recipe on {s}', forLunch: 'For lunch', forDinner: 'For dinner', addLeftovers: 'Add leftovers',
   leftovers: 'Leftovers', makeList: 'Make my shopping list', mealsN: '{n} meals', mealN: '{n} meal', timer: 'Timer', cookN: 'Cook {n}', servingN: '{n} serving', servingsN: '{n} servings',
   planTip: '{n} days sorted. Nice.', planTipAll: 'The whole week’s sorted. Look at you.', addedToPlan: 'Added to your plan',
 
@@ -145,7 +145,7 @@ export type TKey = keyof Dict
 
 const pl: Dict = {
   importTitle: 'Importuj przepis', importLinkPh: 'Wklej link (Pinterest, dowolna strona)', import: 'Importuj', importPhoto: 'Ze zdjęć lub zrzutów ekranu', importAddMore: 'Dodaj kolejne', importMany: 'Przepis jest na kilku zrzutach? Dodaj wszystkie po kolei.', importRead: 'Odczytaj przepis',
-  importing: 'Czytam przepis… to potrwa kilka sekund', importHint: 'Działa z linkami, zrzutami ekranu i zdjęciami stron z książek. Dodaj kilka zrzutów, jeśli przepis nie mieści się na jednym. Wszystko sprawdzisz przed zapisaniem.', importDone: 'Mam! Sprawdź i kliknij Dalej',
+  importing: 'Czytam przepis… to potrwa kilka sekund', importHint: 'Wklej link albo dodaj zrzuty ekranu lub zdjęcia stron z książki.', importDone: 'Mam! Sprawdź i kliknij Dalej',
   photoScanSub: 'Zrób zdjęcie talerza, zgadniemy makro', takeMealPhoto: 'Zrób zdjęcie posiłku', scanning: 'Patrzę na Twoje jedzenie…', scanHint: 'Najlepiej z góry, z całym talerzem w kadrze.',
   scanCheck: 'To tylko szacunki. Popraw nazwy i gramy.', total: 'Razem',
   ai_not_set_up: 'To jeszcze nie jest włączone. Już niedługo!', ai_daily_limit: 'Dzisiejszy limit wykorzystany. Spróbuj jutro', ai_no_recipe: 'Nie znalazłam tam przepisu. Może zrzut ekranu?',
@@ -255,7 +255,7 @@ const pl: Dict = {
   howManyAte: 'Ile porcji zjadłaś?',
 
   thisWeek: 'Ten tydzień', nextWeek: 'Następny tydzień', planEmpty: 'Nic jeszcze nie zaplanowano. Wybierz kilka przepisów na tydzień.', pickRecipe: 'Wybierz przepis',
-  whichDay: 'Który dzień?', cookingFor: 'Ile porcji gotujesz', leftoversOffer: 'Zostanie {n} porcji. Dodać je na inny dzień?', addLeftovers: 'Dodaj resztki',
+  whichDay: 'Który dzień?', cookingFor: 'Ile porcji gotujesz', leftoversOffer: 'Zostanie {n} porcji. Wybierz dni, w które je zjesz.', leftoversLeft: 'Rozplanowano {n} z {t}', openSource: 'Otwórz oryginalny przepis na {s}', forLunch: 'Na lunch', forDinner: 'Na obiad', addLeftovers: 'Dodaj resztki',
   leftovers: 'Resztki', makeList: 'Zrób listę zakupów', mealsN: 'Posiłki: {n}', mealN: 'Posiłki: {n}', timer: 'Minutnik', cookN: 'Ugotuj: {n}', servingN: 'Porcje: {n}', servingsN: 'Porcje: {n}',
   planTip: 'Ogarnięte dni: {n}. Super.', planTipAll: 'Cały tydzień ogarnięty. No proszę.', addedToPlan: 'Dodano do planu',
 

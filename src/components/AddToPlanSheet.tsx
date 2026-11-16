@@ -12,12 +12,13 @@ export default function AddToPlanSheet({ recipe, open, onClose, initialDate }: {
   const [date, setDate] = useState(initialDate ?? today())
   const [meal, setMeal] = useState<Meal>('dinner')
   const [servings, setServings] = useState(2)
-  const [leftoverFor, setLeftoverFor] = useState<string | null>(null)
+  const [leftoverDays, setLeftoverDays] = useState<string[]>([])
+  const [leftoverMeal, setLeftoverMeal] = useState<Meal>('lunch')
   const [stage, setStage] = useState<'pick' | 'leftovers'>('pick')
   const [lastId, setLastId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (open && recipe) { setDate(initialDate ?? today()); setMeal(recipe.category); setServings(recipe.servings); setStage('pick'); setLeftoverFor(null) }
+    if (open && recipe) { setDate(initialDate ?? today()); setMeal(recipe.category); setServings(recipe.servings); setStage('pick'); setLeftoverDays([]); setLeftoverMeal('lunch') }
   }, [open, recipe, initialDate])
   if (!recipe) return null
 
@@ -43,7 +44,7 @@ export default function AddToPlanSheet({ recipe, open, onClose, initialDate }: {
           <button className="btn primary block" onClick={() => {
             const id = addPlan({ date, meal, recipeId: recipe.id, servings })
             setLastId(id)
-            if (extra >= 1) { setStage('leftovers'); setLeftoverFor(addDays(date, 1)) } else { toast(t('addedToPlan')); onClose() }
+            if (extra >= 1) { setStage('leftovers'); setLeftoverDays([addDays(date, 1)]) } else { toast(t('addedToPlan')); onClose() }
           }}>{t('addToPlan')}</button>
         </>
       )}
@@ -51,17 +52,28 @@ export default function AddToPlanSheet({ recipe, open, onClose, initialDate }: {
         <>
           <p style={{ margin: 0 }}>{t('leftoversOffer', { n: extra })}</p>
           <div className="chips scroll">
-            {days.filter((d) => d > date).map((d) => (
-              <button key={d} className="chip" aria-pressed={leftoverFor === d} onClick={() => setLeftoverFor(d)} style={{ height: 52, flexDirection: 'column', justifyContent: 'center', lineHeight: '16px' }}>
-                <span style={{ fontSize: 11, fontWeight: 500 }}>{fmt(d, t.lang, { weekday: 'short' })}</span>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>{fmt(d, t.lang, { day: 'numeric' })}</span>
-              </button>
-            ))}
+            {days.filter((d) => d > date).map((d) => {
+              const on = leftoverDays.includes(d)
+              return (
+                <button key={d} className="chip" aria-pressed={on} disabled={!on && leftoverDays.length >= extra}
+                  onClick={() => setLeftoverDays(on ? leftoverDays.filter((x) => x !== d) : [...leftoverDays, d].sort())}
+                  style={{ height: 52, flexDirection: 'column', justifyContent: 'center', lineHeight: '16px' }}>
+                  <span style={{ fontSize: 11, fontWeight: 500 }}>{fmt(d, t.lang, { weekday: 'short' })}</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>{fmt(d, t.lang, { day: 'numeric' })}</span>
+                </button>
+              )
+            })}
+          </div>
+          <div className="between" style={{ gap: 12 }}>
+            <div className="chips" role="group">
+              {(['lunch', 'dinner'] as const).map((m) => <button key={m} className="chip" aria-pressed={leftoverMeal === m} onClick={() => setLeftoverMeal(m)}>{t(m === 'lunch' ? 'forLunch' : 'forDinner')}</button>)}
+            </div>
+            <span className="small muted" aria-live="polite" style={{ whiteSpace: 'nowrap' }}>{t('leftoversLeft', { n: leftoverDays.length, t: extra })}</span>
           </div>
           <div className="row">
             <button className="btn secondary grow" onClick={() => { toast(t('addedToPlan')); onClose() }}>{t('notNow')}</button>
-            <button className="btn primary grow" disabled={!leftoverFor || !lastId} onClick={() => {
-              addPlan({ date: leftoverFor!, meal: 'lunch', recipeId: recipe.id, servings: 1, leftoverOf: lastId! })
+            <button className="btn primary grow" disabled={!leftoverDays.length || !lastId} onClick={() => {
+              leftoverDays.forEach((d) => addPlan({ date: d, meal: leftoverMeal, recipeId: recipe.id, servings: 1, leftoverOf: lastId! }))
               toast(t('addedToPlan')); onClose()
             }}>{t('addLeftovers')}</button>
           </div>

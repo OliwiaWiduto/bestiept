@@ -240,3 +240,4 @@ input, textarea, select { font-size: max(16px, 1em); }
 .cook-start { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; border: none; background: var(--on-green); color: var(--green); font-size: 14px; font-weight: 600; white-space: nowrap; }
 .cook-drawer .btn { height: 52px; }
 .equip.light { background: var(--peach-soft); }
+.chip:disabled { opacity: .4; }

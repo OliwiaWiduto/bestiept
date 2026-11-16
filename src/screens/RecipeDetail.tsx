@@ -36,13 +36,9 @@ export default function RecipeDetail() {
       <div className="stack" style={{ marginTop: 4 }}>
         <div className="row" style={{ gap: 8 }}>
           <span className="chip" aria-pressed="true" style={{ height: 32 }}>{t(r.category)}</span>
-          {r.source && (() => {
-            const src = siteName(r.source)
-            const style = { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } as const
-            return src.href
-              ? <a className="small muted" style={style} href={src.href} target="_blank" rel="noreferrer">{t('savedFrom', { s: src.label })}</a>
-              : <span className="small muted" style={style}>{t('savedFrom', { s: src.label })}</span>
-          })()}
+          {r.source && siteName(r.source).href && (
+            <a className="pen" href={siteName(r.source).href} target="_blank" rel="noreferrer" aria-label={t('openSource', { s: siteName(r.source).label })}><Icon name="link" size={18} /></a>
+          )}
         </div>
         <h1 className="display" style={{ fontSize: 32, lineHeight: '36px' }}>{r.title}</h1>
         <div className="row small muted" style={{ gap: 6 }}>

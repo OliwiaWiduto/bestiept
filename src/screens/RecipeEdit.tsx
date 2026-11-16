@@ -212,7 +212,7 @@ export default function RecipeEdit() {
         </div>
         <textarea className="input" rows={3} style={{ height: 'auto', minHeight: 96, padding: 14, resize: 'none' }} inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false}
           aria-label={t('importLinkPh')} placeholder={t('importLinkPh')} value={link} onChange={(e) => setLink(e.target.value)} disabled={importing} />
-        <button className="btn green block" disabled={!link.trim() || importing} onClick={() => runImport({ url: link.trim() })}>{importing ? t('importing') : t('import')}</button>
+        <button className="btn green block" disabled={!link.trim() || importing} onClick={() => runImport({ url: link.trim() })}>{t('import')}</button>
         {shots.length === 0 ? (
           <PhotoButton multiple max={1600} disabled={importing} onPhoto={addShot} label={t('importPhoto')} className="btn secondary block">
             <Icon name="camera" size={18} />{t('importPhoto')}
@@ -231,7 +231,7 @@ export default function RecipeEdit() {
               )}
             </div>
             <span className="caption">{t('importMany')}</span>
-            <button className="btn green block" disabled={importing} onClick={() => runImport({ images: shots })}>{importing ? t('importing') : t('importRead')}</button>
+            <button className="btn green block" disabled={importing} onClick={() => runImport({ images: shots })}>{t('importRead')}</button>
           </section>
         )}
         <div className="row" style={{ gap: 12 }}><hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--line)' }} /><span className="caption">{t('orWord')}</span><hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--line)' }} /></div>
