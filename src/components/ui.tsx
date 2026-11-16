@@ -65,7 +65,7 @@ export function BottomNav({ onLog }: { onLog: () => void }) {
   const seeTip = useStore((s) => s.seeTip)
   const tab = (to: string, icon: IconName, label: string) => (
     <NavLink to={to} end={to === '/'} className={({ isActive }) => (isActive ? 'active' : '')}>
-      <Icon name={icon} size={24} />
+      <span className="nav-icon"><Icon name={icon} size={22} /></span>
       {label}
     </NavLink>
   )

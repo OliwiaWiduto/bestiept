@@ -261,3 +261,9 @@ input, textarea, select { font-size: max(16px, 1em); }
 .log-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .log-tile { aspect-ratio: 1; border: none; border-radius: 18px; background: var(--peach-soft); color: var(--green); display: grid; place-items: center; }
 .log-tile:active { transform: scale(.96); }
+
+/* Nav: the current tab sits in a lime pill */
+.nav a { color: var(--stone); }
+.nav-icon { display: grid; place-items: center; width: 52px; height: 30px; border-radius: 999px; transition: background .2s; }
+.nav a.active { color: var(--green); font-weight: 700; }
+.nav a.active .nav-icon { background: var(--lime); color: var(--green-deep); }
