@@ -34,9 +34,9 @@ export async function askClaude<T>(opts: { system: string; content: Block[]; too
     body: JSON.stringify({
       model: Deno.env.get('AI_MODEL') ?? 'claude-sonnet-5-5',
       max_tokens: opts.maxTokens ?? 4000,
-      system: opts.system,
+      system: `${opts.system}\n\nAlways give your answer by calling the ${opts.tool.name} tool, and never reply with plain text.`,
       tools: [opts.tool],
-      tool_choice: { type: 'tool', name: opts.tool.name },
+      tool_choice: { type: 'auto' }, // newer models reject forced tool use
       messages: [{ role: 'user', content: opts.content }],
     }),
   })
