@@ -67,6 +67,9 @@ const en = {
   gotIt: 'Got it', tipLog: 'Tap + to log your first meal. Snap a photo, scan a barcode, search or just say it.', tipRecipes: 'Add your own recipes here: paste a link, snap a cookbook page or type it in.',
   voiceLog: 'Say it', voiceLogSub: 'Tell me what you ate, I’ll sort the rest', voicePrompt: 'What did you eat?', voiceTap: 'Tap the mic and tell me', voiceListening: 'Listening…', voiceGo: 'Work it out', voiceWorking: 'Working it out…', voiceAgain: 'Start over', voiceNoMic: 'Voice isn’t available here. Type it below, or tap the mic on your keyboard to dictate.', voicePh: 'e.g. two scrambled eggs on toast with butter, and a latte', voiceDenied: 'I can’t use the microphone. Check it’s allowed for this site, or type it below.', editIngredient: 'Edit ingredient', totalsFor: 'Totals for this amount', removeIngredient: 'Remove ingredient', editName: 'Edit name', amountLabel: 'Amount',
   typeItIn: 'Type it in myself', orWord: 'or',
+  kcalOverNote: 'Over your target today. That’s okay, it’s one day.',
+  handsFree: 'Hands-free', waveOnLabel: 'Wave on', cookTapHint: 'Tap the right side for the next step, the left to go back.', waveTip: 'Messy hands? Turn on Hands-free and wave over the screen.', timeUp: 'Time’s up', stepN: 'Step {n}',
+  editStep: 'Edit step', removeStep: 'Remove step', addIngredient: 'Add ingredient', addStep: 'Add a step', editDetails: 'Edit details', serves: 'Serves {n}', addTime: 'Add time', editEquipment: 'Edit equipment', addEquipment: 'Add equipment', editNutrition: 'Edit nutrition', checkTap: 'Have a quick look. Tap anything to change it.', stepText: 'What to do',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -110,7 +113,7 @@ const en = {
   stepOf: 'Step {n} of {t}', youllNeed: 'You’ll need', gather: 'Gather everything', gatherHint: 'Get it all out before you start.',
   food: 'Food', equipment: 'Equipment', letsCook: 'Let’s cook', startTimer: 'Start timer', pause: 'Pause', resume: 'Resume', reset: 'Reset',
   timerDone: 'Timer done', listening: 'Listening', waveHint: 'Wave over the screen or say “next”', waveOn: 'Hand wave on', waveOff: 'Hand wave off', waveTurnOn: 'Tap to turn on hand wave', voice: 'Voice',
-  cameraNo: 'We couldn’t use the camera, so hand wave is off. Voice and buttons still work.', voiceNo: 'Voice isn’t available on this browser yet.',
+  cameraNo: 'I can’t use the camera, so Hands-free is off. Check the camera is allowed for this site. Tapping still works.', voiceNo: 'Voice isn’t available on this browser yet.',
   nextStep: 'Next step', finish: 'Finish', leave: 'Leave cooking mode', cookedTitle: 'You made that. Want to log it?', logIt: 'Log it', notNow: 'Not now',
   howManyAte: 'How many servings did you eat?',
 
@@ -201,6 +204,9 @@ const pl: Dict = {
   gotIt: 'Jasne', tipLog: 'Kliknij +, żeby dodać pierwszy posiłek. Zrób zdjęcie, zeskanuj kod, wyszukaj albo po prostu powiedz.', tipRecipes: 'Tu dodasz własne przepisy: wklej link, zrób zdjęcie strony z książki albo wpisz ręcznie.',
   voiceLog: 'Powiedz', voiceLogSub: 'Powiedz, co zjadłaś, resztą zajmę się ja', voicePrompt: 'Co zjadłaś?', voiceTap: 'Kliknij mikrofon i powiedz', voiceListening: 'Słucham…', voiceGo: 'Policz', voiceWorking: 'Liczę…', voiceAgain: 'Zacznij od nowa', voiceNoMic: 'Głos nie działa tutaj. Wpisz poniżej albo użyj mikrofonu na klawiaturze.', voicePh: 'np. dwie jajecznice na tosta z masłem i latte', voiceDenied: 'Nie mogę użyć mikrofonu. Sprawdź uprawnienia strony albo wpisz poniżej.', editIngredient: 'Edytuj składnik', totalsFor: 'Wartości dla tej ilości', removeIngredient: 'Usuń składnik', editName: 'Edytuj nazwę', amountLabel: 'Ilość',
   typeItIn: 'Wpiszę sama', orWord: 'lub',
+  kcalOverNote: 'Ponad cel na dziś. Nic się nie stało, to jeden dzień.',
+  handsFree: 'Bez dotyku', waveOnLabel: 'Machanie wł.', cookTapHint: 'Kliknij prawą stronę, żeby przejść dalej, lewą, żeby wrócić.', waveTip: 'Brudne ręce? Włącz „Bez dotyku” i machnij nad ekranem.', timeUp: 'Czas minął', stepN: 'Krok {n}',
+  editStep: 'Edytuj krok', removeStep: 'Usuń krok', addIngredient: 'Dodaj składnik', addStep: 'Dodaj krok', editDetails: 'Edytuj szczegóły', serves: 'Porcje: {n}', addTime: 'Dodaj czas', editEquipment: 'Edytuj sprzęt', addEquipment: 'Dodaj sprzęt', editNutrition: 'Edytuj wartości', checkTap: 'Rzuć okiem. Kliknij cokolwiek, żeby zmienić.', stepText: 'Co zrobić',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 

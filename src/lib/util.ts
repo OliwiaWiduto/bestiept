@@ -77,3 +77,30 @@ export function fileToDataUrl(file: File, max = 900): Promise<string> {
     img.src = url
   })
 }
+
+const FILLER = new Set(['fresh', 'freshly', 'large', 'small', 'medium', 'big', 'ripe', 'dried', 'frozen', 'whole', 'extra', 'virgin', 'boneless', 'skinless', 'finely', 'roughly', 'thinly', 'chopped', 'grated', 'sliced', 'diced', 'crushed', 'minced', 'peeled', 'cooked', 'raw', 'unsalted', 'salted', 'heaped', 'level', 'good', 'quality', 'of',
+  'świeży', 'świeża', 'świeże', 'świeżo', 'duży', 'duża', 'duże', 'mały', 'mała', 'małe', 'średni', 'średnia', 'średnie', 'drobno', 'grubo', 'cienko', 'posiekany', 'posiekana', 'posiekane', 'starty', 'starta', 'starte', 'pokrojony', 'pokrojona', 'pokrojone', 'obrany', 'obrana', 'obrane', 'mrożony', 'mrożona', 'mrożone', 'suszony', 'suszona', 'suszone'])
+const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s)
+
+/** "potatoes, chopped into cubes" → main "Potatoes", note "chopped into cubes". */
+export function splitName(name: string): { main: string; note: string } {
+  const m = name.trim().match(/^([^,(;]+)[,(;]?\s*(.*)$/)
+  if (!m) return { main: cap(name.trim()), note: '' }
+  return { main: cap(m[1].trim()), note: m[2].replace(/\)\s*$/, '').replace(/\)\s*,?\s*/g, ', ').replace(/\(/g, '').trim() }
+}
+
+/** The shortest useful name for an ingredient: "large aubergines, halved lengthways" → "Aubergines". */
+export function shortName(name: string): string {
+  const words = splitName(name).main.split(/\s+/)
+  while (words.length > 1 && FILLER.has(words[0].toLowerCase())) words.shift()
+  return cap(words.join(' '))
+}
+
+/** A web address shown as just its site name. */
+export function siteName(source: string): { label: string; href?: string } {
+  try {
+    const u = new URL(/^https?:\/\//i.test(source) ? source : /^[\w-]+(\.[\w-]+)+(\/|$)/.test(source) ? `https://${source}` : 'x:')
+    if (u.protocol.startsWith('http')) return { label: u.hostname.replace(/^www\./, ''), href: u.href }
+  } catch { /* not a link */ }
+  return { label: source }
+}

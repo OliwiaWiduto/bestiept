@@ -3,12 +3,13 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useStore } from '../store'
 import { useT } from '../i18n'
 import type { Ingredient } from '../types'
-import { ingredientText, uid } from '../lib/util'
+import { ingredientText, shortName, splitName, uid } from '../lib/util'
+import { equipmentIcon } from '../lib/equipment'
 import { today } from '../lib/dates'
 import { defaultMeal } from '../ui-state'
 import { Icon, Stepper, toast } from '../components/ui'
 
-type Timer = { id: string; label: string; total: number; endsAt: number | null; left: number }
+type Timer = { id: string; step: number; total: number; endsAt: number | null; left: number }
 
 /** Main word of an ingredient, used to find it in a step ("2 garlic cloves, crushed" → "garlic"). */
 function keyWords(name: string): string[] {
@@ -45,7 +46,8 @@ export default function Cooking() {
   const nav = useNavigate()
   const { id } = useParams()
   const [params] = useSearchParams()
-  const { recipes, saveLog } = useStore()
+  const { recipes, saveLog, seeTip } = useStore()
+  const tips = useStore((st) => st.profile?.tips)
   const r = recipes.find((x) => x.id === id)
   const servings = Number(params.get('s')) || r?.servings || 1
   const factor = r ? servings / (r.servings || 1) : 1
@@ -55,14 +57,15 @@ export default function Cooking() {
   const [gathered, setGathered] = useState<Record<string, boolean>>({})
   const [timers, setTimers] = useState<Timer[]>([])
   const [ate, setAte] = useState(1)
-  const [voiceOn, setVoiceOn] = useState(false)
-  const [waveOn, setWaveOn] = useState(false)
+  const [cam, setCam] = useState<MediaStream | null>(null)
+  const [camBusy, setCamBusy] = useState(false)
   const total = r?.steps.length ?? 0
 
   const next = useCallback(() => setStep((s) => { if (s >= total - 1) { setStage('done'); return s } return s + 1 }), [total])
+  const forward = useCallback(() => setStep((s) => Math.min(total - 1, s + 1)), [total])
   const back = useCallback(() => setStep((s) => Math.max(0, s - 1)), [])
-  const stepRef = useRef({ next, back, step, stage })
-  stepRef.current = { next, back, step, stage }
+  const moves = useRef({ forward, back })
+  moves.current = { forward, back }
 
   // Keep the screen awake while cooking.
   useEffect(() => {
@@ -80,47 +83,39 @@ export default function Cooking() {
       setTimers((ts) => ts.map((tm) => {
         if (tm.endsAt === null) return tm
         const left = (tm.endsAt - Date.now()) / 1000
-        if (left <= 0 && tm.left > 0) { beep(); toast(`${t('timerDone')}: ${tm.label}`) }
+        if (left <= 0 && tm.left > 0) { beep(); toast(`${t('timeUp')} · ${t('stepN', { n: tm.step + 1 })}`) }
         return { ...tm, left: Math.max(0, left) }
       }))
     }, 500)
     return () => window.clearInterval(h)
   }, [t])
 
-  const startTimer = useCallback((minutes: number, label: string) => {
-    setTimers((ts) => [...ts, { id: uid(), label, total: minutes * 60, endsAt: Date.now() + minutes * 60000, left: minutes * 60 }])
-  }, [])
+  const startTimer = (minutes: number) =>
+    setTimers((ts) => [...ts.filter((x) => x.step !== step), { id: uid(), step, total: minutes * 60, endsAt: Date.now() + minutes * 60000, left: minutes * 60 }])
 
-  // Voice commands ("next", "back", "repeat", "timer" / "dalej", "wstecz", "powtórz", "minutnik").
-  useEffect(() => {
-    if (!voiceOn || stage !== 'cook') return
-    const SR = (window as unknown as { SpeechRecognition?: new () => SpeechRecognitionLike; webkitSpeechRecognition?: new () => SpeechRecognitionLike }).SpeechRecognition
-      || (window as unknown as { webkitSpeechRecognition?: new () => SpeechRecognitionLike }).webkitSpeechRecognition
-    if (!SR) { toast(t('voiceNo')); setVoiceOn(false); return }
-    const rec = new SR()
-    let alive = true
-    rec.lang = t.lang === 'pl' ? 'pl-PL' : 'en-GB'
-    rec.continuous = true
-    rec.interimResults = false
-    rec.onresult = (e) => {
-      const said = e.results[e.results.length - 1][0].transcript.toLowerCase()
-      const { next, back, step } = stepRef.current
-      if (/\b(next|dalej|następny)\b/.test(said)) next()
-      else if (/\b(back|previous|wstecz|cofnij|poprzedni)\b/.test(said)) back()
-      else if (/\b(repeat|again|powtórz)\b/.test(said)) speak(r?.steps[step] ?? '', t.lang)
-      else if (/\b(timer|minutnik)\b/.test(said)) { const m = stepMinutes(r?.steps[step] ?? ''); if (m) startTimer(m, t('stepOf', { n: step + 1, t: total })) }
-    }
-    rec.onend = () => { if (alive) { try { rec.start() } catch { /* already started */ } } }
-    rec.onerror = () => {}
-    try { rec.start() } catch { /* ignore */ }
-    return () => { alive = false; try { rec.stop() } catch { /* ignore */ } }
-  }, [voiceOn, stage, t, r, startTimer, total])
+  // Hands-free: ask for the camera on the tap itself, so the phone shows its permission prompt.
+  const toggleWave = async () => {
+    if (cam) { cam.getTracks().forEach((tr) => tr.stop()); setCam(null); return }
+    if (camBusy) return
+    setCamBusy(true)
+    try {
+      if (!navigator.mediaDevices?.getUserMedia) throw new Error('no camera')
+      setCam(await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 160 }, height: { ideal: 120 } }, audio: false }))
+      seeTip('wave')
+    } catch { toast(t('cameraNo')) }
+    setCamBusy(false)
+  }
+  const camRef = useRef<MediaStream | null>(null)
+  camRef.current = cam
+  useEffect(() => () => camRef.current?.getTracks().forEach((tr) => tr.stop()), [])
 
-  // Hand wave: watch the front camera for a hand passing over the screen.
+  // Watch the front camera for a hand passing over the screen.
   const videoRef = useRef<HTMLVideoElement>(null)
   useEffect(() => {
-    if (!waveOn || stage !== 'cook') return
-    let stream: MediaStream | null = null
+    const video = videoRef.current
+    if (!cam || stage !== 'cook' || !video) return
+    video.srcObject = cam
+    video.play().catch(() => {})
     let raf = 0
     let stopped = false
     const canvas = document.createElement('canvas')
@@ -133,9 +128,9 @@ export default function Cooking() {
     const loop = (now: number) => {
       if (stopped) return
       raf = requestAnimationFrame(loop)
-      if (now - last < 80 || !videoRef.current || videoRef.current.readyState < 2) return
+      if (now - last < 80 || video.readyState < 2) return
       last = now
-      ctx.drawImage(videoRef.current, 0, 0, 32, 24)
+      ctx.drawImage(video, 0, 0, 32, 24)
       const px = ctx.getImageData(0, 0, 32, 24).data
       if (prev) {
         let moved = 0, sx = 0
@@ -146,26 +141,19 @@ export default function Cooking() {
         const frac = moved / (32 * 24)
         if (frac > 0.12) xs.push(sx / moved)
         else if (xs.length >= 2 && now > cooldownUntil) {
-          // Raw front-camera image isn't mirrored: a hand moving to your left moves right in the image.
+          // The raw front-camera picture isn't mirrored: a hand moving to your left moves right in it.
           const dx = xs[xs.length - 1] - xs[0]
-          if (dx < -6) stepRef.current.back()
-          else stepRef.current.next()
+          if (dx < -6) moves.current.back()
+          else moves.current.forward()
           cooldownUntil = now + 1300
           xs = []
-        } else if (frac <= 0.12) xs = []
+        } else xs = []
       }
       prev = px
     }
-    navigator.mediaDevices?.getUserMedia({ video: { facingMode: 'user', width: 160, height: 120 }, audio: false })
-      .then((s) => {
-        if (stopped) { s.getTracks().forEach((tr) => tr.stop()); return }
-        stream = s
-        if (videoRef.current) { videoRef.current.srcObject = s; videoRef.current.play().catch(() => {}) }
-        raf = requestAnimationFrame(loop)
-      })
-      .catch(() => { toast(t('cameraNo')); setWaveOn(false) })
-    return () => { stopped = true; cancelAnimationFrame(raf); stream?.getTracks().forEach((tr) => tr.stop()) }
-  }, [waveOn, stage, t])
+    raf = requestAnimationFrame(loop)
+    return () => { stopped = true; cancelAnimationFrame(raf) }
+  }, [cam, stage])
 
   const allIngs = useMemo(() => r?.ingredients ?? [], [r])
   if (!r) return <main className="cooking"><button className="icon-btn" onClick={() => nav('/recipes')}><Icon name="close" /></button></main>
@@ -173,46 +161,52 @@ export default function Cooking() {
   const current = r.steps[step] ?? ''
   const needs = stepIngredients(current, allIngs)
   const mins = stepMinutes(current)
-  const header = (
-    <div className="between">
-      <button className="icon-btn" aria-label={t('leave')} onClick={() => nav(-1)}><Icon name="close" size={20} /></button>
-      <span style={{ fontSize: 14, fontWeight: 600, textAlign: 'center' }} className="grow">{r.title}</span>
-      <span style={{ width: 44 }} />
-    </div>
-  )
+  const title = <span className="grow cook-title">{r.title}</span>
+  const closeBtn = <button className="icon-btn" aria-label={t('leave')} onClick={() => nav(-1)}><Icon name="close" size={20} /></button>
 
   if (stage === 'gather')
     return (
       <main className="cooking">
-        {header}
+        <div className="between" style={{ gap: 12 }}>{closeBtn}{title}<span style={{ width: 44, flex: 'none' }} /></div>
         <div className="stack" style={{ gap: 4 }}>
-          <h1 className="step-text" style={{ fontSize: 32 }}>{t('gather')}</h1>
-          <span className="soft">{t('gatherHint')}</span>
+          <h1 className="step-text" style={{ fontSize: 30, lineHeight: '34px' }}>{t('gather')}</h1>
+          <span className="soft small">{t('gatherHint')}</span>
         </div>
-        <div className="stack" style={{ gap: 8 }}>
-          <span className="label soft">{t('food')}</span>
+        <div className="stack" style={{ gap: 0 }}>
+          <span className="label soft" style={{ marginBottom: 4 }}>{t('food')}</span>
           {allIngs.map((i) => {
             const on = !!gathered[i.id]
+            const { main, note } = splitName(i.name)
             return (
-              <button key={i.id} onClick={() => setGathered({ ...gathered, [i.id]: !on })} aria-pressed={on}
-                style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'transparent', border: 'none', color: 'var(--on-green)', textAlign: 'left', padding: '6px 0', fontSize: 16 }}>
+              <button key={i.id} className="gather-row" onClick={() => setGathered({ ...gathered, [i.id]: !on })} aria-pressed={on}>
                 <span className="check" style={{ background: on ? 'var(--lime)' : 'transparent', borderColor: on ? 'var(--lime)' : 'var(--green-edge)', color: 'var(--green)' }}>{on && <Icon name="check" size={16} sw={2.5} />}</span>
-                <span style={{ fontWeight: 600, minWidth: 64 }}>{ingredientText(i, factor)}</span>
-                <span style={{ opacity: on ? 0.6 : 1, textDecoration: on ? 'line-through' : 'none' }}>{i.name}</span>
+                <span className="grow stack" style={{ gap: 0, minWidth: 0, opacity: on ? 0.55 : 1 }}>
+                  <span style={{ fontWeight: 600, fontSize: 16, textDecoration: on ? 'line-through' : 'none' }}>{main}</span>
+                  {note && <span className="soft" style={{ fontSize: 13, lineHeight: '18px' }}>{note}</span>}
+                </span>
+                <span style={{ fontWeight: 600, fontSize: 15, whiteSpace: 'nowrap', flex: 'none', color: 'var(--lime)', opacity: on ? 0.55 : 1 }}>{ingredientText(i, factor)}</span>
               </button>
             )
           })}
-          {r.equipment.length > 0 && <span className="label soft" style={{ marginTop: 12 }}>{t('equipment')}</span>}
-          {r.equipment.length > 0 && <div className="chips">{r.equipment.map((e) => <span key={e} className="pill-chip">{e}</span>)}</div>}
         </div>
+        {r.equipment.length > 0 && (
+          <div className="stack" style={{ gap: 8 }}>
+            <span className="label soft">{t('equipment')}</span>
+            <div className="equip-grid">
+              {r.equipment.map((e) => <span key={e} className="equip"><img src={equipmentIcon(e)} alt="" /><span>{e}</span></span>)}
+            </div>
+          </div>
+        )}
         <div style={{ flex: 1 }} />
-        <button className="btn primary block" onClick={() => setStage('cook')}>{t('letsCook')}</button>
+        <div className="cook-drawer">
+          <button className="btn primary block" onClick={() => { setStage('cook'); window.scrollTo(0, 0) }}>{t('letsCook')}</button>
+        </div>
       </main>
     )
 
   if (stage === 'done')
     return (
-      <main className="cooking" style={{ justifyContent: 'center' }}>
+      <main className="cooking" style={{ justifyContent: 'center', paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}>
         <div className="stack" style={{ gap: 20, alignItems: 'center', textAlign: 'center' }}>
           <img src="/icons/cat-fruitveg.png" alt="" style={{ width: 96, height: 96 }} />
           <h1 className="step-text">{t('cookedTitle')}</h1>
@@ -229,90 +223,76 @@ export default function Cooking() {
       </main>
     )
 
+  // Tap the sides of the screen to move, like stories.
+  const tapSide = (e: React.MouseEvent<HTMLElement>) => {
+    if ((e.target as HTMLElement).closest('button, a, input, .cook-drawer')) return
+    if (!(tips ?? []).includes('cookTap')) seeTip('cookTap')
+    if (e.clientX < window.innerWidth * 0.3) back()
+    else forward()
+  }
+  const showHint = step === 0 && !(tips ?? []).includes('cookTap')
+  const mine = timers.find((x) => x.step === step)
+  const others = timers.filter((x) => x.step !== step)
+  const size = current.length > 260 ? 20 : current.length > 170 ? 24 : current.length > 100 ? 28 : 32
+
+  const timerRow = (tm: Timer, label?: string) => (
+    <div key={tm.id} className={`cook-timer${tm.left === 0 ? ' up' : ''}`} role="timer" aria-label={label ?? t('timer')}>
+      <Icon name="clock" size={18} />
+      <span className="cook-time">{tm.left === 0 ? t('timeUp') : mmss(tm.left)}</span>
+      {label && <span className="small soft grow">{label}</span>}
+      {!label && <span className="grow" />}
+      {tm.left > 0 && <button className="icon-btn" aria-label={tm.endsAt ? t('pause') : t('resume')}
+        onClick={() => setTimers(timers.map((x) => x.id === tm.id ? { ...x, endsAt: x.endsAt ? null : Date.now() + x.left * 1000 } : x))}><Icon name={tm.endsAt ? 'pause' : 'play'} size={16} fill={!tm.endsAt} /></button>}
+      <button className="icon-btn" aria-label={t('remove')} onClick={() => setTimers(timers.filter((x) => x.id !== tm.id))}><Icon name="close" size={16} /></button>
+    </div>
+  )
+
   return (
-    <main className="cooking">
-      <div className="between">
-        <button className="icon-btn" aria-label={t('leave')} onClick={() => nav(-1)}><Icon name="close" size={20} /></button>
-        <span style={{ fontSize: 14, fontWeight: 600 }}>{r.title}</span>
-        <button onClick={() => setVoiceOn(!voiceOn)} aria-pressed={voiceOn}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, height: 32, padding: '0 12px', borderRadius: 999, border: 'none', background: 'var(--green-deep)', color: 'var(--on-green)', fontSize: 12, fontWeight: 600 }}>
-          <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: 999, background: voiceOn ? 'var(--butter)' : 'var(--green-edge)' }} />
-          <Icon name="mic" size={14} />{voiceOn ? t('listening') : t('voice')}
+    <main className="cooking" onClick={tapSide}>
+      <div className="between" style={{ gap: 12 }}>
+        {closeBtn}
+        {title}
+        <button className="wave-pill" onClick={toggleWave} aria-pressed={!!cam} disabled={camBusy}>
+          <video ref={videoRef} playsInline muted aria-hidden="true" style={cam ? undefined : { width: 1, height: 1, opacity: 0, position: 'absolute' }} />
+          {!cam && <Icon name="hand" size={16} sw={1.75} />}
+          {cam ? t('waveOnLabel') : t('handsFree')}
         </button>
       </div>
 
-      <div className="stack">
-        <span className="label soft">{t('stepOf', { n: step + 1, t: total })}</span>
-        <div aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))`, gap: 6 }}>
-          {r.steps.map((_, i) => <span key={i} style={{ height: 6, borderRadius: 999, background: i < step ? 'var(--on-green)' : i === step ? 'var(--lime)' : 'var(--green-edge)' }} />)}
+      <div className="stack" style={{ gap: 8 }}>
+        <span className="small soft" style={{ fontWeight: 600 }}>{t('stepOf', { n: step + 1, t: total })}</span>
+        <div aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))`, gap: 4 }}>
+          {r.steps.map((_, i) => <span key={i} style={{ height: 5, borderRadius: 999, background: i < step ? 'var(--on-green)' : i === step ? 'var(--lime)' : 'var(--green-edge)' }} />)}
         </div>
       </div>
 
-      <p className="step-text" aria-live="polite">{current}</p>
+      <p className="step-text" style={{ fontSize: size, lineHeight: `${size + 6}px` }} aria-live="polite">{current}</p>
 
       {needs.length > 0 && (
-        <div className="stack">
-          <span className="small soft" style={{ fontWeight: 600 }}>{t('youllNeed')}</span>
-          <div className="chips">{needs.map((i) => <span key={i.id} className="pill-chip">{[ingredientText(i, factor), i.name.split(',')[0]].filter(Boolean).join(' ')}</span>)}</div>
+        <div className="needs" aria-label={t('youllNeed')}>
+          {needs.map((i) => <span key={i.id} className="need"><b>{shortName(i.name)}</b>{ingredientText(i, factor) && <span>{ingredientText(i, factor)}</span>}</span>)}
         </div>
       )}
 
-      {mins && (
-        <div className="between" style={{ borderRadius: 28, padding: '16px 16px 16px 20px', background: 'var(--green-deep)' }}>
-          <div className="stack" style={{ gap: 2 }}>
-            <span className="small soft" style={{ fontWeight: 600 }}>{t('timer')}</span>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 40, lineHeight: '42px', fontWeight: 800 }}>{mmss(mins * 60)}</span>
-          </div>
-          <button className="btn" style={{ background: 'var(--on-green)', color: 'var(--green)', height: 52 }} onClick={() => startTimer(mins, t('stepOf', { n: step + 1, t: total }))}>
-            <Icon name="play" size={18} fill />{t('startTimer')}
-          </button>
-        </div>
-      )}
-
-      {timers.length > 0 && (
-        <div className="stack" style={{ gap: 8 }}>
-          {timers.map((tm) => (
-            <div key={tm.id} className="between" style={{ background: tm.left === 0 ? 'var(--cherry)' : 'var(--green-deep)', borderRadius: 18, padding: '8px 8px 8px 16px' }}>
-              <span className="small" style={{ fontWeight: 600 }}>{tm.left === 0 ? t('timerDone') : tm.label}</span>
-              <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700 }}>{mmss(tm.left)}</span>
-              <div className="row" style={{ gap: 4 }}>
-                {tm.left > 0 && <button className="icon-btn" style={{ width: 36, height: 36 }} aria-label={tm.endsAt ? t('pause') : t('resume')}
-                  onClick={() => setTimers(timers.map((x) => x.id === tm.id ? { ...x, endsAt: x.endsAt ? null : Date.now() + x.left * 1000 } : x))}><Icon name={tm.endsAt ? 'pause' : 'play'} size={16} fill={!tm.endsAt} /></button>}
-                <button className="icon-btn" style={{ width: 36, height: 36 }} aria-label={t('remove')} onClick={() => setTimers(timers.filter((x) => x.id !== tm.id))}><Icon name="close" size={16} /></button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      {showHint && <p className="cook-hint">{t('cookTapHint')} {!cam && t('waveTip')}</p>}
 
       <div style={{ flex: 1 }} />
-      <video ref={videoRef} playsInline muted style={{ width: 1, height: 1, opacity: 0, position: 'absolute', pointerEvents: 'none' }} />
 
-      <div className="stack" style={{ gap: 14, alignItems: 'center' }}>
-        <button onClick={() => setWaveOn(!waveOn)} aria-pressed={waveOn} className="row soft"
-          style={{ background: 'transparent', border: 'none', gap: 10, fontSize: 14, fontWeight: 500 }}>
-          <Icon name="hand" size={22} sw={1.75} />
-          {waveOn ? t('waveHint') : t('waveTurnOn')}
-        </button>
-        <div className="row" style={{ width: '100%' }}>
+      <div className="cook-drawer">
+        {others.map((tm) => timerRow(tm, t('stepN', { n: tm.step + 1 })))}
+        {mine ? timerRow(mine) : mins ? (
+          <div className="cook-timer">
+            <Icon name="clock" size={18} />
+            <span className="cook-time">{mmss(mins * 60)}</span>
+            <span className="grow" />
+            <button className="cook-start" onClick={() => startTimer(mins)}><Icon name="play" size={14} fill />{t('startTimer')}</button>
+          </div>
+        ) : null}
+        <div className="row" style={{ width: '100%', gap: 10 }}>
           <button className="btn" style={{ flex: 1, background: 'transparent', color: 'var(--on-green)', border: '2px solid var(--green-edge)' }} disabled={step === 0} onClick={back}>{t('back')}</button>
-          <button className="btn primary" style={{ flex: 2 }} onClick={next}>{step === total - 1 ? t('finish') : t('nextStep')}</button>
+          <button className="btn primary" style={{ flex: 2 }} onClick={() => { if (showHint) seeTip('cookTap'); next() }}>{step === total - 1 ? t('finish') : t('nextStep')}</button>
         </div>
       </div>
     </main>
   )
-}
-
-type SpeechRecognitionLike = {
-  lang: string; continuous: boolean; interimResults: boolean
-  onresult: (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void
-  onend: () => void; onerror: () => void; start: () => void; stop: () => void
-}
-
-function speak(text: string, lang: string) {
-  try {
-    const u = new SpeechSynthesisUtterance(text)
-    u.lang = lang === 'pl' ? 'pl-PL' : 'en-GB'
-    speechSynthesis.cancel(); speechSynthesis.speak(u)
-  } catch { /* not supported */ }
 }

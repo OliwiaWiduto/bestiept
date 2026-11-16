@@ -23,6 +23,7 @@ export default function Today() {
   if (!profile || !targets) return null
 
   const left = targets.kcal - totals.kcal
+  const over = Math.round(left) < 0
   const hour = new Date().getHours()
   const greeting = t(hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening', { name: profile.name })
 
@@ -64,14 +65,16 @@ export default function Today() {
       <section className="card green stack" style={{ gap: 14, padding: 24 }}>
         <div className="between" style={{ alignItems: 'flex-end' }}>
           <div className="stack" style={{ gap: 4 }}>
-            <span className="number-hero" style={{ color: 'var(--lime)' }}>{Math.abs(Math.round(left))}</span>
-            <span className="label" style={{ fontWeight: 500 }}>{left >= 0 ? t('kcalLeft') : t('kcalOver')}</span>
+            <span className="number-hero" style={{ color: over ? 'var(--butter)' : 'var(--lime)' }}>{over ? '+' : ''}{Math.abs(Math.round(left))}</span>
+            <span className="label" style={{ fontWeight: over ? 600 : 500 }}>{over ? t('kcalOver') : t('kcalLeft')}</span>
           </div>
           <span className="label" style={{ fontWeight: 400 }}><b>{Math.round(totals.kcal).toLocaleString()}</b> / {targets.kcal.toLocaleString()}</span>
         </div>
-        <div style={{ height: 20, borderRadius: 999, background: 'var(--green-deep)', overflow: 'hidden' }}>
-          <div style={{ width: `${Math.min(100, (totals.kcal / targets.kcal) * 100)}%`, height: '100%', borderRadius: 999, background: 'var(--on-green)', transition: 'width .3s' }} />
+        <div role="img" aria-label={`${Math.round(totals.kcal)} / ${targets.kcal} ${t('kcal')}`} style={{ height: 20, borderRadius: 999, background: 'var(--green-deep)', overflow: 'hidden', display: 'flex', gap: over ? 3 : 0 }}>
+          <div style={{ width: `${over ? (targets.kcal / totals.kcal) * 100 : Math.min(100, (totals.kcal / targets.kcal) * 100)}%`, height: '100%', borderRadius: 999, background: 'var(--on-green)', transition: 'width .3s' }} />
+          {over && <div style={{ flex: 1, minWidth: 10, height: '100%', borderRadius: 999, background: 'var(--cherry)' }} />}
         </div>
+        {over && <span className="small" style={{ color: 'var(--green-soft)' }}>{t('kcalOverNote')}</span>}
       </section>
 
       <section className="card stack" style={{ gap: 16 }} aria-label="Macros">
