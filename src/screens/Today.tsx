@@ -8,6 +8,7 @@ import { add, sumItems } from '../lib/nutrition'
 import { addDays, fmt, today } from '../lib/dates'
 import { Icon, MacroBar, Sheet, Thumb, toast } from '../components/ui'
 import { WeightField } from '../components/BodyFields'
+import { useFamily } from '../lib/family'
 import { formatDiff, formatWeight } from '../lib/units'
 
 export default function Today() {
@@ -23,6 +24,7 @@ export default function Today() {
   if (!profile || !targets) return null
 
   const left = targets.kcal - totals.kcal
+  const requests = useFamily((f) => f.links.filter((l) => l.status === 'pending' && l.incoming))
   const over = Math.round(left) < 0
   const hour = new Date().getHours()
   const greeting = t(hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening', { name: profile.name })
@@ -54,6 +56,16 @@ export default function Today() {
         </button>
       </div>
 
+      {requests.length > 0 && (
+        <button className="shop-card" style={{ background: 'var(--cherry-soft)', color: 'var(--ink)' }} onClick={() => nav('/family')}>
+          <span className="icon-btn" style={{ background: 'var(--cherry)', color: '#fff', flex: 'none' }}><Icon name="heart" size={20} fill /></span>
+          <span className="grow stack" style={{ gap: 0, minWidth: 0 }}>
+            <span style={{ fontWeight: 700, fontSize: 16 }}>{requests.length === 1 ? t('linkRequestFrom', { name: requests[0].person.name }) : t('linkRequestsN', { n: requests.length })}</span>
+            <span className="small muted">{t('linkRequestSee')}</span>
+          </span>
+          <Icon name="forward" size={20} />
+        </button>
+      )}
       <div className="between" style={{ background: 'var(--surface-raised)', borderRadius: 999, padding: 4 }}>
         <button className="icon-btn" style={{ background: 'transparent' }} aria-label={t('prevDay')} onClick={() => setViewDate(addDays(viewDate, -1))}><Icon name="back" /></button>
         <button onClick={() => setViewDate(today())} aria-label={isToday ? undefined : t('backToToday')} style={{ border: 'none', background: 'transparent', fontSize: 15, fontWeight: 600 }}>

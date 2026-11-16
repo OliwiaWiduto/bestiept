@@ -59,7 +59,10 @@ export default function App() {
     syncNow(uid)
       .catch((e) => { console.error(e); toast(translate(useStore.getState().lang, 'syncError')) })
       .finally(() => { if (alive) { setSynced(uid); stop = startAutoSync(uid); loadFamily(uid).catch(console.error) } })
-    return () => { alive = false; stop?.() }
+    // New family requests show up when she comes back to the app.
+    const onVisible = () => { if (document.visibilityState === 'visible') loadFamily(uid).catch(() => {}) }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => { alive = false; stop?.(); document.removeEventListener('visibilitychange', onVisible) }
   }, [hydrated, uid])
 
   if (!hydrated || session === undefined) return null
