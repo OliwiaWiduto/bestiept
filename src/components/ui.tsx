@@ -180,16 +180,16 @@ export function NumberField({ label, value, onChange, step = 1 }: { label: strin
 }
 
 /** Opens the photo library / camera. Uses a real button so it works reliably on iPhone. */
-export function PhotoButton({ onPhoto, className, style, children, label, max, disabled }: { onPhoto: (dataUrl: string) => void; className?: string; style?: React.CSSProperties; children: ReactNode; label: string; max?: number; disabled?: boolean }) {
+export function PhotoButton({ onPhoto, className, style, children, label, max, disabled, multiple }: { onPhoto: (dataUrl: string) => void; className?: string; style?: React.CSSProperties; children: ReactNode; label: string; max?: number; disabled?: boolean; multiple?: boolean }) {
   const ref = useRef<HTMLInputElement>(null)
   return (
     <>
       <button type="button" className={className} style={style} aria-label={label} disabled={disabled} onClick={() => ref.current?.click()}>{children}</button>
-      <input ref={ref} type="file" accept="image/*" className="sr-only" tabIndex={-1} aria-hidden="true"
+      <input ref={ref} type="file" accept="image/*" multiple={multiple} className="sr-only" tabIndex={-1} aria-hidden="true"
         onChange={async (e) => {
-          const f = e.target.files?.[0]
+          const files = Array.from(e.target.files ?? []).slice(0, multiple ? 12 : 1)
           e.target.value = ''
-          if (f) onPhoto(await fileToDataUrl(f, max))
+          for (const f of files) { try { onPhoto(await fileToDataUrl(f, max)) } catch { /* not a picture we can read */ } }
         }} />
     </>
   )

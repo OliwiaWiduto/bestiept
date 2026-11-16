@@ -8,6 +8,8 @@ import { usePhoto } from '../lib/sync'
 import { importRecipe } from '../lib/ai'
 import { BackButton, Icon, PhotoButton, Stepper, toast } from '../components/ui'
 
+const MAX_SHOTS = 6
+
 export default function RecipeEdit() {
   const t = useT()
   const nav = useNavigate()
@@ -30,8 +32,10 @@ export default function RecipeEdit() {
   const photoUrl = usePhoto(photo)
   const [link, setLink] = useState('')
   const [importing, setImporting] = useState(false)
+  const [shots, setShots] = useState<string[]>([])
+  const addShot = (img: string) => setShots((s) => (s.length < MAX_SHOTS ? [...s, img] : s))
 
-  const runImport = async (input: { url?: string; image?: string }) => {
+  const runImport = async (input: { url?: string; images?: string[] }) => {
     setImporting(true)
     const { data, error } = await importRecipe(input, t.lang)
     setImporting(false)
@@ -41,7 +45,7 @@ export default function RecipeEdit() {
     setSource(r.source ?? ''); if (r.photo) setPhoto(r.photo)
     setIngText(r.ingredients.join('\n')); setStepText(r.steps.join('\n')); setEquipText(r.equipment.join(', '))
     setNutrition({ kcal: Math.round(r.nutrition.kcal), protein: Math.round(r.nutrition.protein), carbs: Math.round(r.nutrition.carbs), fat: Math.round(r.nutrition.fat), fibre: Math.round(r.nutrition.fibre), sugar: Math.round(r.nutrition.sugar) })
-    setLink('')
+    setLink(''); setShots([])
     toast(t('importDone'))
     setStage('form')
     window.scrollTo(0, 0)
@@ -109,9 +113,27 @@ export default function RecipeEdit() {
         <textarea className="input" rows={3} style={{ height: 'auto', minHeight: 96, padding: 14, resize: 'none' }} inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false}
           aria-label={t('importLinkPh')} placeholder={t('importLinkPh')} value={link} onChange={(e) => setLink(e.target.value)} disabled={importing} />
         <button className="btn green block" disabled={!link.trim() || importing} onClick={() => runImport({ url: link.trim() })}>{importing ? t('importing') : t('import')}</button>
-        <PhotoButton max={1600} disabled={importing} onPhoto={(img) => runImport({ image: img })} label={t('importPhoto')} className="btn secondary block">
-          <Icon name="camera" size={18} />{t('importPhoto')}
-        </PhotoButton>
+        {shots.length === 0 ? (
+          <PhotoButton multiple max={1600} disabled={importing} onPhoto={addShot} label={t('importPhoto')} className="btn secondary block">
+            <Icon name="camera" size={18} />{t('importPhoto')}
+          </PhotoButton>
+        ) : (
+          <section className="card stack" style={{ gap: 12 }}>
+            <div className="shots">
+              {shots.map((src, i) => (
+                <div key={i} className="shot" role="img" aria-label={`${t('photo')} ${i + 1}`} style={{ backgroundImage: `url(${src})` }}>
+                  <span className="shot-n">{i + 1}</span>
+                  <button aria-label={`${t('remove')} ${t('photo')} ${i + 1}`} disabled={importing} onClick={() => setShots(shots.filter((_, x) => x !== i))}><Icon name="close" size={14} sw={2.5} /></button>
+                </div>
+              ))}
+              {shots.length < MAX_SHOTS && (
+                <PhotoButton multiple max={1600} disabled={importing} onPhoto={addShot} label={t('importAddMore')} className="shot add"><Icon name="plus" size={22} /></PhotoButton>
+              )}
+            </div>
+            <span className="caption">{t('importMany')}</span>
+            <button className="btn green block" disabled={importing} onClick={() => runImport({ images: shots })}>{importing ? t('importing') : t('importRead')}</button>
+          </section>
+        )}
         <div className="row" style={{ gap: 12 }}><hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--line)' }} /><span className="caption">{t('orWord')}</span><hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--line)' }} /></div>
         <button className="btn ghost block" disabled={importing} onClick={() => { setStage('form'); window.scrollTo(0, 0) }}><Icon name="edit" size={18} />{t('typeItIn')}</button>
         {importing && <span className="small muted" role="status" style={{ textAlign: 'center' }}>{t('importing')}</span>}

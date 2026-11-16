@@ -1,4 +1,4 @@
-// POST { url } | { image: dataUrl } | { text }  ->  a recipe draft the app shows for review.
+// POST { url } | { image: dataUrl } | { images: dataUrl[] } | { text }  ->  a recipe draft the app shows for review.
 import { askClaude, checkUser, cors, imageBlock, json, MACROS_SCHEMA } from '../_shared/ai.ts'
 import { isPinterest, metaContent, pageText, pinterestTarget, recipeFromJsonLd } from '../_shared/recipe-page.ts'
 
@@ -55,7 +55,8 @@ Deno.serve(async (req) => {
   try {
     const user = await checkUser(req, 'import')
     if (!user.ok) return user.res
-    const { url, image, text, lang = 'en' } = await req.json()
+    const { url, image, images, text, lang = 'en' } = await req.json()
+    const pics: string[] = (Array.isArray(images) ? images : image ? [image] : []).map(String).slice(0, 6)
 
     let content
     let photo: string | undefined
@@ -74,8 +75,10 @@ Deno.serve(async (req) => {
       content = [{ type: 'text' as const, text: structured
         ? `Structured recipe data from ${target}:\n${JSON.stringify(structured)}`
         : `Web page ${target}, title "${metaContent(html, 'og:title') ?? ''}":\n\n${pageText(html)}` }]
-    } else if (image) {
-      content = [imageBlock(String(image)), { type: 'text' as const, text: 'This is a photo or screenshot of a recipe (maybe a cookbook page). Read it.' }]
+    } else if (pics.length) {
+      content = [...pics.map(imageBlock), { type: 'text' as const, text: pics.length > 1
+        ? `These ${pics.length} photos or screenshots, in order, are parts of ONE recipe (for example ingredients on one, method on the next). Read them all and combine them into a single recipe. Where they overlap, don't repeat anything.`
+        : 'This is a photo or screenshot of a recipe (maybe a cookbook page). Read it.' }]
     } else if (text) {
       content = [{ type: 'text' as const, text: String(text).slice(0, 14000) }]
     } else {

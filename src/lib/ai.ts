@@ -25,7 +25,7 @@ async function call<T>(fn: string, body: object): Promise<{ data?: T; error?: Ai
   return { error: 'failed' }
 }
 
-export const importRecipe = (input: { url?: string; image?: string; text?: string }, lang: string) =>
+export const importRecipe = (input: { url?: string; image?: string; images?: string[]; text?: string }, lang: string) =>
   call<{ recipe: RecipeDraft }>('import-recipe', { ...input, lang })
 
 export const scanMeal = (image: string, lang: string) =>
