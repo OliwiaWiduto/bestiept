@@ -70,6 +70,7 @@ const en = {
   kcalOverNote: 'Over your target today. That’s okay, it’s one day.',
   handsFree: 'Hands-free', waveOnLabel: 'Wave on', cookTapHint: 'Tap the right side for the next step, the left to go back.', waveTip: 'Messy hands? Turn on Hands-free and wave over the screen.', timeUp: 'Time’s up', stepN: 'Step {n}',
   editStep: 'Edit step', removeStep: 'Remove step', addIngredient: 'Add ingredient', addStep: 'Add a step', editDetails: 'Edit details', serves: 'Serves {n}', addTime: 'Add time', editEquipment: 'Edit equipment', addEquipment: 'Add equipment', editNutrition: 'Edit nutrition', checkTap: 'Have a quick look. Tap anything to change it.', stepText: 'What to do',
+  yourList: 'Your shopping list', toBuyN: '{n} things to buy', allBought: 'All bought, nice', addSnack: 'Add a snack', pickFor: 'Pick a {meal}', pickedBefore: 'Picked before', healthiestFirst: 'Healthiest first', results: 'Results',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -207,6 +208,7 @@ const pl: Dict = {
   kcalOverNote: 'Ponad cel na dziś. Nic się nie stało, to jeden dzień.',
   handsFree: 'Bez dotyku', waveOnLabel: 'Machanie wł.', cookTapHint: 'Kliknij prawą stronę, żeby przejść dalej, lewą, żeby wrócić.', waveTip: 'Brudne ręce? Włącz „Bez dotyku” i machnij nad ekranem.', timeUp: 'Czas minął', stepN: 'Krok {n}',
   editStep: 'Edytuj krok', removeStep: 'Usuń krok', addIngredient: 'Dodaj składnik', addStep: 'Dodaj krok', editDetails: 'Edytuj szczegóły', serves: 'Porcje: {n}', addTime: 'Dodaj czas', editEquipment: 'Edytuj sprzęt', addEquipment: 'Dodaj sprzęt', editNutrition: 'Edytuj wartości', checkTap: 'Rzuć okiem. Kliknij cokolwiek, żeby zmienić.', stepText: 'Co zrobić',
+  yourList: 'Twoja lista zakupów', toBuyN: 'Do kupienia: {n}', allBought: 'Wszystko kupione', addSnack: 'Dodaj przekąskę', pickFor: 'Wybierz: {meal}', pickedBefore: 'Wybierane wcześniej', healthiestFirst: 'Najzdrowsze najpierw', results: 'Wyniki',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 

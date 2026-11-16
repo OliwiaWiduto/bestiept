@@ -6,7 +6,7 @@ import { addDays, fmt, today, weekDays, weekStart } from '../lib/dates'
 import { Sheet, Stepper, toast } from './ui'
 
 /** Pick a day, meal and servings; offers to put spare servings on another day as leftovers. */
-export default function AddToPlanSheet({ recipe, open, onClose, initialDate }: { recipe: Recipe | null; open: boolean; onClose: () => void; initialDate?: string }) {
+export default function AddToPlanSheet({ recipe, open, onClose, initialDate, initialMeal }: { recipe: Recipe | null; open: boolean; onClose: () => void; initialDate?: string; initialMeal?: Meal }) {
   const t = useT()
   const addPlan = useStore((s) => s.addPlan)
   const [date, setDate] = useState(initialDate ?? today())
@@ -18,8 +18,8 @@ export default function AddToPlanSheet({ recipe, open, onClose, initialDate }: {
   const [lastId, setLastId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (open && recipe) { setDate(initialDate ?? today()); setMeal(recipe.category); setServings(recipe.servings); setStage('pick'); setLeftoverDays([]); setLeftoverMeal('lunch') }
-  }, [open, recipe, initialDate])
+    if (open && recipe) { setDate(initialDate ?? today()); setMeal(initialMeal ?? recipe.category); setServings(recipe.servings); setStage('pick'); setLeftoverDays([]); setLeftoverMeal('lunch') }
+  }, [open, recipe, initialDate, initialMeal])
   if (!recipe) return null
 
   const days = [...weekDays(weekStart(today())), ...weekDays(addDays(weekStart(today()), 7))].filter((d) => d >= today())
