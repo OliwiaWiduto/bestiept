@@ -24,7 +24,6 @@ export default function Onboarding() {
   const [where] = useState(() => (isInstalled() ? 'desktop' : whereOpen()))
   const showHome = where !== 'desktop'
   const last = showHome ? 6 : 5
-  const [copied, setCopied] = useState(false)
   const [, rerender] = useState(0)
   const [p, setP] = useState<Profile>({ name: '', sex: 'female', age: 28, heightCm: 165, weightKg: 65, activity: 'light', goal: 'maintain' })
   const auto = useMemo(() => calcTargets(p), [p])
@@ -156,7 +155,6 @@ export default function Onboarding() {
                     <span className="grow stack" style={{ gap: 8 }}>
                       <span>{t(isIos() ? 'homeOpenSafariStep' : 'homeOpenChromeStep')}</span>
                       <a className="btn green small" style={{ alignSelf: 'flex-start', textDecoration: 'none' }} href={openInBrowserUrl()}><Icon name="compass" size={18} />{t(isIos() ? 'openSafari' : 'openChrome')}</a>
-                      <button className="link-btn" onClick={async () => { try { await navigator.clipboard.writeText(location.origin); setCopied(true) } catch { /* blocked */ } }}>{copied ? t('copiedPaste') : t('orCopyLink')}</button>
                     </span>
                   </li>
                 )}
