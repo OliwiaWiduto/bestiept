@@ -36,8 +36,7 @@ const en = {
   obActivity: 'How active are you?',
   actLow: 'Mostly sitting', actLight: 'Light exercise 1–3 days a week', actModerate: 'Exercise 3–5 days a week', actHigh: 'Exercise most days',
   obGoal: 'What’s the goal?', goalLose: 'Lose weight', goalMaintain: 'Stay where I am', goalGain: 'Gain weight',
-  obTargets: 'Your daily targets', obTargetsSub: 'A good starting point. Change any of these whenever you like in Settings.',
-  obSamples: 'Add 3 sample recipes so you can try things out', obGo: 'Let’s go',
+  obTargets: 'Your daily targets', obTargetsSub: 'A good starting point. Change any of these whenever you like in Settings.', obGo: 'Let’s go',
 
   morning: 'Morning, {name}', afternoon: 'Hey, {name}', evening: 'Evening, {name}',
   today: 'Today', kcalLeft: 'kcal left today', kcalOver: 'kcal over today', yourMeals: 'Your meals',
@@ -145,8 +144,7 @@ const pl: Dict = {
   obActivity: 'Jak bardzo jesteś aktywna?',
   actLow: 'Głównie siedzę', actLight: 'Lekki ruch 1–3 dni w tygodniu', actModerate: 'Trening 3–5 dni w tygodniu', actHigh: 'Trening prawie codziennie',
   obGoal: 'Jaki jest cel?', goalLose: 'Schudnąć', goalMaintain: 'Utrzymać wagę', goalGain: 'Przytyć',
-  obTargets: 'Twoje dzienne cele', obTargetsSub: 'Dobry punkt wyjścia. Możesz je zmienić w każdej chwili w Ustawieniach.',
-  obSamples: 'Dodaj 3 przykładowe przepisy, żeby wszystko wypróbować', obGo: 'Lecimy',
+  obTargets: 'Twoje dzienne cele', obTargetsSub: 'Dobry punkt wyjścia. Możesz je zmienić w każdej chwili w Ustawieniach.', obGo: 'Lecimy',
 
   morning: 'Dzień dobry, {name}', afternoon: 'Hej, {name}', evening: 'Dobry wieczór, {name}',
   today: 'Dziś', kcalLeft: 'kcal zostało na dziś', kcalOver: 'kcal ponad cel', yourMeals: 'Twoje posiłki',

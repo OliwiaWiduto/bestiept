@@ -13,7 +13,6 @@ export default function Onboarding() {
   const { lang, setLang, completeOnboarding, setTargets } = useStore()
   const [step, setStep] = useState(0)
   const [p, setP] = useState<Profile>({ name: '', sex: 'female', age: 28, heightCm: 165, weightKg: 65, activity: 'light', goal: 'maintain' })
-  const [samples, setSamples] = useState(true)
   const auto = useMemo(() => calcTargets(p), [p])
   const [custom, setCustom] = useState<Macros | null>(null)
   const [editing, setEditing] = useState(false)
@@ -22,7 +21,7 @@ export default function Onboarding() {
 
   const valid = [true, p.name.trim().length > 0, p.age >= 13 && p.age <= 100 && p.heightCm >= 120 && p.heightCm <= 230 && p.weightKg >= 30 && p.weightKg <= 300, true, true, true][step]
   const finish = () => {
-    completeOnboarding({ ...p, name: p.name.trim() }, samples ? sampleRecipes(lang) : [], lang === 'pl' ? DEFAULT_STAPLES_PL : DEFAULT_STAPLES)
+    completeOnboarding({ ...p, name: p.name.trim() }, sampleRecipes(lang), lang === 'pl' ? DEFAULT_STAPLES_PL : DEFAULT_STAPLES)
     if (custom) setTargets(custom)
   }
 
@@ -133,9 +132,6 @@ export default function Onboarding() {
               <button className="btn ghost small" style={{ alignSelf: 'center', border: 'none', textDecoration: 'underline' }} onClick={() => { setCustom(null); setEditing(false) }}>{t('useRecommended')}</button>
             </div>
           )}
-          <button className="meal-row" onClick={() => setSamples(!samples)} aria-pressed={samples} style={{ fontWeight: 500 }}>
-            <span className={`check ${samples ? 'on' : ''}`}>{samples && <Icon name="check" size={16} sw={2.5} />}</span>{t('obSamples')}
-          </button>
         </div>
       )}
 
