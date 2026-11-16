@@ -5,6 +5,7 @@ import type { Activity, Goal, Profile, Sex } from '../types'
 import { calcTargets } from '../lib/nutrition'
 import { sampleRecipes } from '../lib/samples'
 import { DEFAULT_STAPLES, DEFAULT_STAPLES_PL } from '../lib/shopping'
+import { canPromptInstall, isInstalled, promptInstall, whereOpen } from '../lib/install'
 import { Icon, NumberField } from '../components/ui'
 import { HeightField, UnitsToggle, WeightField } from '../components/BodyFields'
 
@@ -20,12 +21,17 @@ export default function Onboarding() {
   const t = useT()
   const { lang, setLang, completeOnboarding } = useStore()
   const [step, setStep] = useState(0)
+  const [where] = useState(() => (isInstalled() ? 'desktop' : whereOpen()))
+  const showHome = where !== 'desktop'
+  const last = showHome ? 6 : 5
+  const [copied, setCopied] = useState(false)
+  const [, rerender] = useState(0)
   const [p, setP] = useState<Profile>({ name: '', sex: 'female', age: 28, heightCm: 165, weightKg: 65, activity: 'light', goal: 'maintain' })
   const auto = useMemo(() => calcTargets(p), [p])
   const targets = auto
   const set = <K extends keyof Profile>(k: K, v: Profile[K]) => setP({ ...p, [k]: v })
 
-  const valid = [true, p.name.trim().length > 0, p.age >= 13 && p.age <= 100 && p.heightCm >= 120 && p.heightCm <= 230 && p.weightKg >= 30 && p.weightKg <= 300, true, true, true][step]
+  const valid = [true, p.name.trim().length > 0, p.age >= 13 && p.age <= 100 && p.heightCm >= 120 && p.heightCm <= 230 && p.weightKg >= 30 && p.weightKg <= 300, true, true, true, true][step]
   const finish = () => {
     completeOnboarding({ ...p, name: p.name.trim() }, sampleRecipes(lang), lang === 'pl' ? DEFAULT_STAPLES_PL : DEFAULT_STAPLES)
   }
@@ -44,7 +50,7 @@ export default function Onboarding() {
         <div className="between">
           <button className="icon-btn" aria-label={t('back')} onClick={() => setStep(step - 1)}><Icon name="back" /></button>
           <div style={{ display: 'flex', gap: 6 }} aria-hidden="true">
-            {[1, 2, 3, 4, 5].map((i) => <span key={i} style={{ width: 22, height: 6, borderRadius: 999, background: i <= step ? 'var(--green)' : 'var(--line)' }} />)}
+            {Array.from({ length: last }, (_, n) => n + 1).map((i) => <span key={i} style={{ width: 22, height: 6, borderRadius: 999, background: i <= step ? 'var(--green)' : 'var(--line)' }} />)}
           </div>
           <span style={{ width: 44 }} />
         </div>
@@ -130,9 +136,39 @@ export default function Onboarding() {
         </div>
       )}
 
+      {step === 6 && (() => {
+        const [before, after] = t('homeStep1').split('{share}')
+        const steps = where === 'android'
+          ? [t('homeAndroid1'), t('homeAndroid2')]
+          : [<>{before}<Icon name="share" size={17} className="inline-icon" />{after}</>, t('homeStep2'), t('homeStep3')]
+        return (
+          <div className="stack" style={{ gap: 16 }}>
+            <img src="/pwa-192.png" alt="" width={72} height={72} style={{ width: 72, height: 72, borderRadius: 18 }} />
+            <h1 className="title">{t('homeTitle')}</h1>
+            <p className="muted" style={{ margin: 0, fontSize: 15 }}>{t('homeWhy')}</p>
+            {(where === 'ios-other' || where === 'in-app') && (
+              <div className="tip" style={{ alignItems: 'center' }}>
+                <span className="grow">{t(where === 'in-app' ? 'homeInApp' : 'homeOtherBrowser')}</span>
+                <button className="btn small" style={{ background: 'var(--green)', color: 'var(--on-green)', flex: 'none' }}
+                  onClick={async () => { try { await navigator.clipboard.writeText(location.origin); setCopied(true) } catch { /* blocked */ } }}>{copied ? t('copied') : t('copyLink')}</button>
+              </div>
+            )}
+            {where === 'android' && canPromptInstall() ? (
+              <button className="btn green block" onClick={async () => { await promptInstall(); rerender((n) => n + 1) }}><Icon name="plus" size={18} />{t('install')}</button>
+            ) : (
+              <ol className="home-steps">
+                {where !== 'android' && <li><span>{t('homeStep0')}</span></li>}
+                {steps.map((s, i) => <li key={i}><span>{s}</span></li>)}
+              </ol>
+            )}
+            <span className="caption">{t('homeAfter')}</span>
+          </div>
+        )
+      })()}
+
       <div className="bottom-bar">
-        <button className="btn primary block" disabled={!valid} onClick={() => (step === 5 ? finish() : setStep(step + 1))}>
-          {step === 0 ? t('obStart') : step === 5 ? t('obGo') : t('continue')}
+        <button className="btn primary block" disabled={!valid} onClick={() => (step === last ? finish() : setStep(step + 1))}>
+          {step === 0 ? t('obStart') : step === last ? (step === 6 ? t('homeDone') : t('obGo')) : t('continue')}
         </button>
       </div>
     </main>

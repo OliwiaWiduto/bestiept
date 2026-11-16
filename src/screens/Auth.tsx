@@ -21,7 +21,7 @@ export default function Auth({ recovery = false, onDone }: { recovery?: boolean;
       if (mode === 'signUp') {
         const { data, error } = await supabase.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: window.location.origin } })
         if (error) throw error
-        if (data.user && data.user.identities?.length === 0) setMsg({ kind: 'error', text: t('emailTaken') })
+        if (data.user && data.user.identities?.length === 0) { setMode('signIn'); setPassword(''); setMsg({ kind: 'info', text: t('accountExists') }) }
         else if (!data.session) setMsg({ kind: 'info', text: t('checkEmail') })
       } else if (mode === 'signIn') {
         const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
@@ -37,7 +37,8 @@ export default function Auth({ recovery = false, onDone }: { recovery?: boolean;
       }
     } catch (err) {
       const m = String((err as Error).message || '')
-      setMsg({ kind: 'error', text: /already registered/i.test(m) ? t('emailTaken') : t('authError') })
+      if (mode === 'signUp' && /already registered|already exists/i.test(m)) { setMode('signIn'); setPassword(''); setMsg({ kind: 'info', text: t('accountExists') }) }
+      else setMsg({ kind: 'error', text: t('authError') })
     } finally {
       setBusy(false)
     }
