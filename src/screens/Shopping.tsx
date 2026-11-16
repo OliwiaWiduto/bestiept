@@ -6,6 +6,7 @@ import { addDays, fmt, today, weekDays, weekStart } from '../lib/dates'
 import { buildList, CATEGORIES, CATEGORY_ICON, DEFAULT_STAPLES, DEFAULT_STAPLES_PL, displayAmount, type ShoppingLine } from '../lib/shopping'
 import { uid } from '../lib/util'
 import { Icon } from '../components/ui'
+import { useFamilyLists } from '../lib/family'
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
@@ -17,7 +18,10 @@ export default function Shopping() {
   const days = weekDays(planWeek)
   const thisWeek = weekStart(today())
   const weekPlan = useMemo(() => plan.filter((p) => days.includes(p.date)), [plan, days])
-  const { need, probably } = useMemo(() => buildList(weekPlan, recipes, shopping, today()), [weekPlan, recipes, shopping])
+  const family = useFamilyLists(planWeek)
+  const [skip, setSkip] = useState<Record<string, boolean>>({})
+  const allPlan = useMemo(() => [...weekPlan, ...family.flatMap((f) => (skip[f.person.id] ? [] : f.plan))], [weekPlan, family, skip])
+  const { need, probably } = useMemo(() => buildList(allPlan, recipes, shopping, today()), [allPlan, recipes, shopping])
   const range = `${fmt(days[0], t.lang, { day: 'numeric' })} – ${fmt(days[6], t.lang, { day: 'numeric', month: 'long' })}`
 
   const tk = (key: string) => `${planWeek}:${key}`
@@ -76,6 +80,15 @@ export default function Shopping() {
         <button className="chip" aria-pressed={planWeek === thisWeek} onClick={() => setPlanWeek(thisWeek)}>{t('thisWeek')}</button>
         <button className="chip" aria-pressed={planWeek !== thisWeek} onClick={() => setPlanWeek(addDays(thisWeek, 7))}>{t('nextWeek')}</button>
       </div>
+      {family.length > 0 && (
+        <div className="chips" role="group" aria-label={t('includeFamily')}>
+          {family.map((f) => (
+            <button key={f.person.id} className="chip" aria-pressed={!skip[f.person.id]} onClick={() => setSkip({ ...skip, [f.person.id]: !skip[f.person.id] })}>
+              {t('includeMeals', { name: f.person.name, n: f.plan.filter((p) => !p.leftoverOf).length })}
+            </button>
+          ))}
+        </div>
+      )}
 
       {!shopping.staplesAsked && need.length + probably.length > 0 && (
         <section className="card stack" style={{ gap: 12, background: 'var(--peach-soft)' }}>

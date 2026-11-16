@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { startAutoSync, syncNow } from './lib/sync'
+import { loadFamily } from './lib/family'
 import Auth from './screens/Auth'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useHydrated, useStore } from './store'
@@ -21,6 +22,8 @@ import Shopping from './screens/Shopping'
 import MealEdit from './screens/MealEdit'
 import Trends from './screens/Trends'
 import Settings from './screens/Settings'
+import Family from './screens/Family'
+import FamilyPerson from './screens/FamilyPerson'
 
 const NAV_SCREENS = ['/', '/recipes', '/plan', '/shopping', '/trends', '/settings']
 
@@ -54,7 +57,7 @@ export default function App() {
     let alive = true
     syncNow(uid)
       .catch((e) => { console.error(e); toast(translate(useStore.getState().lang, 'syncError')) })
-      .finally(() => { if (alive) { setSynced(uid); stop = startAutoSync(uid) } })
+      .finally(() => { if (alive) { setSynced(uid); stop = startAutoSync(uid); loadFamily(uid).catch(console.error) } })
     return () => { alive = false; stop?.() }
   }, [hydrated, uid])
 
@@ -78,6 +81,8 @@ export default function App() {
         <Route path="/meal/:id" element={<MealEdit />} />
         <Route path="/trends" element={<Trends />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/family" element={<Family />} />
+        <Route path="/family/:id" element={<FamilyPerson />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {NAV_SCREENS.includes(pathname) && <BottomNav onLog={() => openLog()} />}

@@ -5,6 +5,7 @@ import { useT } from '../i18n'
 import { MEALS, type Meal, type Recipe } from '../types'
 import { usePhoto } from '../lib/sync'
 import { Icon } from '../components/ui'
+import { personName, useFamily } from '../lib/family'
 
 type Filter = 'all' | 'fav' | Meal
 
@@ -59,6 +60,7 @@ export default function Recipes() {
 
 function RecipeCard({ r, onOpen }: { r: Recipe; onOpen: () => void }) {
   const t = useT()
+  useFamily((s) => s.links) // re-render when names load
   const photo = usePhoto(r.photo)
   return (
     <button onClick={onOpen} className="card" style={{ padding: 10, border: 'none', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -70,6 +72,7 @@ function RecipeCard({ r, onOpen }: { r: Recipe; onOpen: () => void }) {
       </div>
       <span className="stack" style={{ gap: 2, padding: '0 4px 4px' }}>
         <span className="caption">{t(r.category)}{r.minutes ? ` · ${t('minutes', { n: r.minutes })}` : ''}</span>
+        {r.ownerId && <span className="caption" style={{ color: 'var(--cherry)', fontWeight: 600 }}>{t('fromPerson', { name: personName(r.ownerId) ?? t('family') })}</span>}
         <span style={{ fontSize: 15, lineHeight: '20px', fontWeight: 600 }}>{r.title}</span>
       </span>
     </button>
