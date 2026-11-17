@@ -60,6 +60,23 @@ export function CoachTip({ id, when = true, place = 'below', align = 'end', chil
   )
 }
 
+export const AVATARS: { id: string; bg: string }[] = [
+  { id: 'strawberry', bg: 'var(--cherry-soft)' },
+  { id: 'avocado', bg: '#ECF1C8' },
+  { id: 'lemon', bg: 'var(--butter-soft)' },
+  { id: 'peach', bg: 'var(--peach-soft)' },
+]
+
+/** Her profile picture: the fruit she picked, or her initial. */
+export function Avatar({ name, avatar, size = 48 }: { name: string; avatar?: string; size?: number }) {
+  const a = AVATARS.find((x) => x.id === avatar)
+  return (
+    <span aria-hidden="true" style={{ width: size, height: size, borderRadius: 999, flex: 'none', display: 'grid', placeItems: 'center', overflow: 'hidden', background: a?.bg ?? 'var(--cherry-soft)', color: 'var(--cherry)', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: size * 0.42 }}>
+      {a ? <img src={`/avatars/${a.id}.png`} alt="" style={{ width: '82%', height: '82%', objectFit: 'contain', marginTop: '6%' }} /> : name.slice(0, 1).toUpperCase()}
+    </span>
+  )
+}
+
 export function BottomNav({ onLog }: { onLog: () => void }) {
   const t = useT()
   const onToday = useLocation().pathname === '/'

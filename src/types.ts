@@ -19,6 +19,8 @@ export type Profile = {
   goal: Goal
   /** First-use tips this person has already seen (travels with their account) */
   tips?: string[]
+  /** Chosen profile picture, e.g. 'strawberry' */
+  avatar?: string
 }
 
 export type Ingredient = { id: string; amount: number | null; unit: string; name: string }

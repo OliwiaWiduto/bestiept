@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useStore } from '../store'
-import { useT } from '../i18n'
+import { useT, type TKey } from '../i18n'
 import { staplesIn } from '../lib/shopping'
 import InstallNudge from '../components/InstallNudge'
 import type { Activity, Goal, Macros, Profile, Sex } from '../types'
-import { BackButton, Icon, NumberField, toast } from '../components/ui'
+import { AVATARS, Avatar, BackButton, Icon, NumberField, toast } from '../components/ui'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
@@ -49,6 +49,21 @@ export default function Settings() {
     <main className="screen" style={dirty ? { paddingBottom: 'calc(var(--nav-h) + 260px + env(safe-area-inset-bottom))' } : undefined}>
       <div className="row"><BackButton to="/" /></div>
       <h1 className="display">{t('settings')}</h1>
+
+      <section className="card stack" style={{ gap: 12 }}>
+        <h2 className="heading">{t('yourPicture')}</h2>
+        <div className="row" style={{ gap: 12 }} role="radiogroup" aria-label={t('yourPicture')}>
+          {AVATARS.map((a) => {
+            const on = profile.avatar === a.id
+            return (
+              <button key={a.id} role="radio" aria-checked={on} aria-label={t(`av_${a.id}` as TKey)} onClick={() => { updateProfile({ ...profile, avatar: a.id }, false); setP({ ...p, avatar: a.id }) }}
+                style={{ padding: 3, border: `3px solid ${on ? 'var(--cherry)' : 'transparent'}`, borderRadius: 999, background: 'none' }}>
+                <Avatar name={p.name} avatar={a.id} size={56} />
+              </button>
+            )
+          })}
+        </div>
+      </section>
 
       <section className="card stack" style={{ gap: 12 }}>
         <h2 className="heading">{t('language')}</h2>

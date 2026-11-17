@@ -6,7 +6,7 @@ import { useT, type TKey } from '../i18n'
 import { MEALS, ZERO, type Macros } from '../types'
 import { add, sumItems } from '../lib/nutrition'
 import { addDays, fmt, today } from '../lib/dates'
-import { Icon, MacroBar, Sheet, Thumb, toast } from '../components/ui'
+import { Avatar, Icon, MacroBar, Sheet, Thumb, toast } from '../components/ui'
 import { WeightField } from '../components/BodyFields'
 import { useFamily } from '../lib/family'
 import { formatDiff, formatWeight } from '../lib/units'
@@ -51,9 +51,8 @@ export default function Today() {
           <span className="eyebrow">{greeting}</span>
           <h1 className="display">{isToday ? t('today') : fmt(viewDate, t.lang, { weekday: 'long' })}</h1>
         </div>
-        <button aria-label={t('settings')} onClick={() => nav('/settings')}
-          style={{ width: 48, height: 48, borderRadius: 999, border: 'none', background: 'var(--cherry-soft)', color: 'var(--cherry)', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20 }}>
-          {profile.name.slice(0, 1).toUpperCase()}
+        <button aria-label={t('settings')} onClick={() => nav('/settings')} style={{ border: 'none', background: 'none', padding: 0, borderRadius: 999 }}>
+          <Avatar name={profile.name} avatar={profile.avatar} size={52} />
         </button>
       </div>
 

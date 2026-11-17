@@ -78,6 +78,7 @@ const en = {
   accountExists: 'You already have an account with that email. Pop your password in to sign in.',
   homeInSafari: 'You’re in Safari, perfect.', homeOpenSafariStep: 'Open BestiePT in Safari. Adding to the home screen only works there.', homeOpenChromeStep: 'Open BestiePT in Chrome to install it.', openSafari: 'Open in Safari', openChrome: 'Open in Chrome', openSafariShort: 'Safari', openChromeShort: 'Chrome',
   discard: 'Discard', saveChanges: 'Save changes', saveUpdateTargets: 'Save and update my targets', saveOnly: 'Just save', detailsChangedHint: 'Changed your details? We can work out new daily targets for you.',
+  yourPicture: 'Your picture', av_strawberry: 'Strawberry', av_avocado: 'Avocado', av_lemon: 'Lemon', av_peach: 'Peach',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -223,6 +224,7 @@ const pl: Dict = {
   accountExists: 'Masz już konto z tym adresem. Wpisz hasło, żeby się zalogować.',
   homeInSafari: 'Jesteś w Safari, super.', homeOpenSafariStep: 'Otwórz BestiePT w Safari. Dodawanie do ekranu głównego działa tylko tam.', homeOpenChromeStep: 'Otwórz BestiePT w Chrome, żeby ją zainstalować.', openSafari: 'Otwórz w Safari', openChrome: 'Otwórz w Chrome', openSafariShort: 'Safari', openChromeShort: 'Chrome',
   discard: 'Odrzuć', saveChanges: 'Zapisz zmiany', saveUpdateTargets: 'Zapisz i przelicz cele', saveOnly: 'Tylko zapisz', detailsChangedHint: 'Zmieniłaś dane? Możemy przeliczyć Twoje dzienne cele.',
+  yourPicture: 'Twój obrazek', av_strawberry: 'Truskawka', av_avocado: 'Awokado', av_lemon: 'Cytryna', av_peach: 'Brzoskwinia',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 
