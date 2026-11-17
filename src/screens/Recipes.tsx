@@ -5,7 +5,8 @@ import { useRecipes } from '../lib/recipeLang'
 import { useT } from '../i18n'
 import { MEALS, type Meal, type Recipe } from '../types'
 import { usePhoto } from '../lib/sync'
-import { CoachTip, Icon } from '../components/ui'
+import { CoachTip, Icon, toast } from '../components/ui'
+import { missingSamples } from '../lib/samples'
 import { foodArt } from '../lib/art'
 import { personName, useFamily } from '../lib/family'
 
@@ -16,6 +17,10 @@ export default function Recipes() {
   const nav = useNavigate()
   const recipes = useRecipes()
   const seeTip = useStore((s) => s.seeTip)
+  const saveRecipe = useStore((s) => s.saveRecipe)
+  const own = useStore((s) => s.recipes)
+  const lang = useStore((s) => s.lang)
+  const missing = useMemo(() => missingSamples(own.filter((r) => !r.ownerId), lang), [own, lang])
   const [filter, setFilter] = useState<Filter>('all')
   const [q, setQ] = useState('')
 
@@ -60,6 +65,13 @@ export default function Recipes() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
         {list.map((r) => <RecipeCard key={r.id} r={r} onOpen={() => nav(`/recipes/${r.id}`)} />)}
       </div>
+
+      {missing.length > 0 && (
+        <button className="btn ghost small" style={{ alignSelf: 'center', border: 'none' }}
+          onClick={() => { missing.forEach((r) => saveRecipe(r)); toast(t('startersBack')) }}>
+          <Icon name="plus" size={16} />{t('bringBackStarters', { n: missing.length })}
+        </button>
+      )}
     </main>
   )
 }

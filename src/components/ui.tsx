@@ -179,16 +179,23 @@ export function Stepper({ value, onChange, min = 1, label }: { value: number; on
   )
 }
 
-let toastFn: ((m: string) => void) | null = null
-export const toast = (m: string) => toastFn?.(m)
+let toastFn: ((m: string, action?: ToastAction) => void) | null = null
+export type ToastAction = { label: string; run: () => void }
+export const toast = (m: string, action?: ToastAction) => toastFn?.(m, action)
 export function ToastHost() {
-  const [msg, setMsg] = useState<string | null>(null)
+  const [msg, setMsg] = useState<{ m: string; action?: ToastAction } | null>(null)
   useEffect(() => {
     let timer: number | undefined
-    toastFn = (m) => { setMsg(m); window.clearTimeout(timer); timer = window.setTimeout(() => setMsg(null), 2600) }
+    toastFn = (m, action) => { setMsg({ m, action }); window.clearTimeout(timer); timer = window.setTimeout(() => setMsg(null), action ? 6000 : 2600) }
     return () => { toastFn = null }
   }, [])
-  return msg ? <div className="toast" role="status">{msg}</div> : null
+  if (!msg) return null
+  return (
+    <div className="toast" role="status" style={msg.action ? { display: 'flex', alignItems: 'center', gap: 14, pointerEvents: 'auto' } : undefined}>
+      <span>{msg.m}</span>
+      {msg.action && <button style={{ border: 'none', background: 'none', color: 'var(--lime)', fontWeight: 700, fontSize: 15, padding: '4px 2px' }} onClick={() => { msg.action!.run(); setMsg(null) }}>{msg.action.label}</button>}
+    </div>
+  )
 }
 
 export function NumberField({ label, value, onChange, step = 1 }: { label: string; value: number; onChange: (n: number) => void; step?: number }) {

@@ -95,3 +95,10 @@ export function sampleText(title: string, lang: Lang): ReturnType<typeof asText>
   const s = (lang === 'pl' ? PL : EN)[k]
   return s ? asText(s) : undefined
 }
+
+/** Our starter recipes she no longer has (in either language), ready to add back. */
+export function missingSamples(have: { title: string }[], lang: Lang): Recipe[] {
+  const titles = new Set(have.map((r) => r.title.trim().toLowerCase()))
+  const all = sampleRecipes(lang)
+  return all.filter((_, i) => !titles.has(EN[i]?.title.toLowerCase() ?? '') && !titles.has(PL[i]?.title.toLowerCase() ?? ''))
+}

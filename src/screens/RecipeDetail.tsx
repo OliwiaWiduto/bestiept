@@ -5,7 +5,7 @@ import { useRecipes } from '../lib/recipeLang'
 import { useT } from '../i18n'
 import { ingredientText, siteName } from '../lib/util'
 import { usePhoto } from '../lib/sync'
-import { Icon, MacroGrid, PhotoButton, Stepper } from '../components/ui'
+import { Icon, MacroGrid, PhotoButton, Stepper, toast } from '../components/ui'
 import { foodArt } from '../lib/art'
 import AddToPlanSheet from '../components/AddToPlanSheet'
 
@@ -93,7 +93,13 @@ export default function RecipeDetail() {
 
       <div className="row" style={{ justifyContent: 'center', gap: 8 }}>
         <button className="btn ghost small" onClick={() => nav(`/recipes/${r.id}/edit`)}><Icon name="edit" size={16} />{t('editRecipe')}</button>
-        <button className="btn ghost small" style={{ color: 'var(--cherry)' }} onClick={() => { if (confirm(t('confirmDeleteRecipe'))) { deleteRecipe(r.id); nav('/recipes') } }}>
+        <button className="btn ghost small" style={{ color: 'var(--cherry)' }} onClick={() => {
+          if (!original || !confirm(t('confirmDeleteRecipe'))) return
+          const planned = useStore.getState().plan.filter((p) => p.recipeId === original.id)
+          deleteRecipe(original.id)
+          nav('/recipes')
+          toast(t('recipeDeleted'), { label: t('undo'), run: () => { saveRecipe(original); useStore.setState((st) => ({ plan: [...st.plan, ...planned] })) } })
+        }}>
           <Icon name="trash" size={16} />{t('deleteRecipe')}
         </button>
       </div>
