@@ -274,3 +274,23 @@ input, textarea, select { font-size: max(16px, 1em); }
 .home-steps li.done::before { content: '✓'; }
 .home-steps li.action { align-items: flex-start; }
 .link-btn { align-self: flex-start; border: none; background: none; padding: 0; color: var(--green); font-size: 13px; font-weight: 600; text-decoration: underline; }
+/* Units after a number (g, kg, st, cm) never break onto their own lines */
+.grams > span:not(.sr-only) { flex: none; white-space: nowrap; overflow-wrap: normal; }
+.grams input { min-width: 0; }
+
+/* Wayfinding: anything you tap to do something is red or pink. Selections stay dark green, info stays green. */
+.btn.secondary { background: var(--cherry-soft); color: var(--cherry); }
+.btn.green { background: var(--cherry); color: #fff; }
+.btn.lime { background: var(--cherry); color: #fff; }
+.btn.ghost { color: var(--cherry); }
+.dashed { color: var(--cherry); }
+.slot svg, .slot-snack { color: var(--cherry); }
+.log-tile { background: var(--cherry-soft); color: var(--cherry); }
+.shop-card { background: var(--cherry-soft); color: var(--ink); }
+.shop-card > svg { color: var(--cherry); }
+.shop-card .small { color: var(--ink-muted) !important; }
+.nav a.active { color: var(--cherry); }
+.nav a.active .nav-icon { background: var(--cherry-soft); color: var(--cherry); }
+.cook-start { color: var(--cherry); }
+input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; }

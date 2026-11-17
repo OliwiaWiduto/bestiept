@@ -4,9 +4,9 @@ import { cmToFtIn, ftInToCm, kgToStLb, stLbToKg, type Units } from '../lib/units
 
 function Num({ label, value, onChange, suffix, step = 1 }: { label: string; value: number; onChange: (n: number) => void; suffix: string; step?: number }) {
   return (
-    <label className="grams" style={{ height: 52, flex: 1, borderRadius: 'var(--radius-md)', background: 'var(--surface-raised)' }}>
+    <label className="grams" style={{ height: 52, flex: 1, minWidth: 0, borderRadius: 'var(--radius-md)', background: 'var(--surface-raised)' }}>
       <span className="sr-only">{label}</span>
-      <input type="number" inputMode="decimal" step={step} value={Number.isFinite(value) ? value : ''} style={{ width: '100%', textAlign: 'left', fontSize: 16 }}
+      <input type="number" inputMode="decimal" step={step} value={Number.isFinite(value) ? value : ''} style={{ flex: 1, minWidth: 0, width: 'auto', textAlign: 'left', fontSize: 16 }}
         onChange={(e) => onChange(e.target.value === '' ? NaN : Number(e.target.value))} />
       <span className="muted">{suffix}</span>
     </label>
@@ -31,7 +31,7 @@ export function HeightField({ cm, onChange }: { cm: number; onChange: (cm: numbe
   return (
     <div className="field"><span>{t('height')}</span>
       {units === 'metric'
-        ? <Num label={t('height')} value={cm} onChange={onChange} suffix="cm" />
+        ? <div className="row"><Num label={t('height')} value={cm} onChange={onChange} suffix="cm" /></div>
         : <div className="row" style={{ gap: 10 }}>
             <Num label={`${t('height')} ft`} value={ft} onChange={(v) => onChange(ftInToCm(v || 0, inch))} suffix="ft" />
             <Num label={`${t('height')} in`} value={inch} onChange={(v) => onChange(ftInToCm(ft, v || 0))} suffix="in" />
@@ -50,7 +50,7 @@ export function WeightField({ kg, onChange, big }: { kg: number; onChange: (kg: 
     <div className="field"><span>{t('weight')}</span>
       <div style={style}>
         {units === 'metric'
-          ? <Num label={t('weight')} value={kg} step={0.1} onChange={onChange} suffix="kg" />
+          ? <div className="row"><Num label={t('weight')} value={kg} step={0.1} onChange={onChange} suffix="kg" /></div>
           : <div className="row" style={{ gap: 10 }}>
               <Num label={`${t('weight')} st`} value={st} onChange={(v) => onChange(stLbToKg(v || 0, lb))} suffix="st" />
               <Num label={`${t('weight')} lb`} value={lb} onChange={(v) => onChange(stLbToKg(st, v || 0))} suffix="lb" />

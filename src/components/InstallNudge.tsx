@@ -65,10 +65,10 @@ export default function InstallNudge({ onAuth = false, inline = false }: { onAut
         {text}
       </span>
       {(where === 'ios-other' || where === 'in-app') && (
-        <a className="btn small" style={{ background: 'var(--lime)', color: 'var(--green)', height: 36, padding: '0 14px', flexShrink: 0, textDecoration: 'none' }} href={openInBrowserUrl()} onClick={copy}><Icon name="compass" size={16} />{t(isIos() ? 'openSafariShort' : 'openChromeShort')}</a>
+        <a className="btn small" style={{ background: 'var(--cherry-soft)', color: 'var(--cherry)', height: 36, padding: '0 14px', flexShrink: 0, textDecoration: 'none' }} href={openInBrowserUrl()} onClick={copy}><Icon name="compass" size={16} />{t(isIos() ? 'openSafariShort' : 'openChromeShort')}</a>
       )}
       {where === 'installable' && deferred && (
-        <button className="btn small" style={{ background: 'var(--lime)', color: 'var(--green)', height: 36, padding: '0 14px' }}
+        <button className="btn small" style={{ background: 'var(--cherry-soft)', color: 'var(--cherry)', height: 36, padding: '0 14px' }}
           onClick={async () => { await deferred.prompt(); setDeferred(null) }}>{t('install')}</button>
       )}
       {!inline && <button aria-label={t('dismiss')} onClick={() => (onAuth ? setInstalled(true) : dismissPwa())} style={{ width: 32, height: 32, borderRadius: 999, border: 'none', background: 'transparent', color: 'var(--on-green)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

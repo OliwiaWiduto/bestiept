@@ -21,7 +21,23 @@ export default function Settings() {
   const [staples, setStaples] = useState(staplesIn(shopping.staples, t.lang).join('\n'))
   const [email, setEmail] = useState('')
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? '')) }, [])
-  if (!p || !tg) return null
+  if (!p || !tg || !profile || !targets) return null
+
+  // Each section shows its own action in a bar at the bottom, only once something in it has changed.
+  const savedStaples = staplesIn(shopping.staples, t.lang).join('\n')
+  const detailsDirty = JSON.stringify(p) !== JSON.stringify(profile)
+  const targetsDirty = JSON.stringify(tg) !== JSON.stringify(targets)
+  const staplesDirty = staples.trim() !== savedStaples.trim()
+  const dirty = detailsDirty || targetsDirty || staplesDirty
+  const discard = () => { setP(profile); setTg(targets); setStaples(savedStaples) }
+  const saveAll = (recalc: boolean) => {
+    if (staplesDirty) setShopping({ staples: staples.split('\n').map((s) => s.trim()).filter(Boolean), staplesAsked: true })
+    if (targetsDirty && !recalc) setTargets(tg)
+    if (detailsDirty) updateProfile(p, recalc)
+    const st = useStore.getState()
+    setP(st.profile); setTg(st.targets); setStaples(staplesIn(st.shopping.staples, t.lang).join('\n'))
+    toast(t('saved'))
+  }
 
   const select = <T extends string>(label: string, value: T, options: [T, string][], on: (v: T) => void) => (
     <label className="field"><span>{label}</span>
@@ -30,7 +46,7 @@ export default function Settings() {
   )
 
   return (
-    <main className="screen">
+    <main className="screen" style={dirty ? { paddingBottom: 'calc(var(--nav-h) + 260px + env(safe-area-inset-bottom))' } : undefined}>
       <div className="row"><BackButton to="/" /></div>
       <h1 className="display">{t('settings')}</h1>
 
@@ -52,10 +68,6 @@ export default function Settings() {
         <WeightField kg={p.weightKg} onChange={(v) => setP({ ...p, weightKg: v })} />
         {select<Activity>(t('obActivity'), p.activity, [['low', t('actLow')], ['light', t('actLight')], ['moderate', t('actModerate')], ['high', t('actHigh')]], (v) => setP({ ...p, activity: v }))}
         {select<Goal>(t('obGoal'), p.goal, [['lose', t('goalLose')], ['maintain', t('goalMaintain')], ['gain', t('goalGain')]], (v) => setP({ ...p, goal: v }))}
-        <div className="row">
-          <button className="btn secondary grow" onClick={() => { updateProfile(p, false); toast(t('saved')) }}>{t('save')}</button>
-          <button className="btn green grow" onClick={() => { updateProfile(p, true); setTg(useStore.getState().targets); toast(t('saved')) }}>{t('recalc')}</button>
-        </div>
       </section>
 
       <section className="card stack" style={{ gap: 12 }}>
@@ -63,17 +75,15 @@ export default function Settings() {
         {(['kcal', 'protein', 'carbs', 'fat', 'fibre'] as (keyof Macros)[]).map((k) => (
           <label key={k} className="between">
             <span className="label">{k === 'kcal' ? t('calories') : t(k)}</span>
-            <span className="grams"><input type="number" inputMode="numeric" value={tg[k]} onChange={(e) => setTg({ ...tg, [k]: Number(e.target.value) || 0 })} /><span className="muted">{k === 'kcal' ? '' : 'g'}</span></span>
+            <span className="grams"><input type="number" inputMode="numeric" style={{ width: 64 }} value={tg[k]} onChange={(e) => setTg({ ...tg, [k]: Number(e.target.value) || 0 })} /><span className="muted">{k === 'kcal' ? '' : 'g'}</span></span>
           </label>
         ))}
-        <button className="btn secondary" onClick={() => { setTargets(tg); toast(t('saved')) }}>{t('save')}</button>
       </section>
 
       <section className="card stack" style={{ gap: 12 }}>
         <h2 className="heading">{t('staples')}</h2>
         <span className="small muted">{t('staplesSettingsHint')}</span>
         <textarea className="input" rows={6} value={staples} onChange={(e) => setStaples(e.target.value)} />
-        <button className="btn secondary" onClick={() => { setShopping({ staples: staples.split('\n').map((s) => s.trim()).filter(Boolean), staplesAsked: true }); toast(t('saved')) }}>{t('save')}</button>
       </section>
 
       {!installed && (
@@ -96,6 +106,17 @@ export default function Settings() {
       <button className="btn ghost" style={{ color: 'var(--cherry)', alignSelf: 'center', border: 'none' }} onClick={() => { if (confirm(t('resetConfirm'))) resetAll() }}>
         <Icon name="trash" size={18} />{t('resetData')}
       </button>
+
+      {dirty && (
+        <div className="bottom-bar" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 8, bottom: 'calc(var(--nav-h) + env(safe-area-inset-bottom))', paddingBottom: 16, zIndex: 31, borderRadius: '24px 24px 0 0', boxShadow: '0 -8px 24px rgba(27, 33, 28, .1)' }}>
+          {detailsDirty && <span className="small muted" style={{ textAlign: 'center' }}>{t('detailsChangedHint')}</span>}
+          {detailsDirty && <button className="btn primary block" onClick={() => saveAll(true)}>{t('saveUpdateTargets')}</button>}
+          <div className="row" style={{ gap: 10 }}>
+            <button className="btn ghost grow" onClick={discard}>{t('discard')}</button>
+            <button className={`btn grow ${detailsDirty ? 'secondary' : 'primary'}`} onClick={() => saveAll(false)}>{detailsDirty ? t('saveOnly') : t('saveChanges')}</button>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
