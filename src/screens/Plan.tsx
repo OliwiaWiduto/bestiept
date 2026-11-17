@@ -33,13 +33,15 @@ export default function Plan() {
 
   return (
     <main className="screen">
-      <div className="stack" style={{ gap: 2, paddingTop: 8 }}>
-        <span className="eyebrow">{range}</span>
-        <h1 className="display">{planWeek === thisWeek ? t('thisWeek') : t('nextWeek')}</h1>
-      </div>
-      <div className="chips" role="group">
-        <button className="chip" aria-pressed={planWeek === thisWeek} onClick={() => setPlanWeek(thisWeek)}>{t('thisWeek')}</button>
-        <button className="chip" aria-pressed={planWeek !== thisWeek} onClick={() => setPlanWeek(addDays(thisWeek, 7))}>{t('nextWeek')}</button>
+      <div className="between" style={{ paddingTop: 8, alignItems: 'flex-end' }}>
+        <div className="stack" style={{ gap: 2 }}>
+          <span className="eyebrow">{range}</span>
+          <h1 className="display">{planWeek === thisWeek ? t('thisWeek') : t('nextWeek')}</h1>
+        </div>
+        <button className="icon-btn" style={{ marginBottom: 6 }} aria-label={planWeek === thisWeek ? t('nextWeek') : t('thisWeek')}
+          onClick={() => setPlanWeek(planWeek === thisWeek ? addDays(thisWeek, 7) : thisWeek)}>
+          <Icon name={planWeek === thisWeek ? 'forward' : 'back'} />
+        </button>
       </div>
 
       {inWeek.some((p) => !p.leftoverOf) && (
