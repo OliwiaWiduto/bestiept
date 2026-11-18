@@ -12,11 +12,11 @@ import { HeightField, UnitsToggle, WeightField } from '../components/BodyFields'
 // Same colours as the bars on the Today screen
 // Pastel background with a dark shade of the same colour for the words, per target.
 const TARGET_CARDS: ['kcal' | 'protein' | 'carbs' | 'fat' | 'fibre', string, string][] = [
-  ['kcal', '#E2E8D5', '#2E3A12'],
-  ['protein', '#FBDDE4', '#8C0029'],
-  ['carbs', '#FFEFCC', '#7A4E00'],
-  ['fat', '#EFEEDC', '#55561C'],
-  ['fibre', '#EEF4C2', '#526000'],
+  ['kcal', '#FFC9B0', '#7E2A0B'],
+  ['protein', '#F9B8C8', '#7A0024'],
+  ['carbs', '#FFD57A', '#5E3B00'],
+  ['fat', '#CDD49B', '#353B12'],
+  ['fibre', '#DDEB6E', '#3F4A00'],
 ]
 
 export default function Onboarding() {
@@ -118,10 +118,9 @@ export default function Onboarding() {
           <h1 className="title">{t('obTargets')}</h1>
           <p className="muted" style={{ margin: 0, fontSize: 15 }}>{t('tgIntro')}</p>
           {TARGET_CARDS.map(([k, bg, fg]) => (
-            <div key={k} className="card" style={{ background: bg, color: fg, display: 'flex', alignItems: 'center', gap: 16, padding: '16px 18px', border: 'none' }}>
-              <span style={{ flex: 'none', minWidth: 92, display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: k === 'kcal' ? 34 : 28, fontWeight: 800, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{k === 'kcal' ? targets.kcal : `${targets[k]}g`}</span>
-                {k === 'kcal' && <span style={{ fontSize: 13, fontWeight: 600, marginTop: 2 }}>{t('kcal')}</span>}
+            <div key={k} className="card" style={{ background: bg, color: fg, display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px', border: 'none' }}>
+              <span style={{ flex: 'none', minWidth: 74, fontFamily: 'var(--font-display)', fontSize: 28, lineHeight: 1, fontWeight: 800, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
+                {k === 'kcal' ? targets.kcal : `${targets[k]}g`}
               </span>
               <span className="stack" style={{ gap: 2, minWidth: 0 }}>
                 <span style={{ fontSize: 15, fontWeight: 700 }}>{k === 'kcal' ? t('calories') : t(k)}</span>
