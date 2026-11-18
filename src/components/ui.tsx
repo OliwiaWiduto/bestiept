@@ -107,8 +107,16 @@ export function Sheet({ open, onClose, title, children, tall }: { open: boolean;
     if (!open) return
     const k = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', k)
-    document.body.style.overflow = 'hidden'
-    return () => { window.removeEventListener('keydown', k); document.body.style.overflow = '' }
+    // Freeze the page behind (iPhone ignores overflow: hidden on its own, so pin the body in place).
+    const y = window.scrollY
+    const b = document.body.style
+    const prev = { position: b.position, top: b.top, width: b.width, overflow: b.overflow }
+    Object.assign(b, { position: 'fixed', top: `-${y}px`, width: '100%', overflow: 'hidden' })
+    return () => {
+      window.removeEventListener('keydown', k)
+      Object.assign(b, prev)
+      window.scrollTo(0, y)
+    }
   }, [open, onClose])
   if (!open) return null
   return (

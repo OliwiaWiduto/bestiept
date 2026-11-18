@@ -6,7 +6,7 @@ import { calcTargets } from '../lib/nutrition'
 import { sampleRecipes } from '../lib/samples'
 import { DEFAULT_STAPLES, DEFAULT_STAPLES_PL } from '../lib/shopping'
 import { canPromptInstall, isInstalled, isIos, openInBrowserUrl, promptInstall, whereOpen } from '../lib/install'
-import { Icon, NumberField } from '../components/ui'
+import { Icon, NumberField, Stepper } from '../components/ui'
 import { HeightField, UnitsToggle, WeightField } from '../components/BodyFields'
 
 // Same colours as the bars on the Today screen
@@ -27,7 +27,7 @@ export default function Onboarding() {
   const showHome = where !== 'desktop'
   const last = showHome ? 6 : 5
   const [, rerender] = useState(0)
-  const [p, setP] = useState<Profile>({ name: '', sex: 'female', age: 28, heightCm: 165, weightKg: 65, activity: 'light', goal: 'maintain' })
+  const [p, setP] = useState<Profile>({ name: '', sex: 'female', age: 28, heightCm: 165, weightKg: 65, activity: 'light', goal: 'maintain', household: 1 })
   const auto = useMemo(() => calcTargets(p), [p])
   const targets = auto
   const set = <K extends keyof Profile>(k: K, v: Profile[K]) => setP({ ...p, [k]: v })
@@ -110,6 +110,14 @@ export default function Onboarding() {
           <h1 className="title">{t('obGoal')}</h1>
           {(['lose', 'maintain', 'gain'] as Goal[]).map((g) =>
             option(p.goal === g, t(({ lose: 'goalLose', maintain: 'goalMaintain', gain: 'goalGain' } as const)[g]), () => set('goal', g)))}
+          <div className="card stack" style={{ marginTop: 8, gap: 12 }}>
+            <span className="stack" style={{ gap: 2 }}>
+              <span style={{ fontWeight: 600 }}>{t('householdQ')}</span>
+              <span className="caption">{t('householdHint')}</span>
+            </span>
+            <div className="between"><span className="label">{t('people')}</span>
+              <Stepper value={p.household ?? 1} onChange={(n) => setP({ ...p, household: n })} min={1} label={t('people')} /></div>
+          </div>
         </div>
       )}
 

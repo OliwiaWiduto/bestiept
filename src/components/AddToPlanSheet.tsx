@@ -12,18 +12,20 @@ export default function AddToPlanSheet({ recipe, open, onClose, initialDate, ini
   const [date, setDate] = useState(initialDate ?? today())
   const [meal, setMeal] = useState<Meal>('dinner')
   const [servings, setServings] = useState(2)
+  const people = useStore((st) => st.profile?.household ?? 1)
   const [leftoverDays, setLeftoverDays] = useState<string[]>([])
   const [leftoverMeal, setLeftoverMeal] = useState<Meal>('lunch')
   const [stage, setStage] = useState<'pick' | 'leftovers'>('pick')
   const [lastId, setLastId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (open && recipe) { setDate(initialDate ?? today()); setMeal(initialMeal ?? recipe.category); setServings(recipe.servings); setStage('pick'); setLeftoverDays([]); setLeftoverMeal('lunch') }
-  }, [open, recipe, initialDate, initialMeal])
+    if (open && recipe) { setDate(initialDate ?? today()); setMeal(initialMeal ?? recipe.category); setServings(Math.max(recipe.servings, people)); setStage('pick'); setLeftoverDays([]); setLeftoverMeal('lunch') }
+  }, [open, recipe, initialDate, initialMeal, people])
   if (!recipe) return null
 
   const days = [...weekDays(weekStart(today())), ...weekDays(addDays(weekStart(today()), 7))].filter((d) => d >= today())
-  const extra = servings - 1
+  // Everyone she cooks for eats now; whatever's left becomes meals for later.
+  const extra = Math.floor((servings - people) / people)
 
   return (
     <Sheet open={open} onClose={onClose} title={stage === 'pick' ? t('addToPlan') : t('leftovers')}>
@@ -41,6 +43,7 @@ export default function AddToPlanSheet({ recipe, open, onClose, initialDate, ini
           <span className="label">{t('whichMeal')}</span>
           <div className="chips">{MEALS.map((m) => <button key={m} className="chip" aria-pressed={meal === m} onClick={() => setMeal(m)}>{t(m)}</button>)}</div>
           <div className="between"><span className="label">{t('cookingFor')}</span><Stepper value={servings} onChange={setServings} label={t('servings')} /></div>
+          <span className="caption">{t('servingsHint', { n: people })}</span>
           <button className="btn primary block" onClick={() => {
             const id = addPlan({ date, meal, recipeId: recipe.id, servings })
             setLastId(id)
@@ -73,7 +76,7 @@ export default function AddToPlanSheet({ recipe, open, onClose, initialDate, ini
           <div className="row">
             <button className="btn secondary grow" onClick={() => { toast(t('addedToPlan')); onClose() }}>{t('notNow')}</button>
             <button className="btn primary grow" disabled={!leftoverDays.length || !lastId} onClick={() => {
-              leftoverDays.forEach((d) => addPlan({ date: d, meal: leftoverMeal, recipeId: recipe.id, servings: 1, leftoverOf: lastId! }))
+              leftoverDays.forEach((d) => addPlan({ date: d, meal: leftoverMeal, recipeId: recipe.id, servings: people, leftoverOf: lastId! }))
               toast(t('addedToPlan')); onClose()
             }}>{t('addLeftovers')}</button>
           </div>

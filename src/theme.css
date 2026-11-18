@@ -300,3 +300,6 @@ input[type=number] { -moz-appearance: textfield; }
 .collapsible { max-height: 120px; opacity: 1; transition: max-height .25s ease, opacity .2s ease, margin .25s ease; overflow: hidden; }
 .collapsible.gone { max-height: 0; opacity: 0; margin-top: -14px; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .collapsible { transition: none; } }
+.sheet { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.sheet-backdrop { overscroll-behavior: contain; touch-action: none; }
+.sheet { touch-action: pan-y; }

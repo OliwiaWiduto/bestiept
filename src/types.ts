@@ -21,6 +21,8 @@ export type Profile = {
   tips?: string[]
   /** Chosen profile picture, e.g. 'strawberry' */
   avatar?: string
+  /** How many people she usually cooks for (plans and leftovers use it) */
+  household?: number
 }
 
 export type Ingredient = { id: string; amount: number | null; unit: string; name: string }

@@ -9,13 +9,15 @@ import { MEALS } from '../types'
 import { buildList } from '../lib/shopping'
 import { rankRecipes } from '../lib/pick'
 import { addDays, fmt, today, weekDays, weekStart } from '../lib/dates'
-import { Icon, Sheet, Thumb } from '../components/ui'
+import { Icon, Sheet, Stepper, Thumb } from '../components/ui'
 import AddToPlanSheet from '../components/AddToPlanSheet'
 
 export default function Plan() {
   const t = useT()
   const nav = useNavigate()
-  const { plan, removePlan, shopping } = useStore()
+  const { plan, removePlan, shopping, profile, updateProfile } = useStore()
+  const people = profile?.household ?? 1
+  const [peopleOpen, setPeopleOpen] = useState(false)
   const recipes = useRecipes()
   const { planWeek, setPlanWeek } = useUI()
   const [pickFor, setPickFor] = useState<{ date: string; meal: Meal } | null>(null)
@@ -38,11 +40,22 @@ export default function Plan() {
           <span className="eyebrow">{range}</span>
           <h1 className="display">{planWeek === thisWeek ? t('thisWeek') : t('nextWeek')}</h1>
         </div>
-        <button className="icon-btn" style={{ marginBottom: 6 }} aria-label={planWeek === thisWeek ? t('nextWeek') : t('thisWeek')}
+        <div className="row" style={{ gap: 8, marginBottom: 6 }}>
+        <button className="chip" style={{ height: 40, gap: 6 }} onClick={() => setPeopleOpen(true)} aria-label={t('householdQ')}>
+          <Icon name="heart" size={16} />{t('cookingForN', { n: people })}
+        </button>
+        <button className="icon-btn" aria-label={planWeek === thisWeek ? t('nextWeek') : t('thisWeek')}
           onClick={() => setPlanWeek(planWeek === thisWeek ? addDays(thisWeek, 7) : thisWeek)}>
           <Icon name={planWeek === thisWeek ? 'forward' : 'back'} />
         </button>
+        </div>
       </div>
+      <Sheet open={peopleOpen} onClose={() => setPeopleOpen(false)} title={t('householdQ')}>
+        <p className="muted" style={{ margin: 0 }}>{t('householdHint')}</p>
+        <div className="between"><span className="label">{t('people')}</span>
+          <Stepper value={people} onChange={(n) => profile && updateProfile({ ...profile, household: n }, false)} min={1} label={t('people')} /></div>
+        <button className="btn primary block" onClick={() => setPeopleOpen(false)}>{t('done')}</button>
+      </Sheet>
 
       {inWeek.some((p) => !p.leftoverOf) && (
         <button className="shop-card" onClick={() => nav('/shopping')}>
