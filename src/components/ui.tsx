@@ -203,7 +203,7 @@ export function NumberField({ label, value, onChange, step = 1 }: { label: strin
   return (
     <label className="field">
       <span>{label}</span>
-      <input className="input" type="number" inputMode="decimal" step={step} value={Number.isFinite(value) ? value : ''} onChange={(e) => onChange(e.target.value === '' ? NaN : Number(e.target.value))} />
+      <input className="input" type="text" inputMode="decimal" step={step} value={Number.isFinite(value) ? value : ''} onChange={(e) => onChange(e.target.value === '' ? NaN : Number(e.target.value))} />
     </label>
   )
 }

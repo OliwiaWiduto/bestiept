@@ -28,6 +28,7 @@ export default function LogFoodSheet() {
   const [query, setQuery] = useState('')
   const [tab, setTab] = useState<'all' | 'food' | 'recipe'>('all')
   const [busy, setBusy] = useState(false)
+  const [focusSearch, setFocusSearch] = useState(false)
   const [again, setAgain] = useState<LogEntry | null>(null)
   const [recipeId, setRecipeId] = useState<string | null>(null)
   const [servings, setServings] = useState(1)
@@ -47,7 +48,7 @@ export default function LogFoodSheet() {
 
   useEffect(() => {
     if (logOpen) {
-      setMode('menu'); setMeal(logMeal ?? defaultMeal()); setQuery(''); setTab('all'); setAgain(null); setRecipeId(null); setServings(1); setPicked(null)
+      setMode('menu'); setMeal(logMeal ?? defaultMeal()); setQuery(''); setTab('all'); setFocusSearch(false); setAgain(null); setRecipeId(null); setServings(1); setPicked(null)
       setQuick({ name: '', kcal: '', protein: '', carbs: '', fat: '' }); setCode(''); setLookup('idle'); setTyping(false); setScan(null); setEditId(null); setGuessNote(false); setScanning(false); setScanError(null); setDest('own'); setTargetId(null)
     }
   }, [logOpen, logMeal])
@@ -118,7 +119,7 @@ export default function LogFoodSheet() {
         <div className="between" style={{ gap: 12, alignItems: 'flex-start' }}>
           <span style={{ fontWeight: 600, fontSize: 17 }}>{picked.name}</span>
           <label className="grams" style={{ height: 44, flex: 'none' }}><span className="sr-only">{t('howMuch')}</span>
-            <input autoFocus type="number" inputMode="decimal" value={grams} onChange={(e) => setGrams(e.target.value)} /><span className="muted">g</span></label>
+            <input autoFocus type="text" inputMode="decimal" value={grams} onChange={(e) => setGrams(e.target.value)} /><span className="muted">g</span></label>
         </div>
         {(() => { const m = itemMacros({ id: 'x', name: '', amount: Number(grams) || 0, unit: 'g', per: picked.per }); return (
           <span className="caption">{Math.round(m.kcal)} {t('kcal')} · P {Math.round(m.protein)} · C {Math.round(m.carbs)} · F {Math.round(m.fat)}</span>) })()}
@@ -220,22 +221,26 @@ export default function LogFoodSheet() {
   )
 
   return (
-    <Sheet open={logOpen} onClose={closeLog} title={t('logFood')} tall={mode === 'menu'}>
+    <Sheet open={logOpen} onClose={closeLog} title={focusSearch ? undefined : t('logFood')} tall={mode === 'menu'}>
       {back}
       {mode === 'menu' && (
         <div className="stack" style={{ gap: 14 }}>
-          <div className="log-tiles">
+          <div className={`log-tiles collapsible${focusSearch ? ' gone' : ''}`} aria-hidden={focusSearch}>
             {tile('camera', t('photoScan'), () => setMode('scan'))}
             {tile('barcode', t('barcode'), () => setMode('barcode'))}
             {tile('mic', t('voiceLog'), () => setMode('voice'))}
             {tile('edit', t('typeLog'), () => setMode('type'))}
             {tile('plus', t('quickAdd'), () => setMode('quick'))}
           </div>
-          <label className="search-field">
-            <Icon name="search" size={20} />
-            <input type="search" placeholder={t('searchFoodsRecipes')} aria-label={t('searchFoodsRecipes')} value={query} onChange={(e) => setQuery(e.target.value)} />
-            {query && <button className="icon-btn" style={{ width: 32, height: 32, background: 'transparent' }} aria-label={t('clear')} onClick={() => setQuery('')}><Icon name="close" size={16} /></button>}
-          </label>
+          <div className="row" style={{ gap: 10 }}>
+            <label className="search-field grow">
+              <Icon name="search" size={20} />
+              <input type="search" placeholder={t('searchFoodsRecipes')} aria-label={t('searchFoodsRecipes')} value={query}
+                onFocus={() => setFocusSearch(true)} onChange={(e) => setQuery(e.target.value)} />
+              {query && <button className="icon-btn" style={{ width: 32, height: 32, background: 'transparent' }} aria-label={t('clear')} onClick={() => setQuery('')}><Icon name="close" size={16} /></button>}
+            </label>
+            {focusSearch && <button className="btn ghost small" style={{ border: 'none', padding: '0 4px' }} onClick={() => { setQuery(''); setFocusSearch(false); (document.activeElement as HTMLElement | null)?.blur() }}>{t('cancel')}</button>}
+          </div>
           {searching && (
             <>
               <div className="chips" role="group">
@@ -387,7 +392,7 @@ export default function LogFoodSheet() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
             {(['kcal', 'protein', 'carbs', 'fat'] as const).map((k) => (
               <label key={k} className="field"><span>{k === 'kcal' ? t('calories') : `${t(k)} (g)`}</span>
-                <input className="input" type="number" inputMode="decimal" value={quick[k]} onChange={(e) => setQuick({ ...quick, [k]: e.target.value })} /></label>
+                <input className="input" type="text" inputMode="decimal" value={quick[k]} onChange={(e) => setQuick({ ...quick, [k]: e.target.value })} /></label>
             ))}
           </div>
           {destination}

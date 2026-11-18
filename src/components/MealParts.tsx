@@ -95,7 +95,7 @@ export function IngredientForm({ item, onSave, onDelete, onCancel }: { item: Foo
       <div className="between">
         <span className="label">{t('amountLabel')}</span>
         {isG ? (
-          <span className="grams" style={{ height: 48 }}><input aria-label={t('grams')} type="number" inputMode="decimal" value={amount} onChange={(e) => changeAmount(e.target.value)} /><span className="muted">g</span></span>
+          <span className="grams" style={{ height: 48 }}><input aria-label={t('grams')} type="text" inputMode="decimal" value={amount} onChange={(e) => changeAmount(e.target.value)} /><span className="muted">g</span></span>
         ) : (
           <Stepper value={amt || 1} onChange={(n) => changeAmount(String(n))} min={0.25} step={0.25} label={t('servings')} />
         )}
@@ -105,7 +105,7 @@ export function IngredientForm({ item, onSave, onDelete, onCancel }: { item: Foo
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
           {(['kcal', 'protein', 'carbs', 'fat'] as const).map((k) => (
             <label key={k} className="field"><span>{k === 'kcal' ? t('calories') : `${t(k)} (g)`}</span>
-              <input className="input" type="number" inputMode="decimal" value={vals[k]} onChange={(e) => changeVal(k, e.target.value)} /></label>
+              <input className="input" type="text" inputMode="decimal" value={vals[k]} onChange={(e) => changeVal(k, e.target.value)} /></label>
           ))}
         </div>
       </div>

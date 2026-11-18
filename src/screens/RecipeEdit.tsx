@@ -199,7 +199,7 @@ export default function RecipeEdit() {
             <div className="chips">{MEALS.map((m) => <button key={m} className="chip" aria-pressed={category === m} onClick={() => setCategory(m)}>{t(m)}</button>)}</div>
           </div>
           <div className="between"><span className="label">{t('servings')}</span><Stepper value={servings} onChange={setServings} label={t('servings')} /></div>
-          <label className="field"><span>{t('cookTime')}</span><input className="input" type="number" inputMode="numeric" value={minutes} onChange={(e) => setMinutes(e.target.value)} /></label>
+          <label className="field"><span>{t('cookTime')}</span><input className="input" type="text" inputMode="numeric" value={minutes} onChange={(e) => setMinutes(e.target.value)} /></label>
           <label className="field"><span>{t('source')}</span><input className="input" placeholder={t('sourcePh')} value={source} onChange={(e) => setSource(e.target.value)} /></label>
           <button className="btn primary block" onClick={() => setOpen(null)}>{t('done')}</button>
         </Sheet>
@@ -211,7 +211,7 @@ export default function RecipeEdit() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
             {(['kcal', 'protein', 'carbs', 'fat', 'fibre'] as (keyof Macros)[]).map((k) => (
               <label key={k} className="field"><span>{k === 'kcal' ? t('calories') : `${t(k)} (g)`}</span>
-                <input className="input" type="number" inputMode="decimal" value={nutrition[k] || ''} onChange={(e) => setNutrition({ ...nutrition, [k]: Number(e.target.value) || 0 })} /></label>
+                <input className="input" type="text" inputMode="decimal" value={nutrition[k] || ''} onChange={(e) => setNutrition({ ...nutrition, [k]: Number(e.target.value) || 0 })} /></label>
             ))}
           </div>
           <button className="btn primary block" onClick={() => setOpen(null)}>{t('done')}</button>
@@ -271,7 +271,7 @@ export default function RecipeEdit() {
         <div className="chips">{MEALS.map((m) => <button key={m} className="chip" aria-pressed={category === m} onClick={() => setCategory(m)}>{t(m)}</button>)}</div>
       </div>
       <div className="between"><span className="label">{t('servings')}</span><Stepper value={servings} onChange={setServings} label={t('servings')} /></div>
-      <label className="field"><span>{t('cookTime')}</span><input className="input" type="number" inputMode="numeric" value={minutes} onChange={(e) => setMinutes(e.target.value)} /></label>
+      <label className="field"><span>{t('cookTime')}</span><input className="input" type="text" inputMode="numeric" value={minutes} onChange={(e) => setMinutes(e.target.value)} /></label>
       <label className="field"><span>{t('source')}</span><input className="input" placeholder={t('sourcePh')} value={source} onChange={(e) => setSource(e.target.value)} /></label>
       <label className="field"><span>{t('ingredientsLines')}</span><textarea className="input" rows={6} placeholder={t('ingredientsPh')} value={ingText} onChange={(e) => setIngText(e.target.value)} /></label>
       <label className="field"><span>{t('stepsLines')}</span><textarea className="input" rows={6} placeholder={t('stepsPh')} value={stepText} onChange={(e) => setStepText(e.target.value)} /></label>

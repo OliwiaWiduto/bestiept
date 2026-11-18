@@ -6,7 +6,7 @@ function Num({ label, value, onChange, suffix, step = 1 }: { label: string; valu
   return (
     <label className="grams" style={{ height: 52, flex: 1, minWidth: 0, borderRadius: 'var(--radius-md)', background: 'var(--surface-raised)' }}>
       <span className="sr-only">{label}</span>
-      <input type="number" inputMode="decimal" step={step} value={Number.isFinite(value) ? value : ''} style={{ flex: 1, minWidth: 0, width: 'auto', textAlign: 'left', fontSize: 16 }}
+      <input type="text" inputMode="decimal" step={step} value={Number.isFinite(value) ? value : ''} style={{ flex: 1, minWidth: 0, width: 'auto', textAlign: 'left', fontSize: 16 }}
         onChange={(e) => onChange(e.target.value === '' ? NaN : Number(e.target.value))} />
       <span className="muted">{suffix}</span>
     </label>

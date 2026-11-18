@@ -90,7 +90,7 @@ export default function Settings() {
         {(['kcal', 'protein', 'carbs', 'fat', 'fibre'] as (keyof Macros)[]).map((k) => (
           <label key={k} className="between">
             <span className="label">{k === 'kcal' ? t('calories') : t(k)}</span>
-            <span className="grams"><input type="number" inputMode="numeric" style={{ width: 64 }} value={tg[k]} onChange={(e) => setTg({ ...tg, [k]: Number(e.target.value) || 0 })} /><span className="muted">{k === 'kcal' ? '' : 'g'}</span></span>
+            <span className="grams"><input type="text" inputMode="numeric" style={{ width: 64 }} value={tg[k]} onChange={(e) => setTg({ ...tg, [k]: Number(e.target.value) || 0 })} /><span className="muted">{k === 'kcal' ? '' : 'g'}</span></span>
           </label>
         ))}
       </section>

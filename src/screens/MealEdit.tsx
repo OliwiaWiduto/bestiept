@@ -95,7 +95,7 @@ function AddItemSheet({ open, onClose, onAdd }: { open: boolean; onClose: () => 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
         {(['kcal', 'protein', 'carbs', 'fat'] as const).map((k) => (
           <label key={k} className="field"><span className="caption">{k === 'kcal' ? t('kcal') : t(k)}</span>
-            <input className="input" style={{ padding: '0 10px' }} type="number" inputMode="decimal" value={custom[k]} onChange={(e) => setCustom({ ...custom, [k]: e.target.value })} /></label>
+            <input className="input" style={{ padding: '0 10px' }} type="text" inputMode="decimal" value={custom[k]} onChange={(e) => setCustom({ ...custom, [k]: e.target.value })} /></label>
         ))}
       </div>
       <button className="btn green block" disabled={!custom.name.trim() || custom.kcal === ''}

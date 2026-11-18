@@ -12,7 +12,7 @@ import { HeightField, UnitsToggle, WeightField } from '../components/BodyFields'
 // Same colours as the bars on the Today screen
 // Pastel background with a dark shade of the same colour for the words, per target.
 const TARGET_CARDS: ['kcal' | 'protein' | 'carbs' | 'fat' | 'fibre', string, string][] = [
-  ['kcal', 'var(--green)', '#fff'],
+  ['kcal', 'var(--green)', 'var(--lime)'],
   ['protein', '#F9B8C8', '#7A0024'],
   ['carbs', '#FFD57A', '#5E3B00'],
   ['fat', '#CDD49B', '#353B12'],
@@ -118,7 +118,7 @@ export default function Onboarding() {
           <h1 className="title">{t('obTargets')}</h1>
           <p className="muted" style={{ margin: 0, fontSize: 15 }}>{t('tgIntro')}</p>
           {TARGET_CARDS.map(([k, bg, fg]) => (
-            <div key={k} className="card" style={{ background: bg, color: fg, display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px', border: 'none' }}>
+            <div key={k} className="card" style={{ background: bg, color: fg, display: 'flex', alignItems: 'center', gap: 12, padding: '22px 20px', border: 'none' }}>
               <span className="stack grow" style={{ gap: 2, minWidth: 0 }}>
                 <span style={{ fontSize: 15, fontWeight: 700 }}>{k === 'kcal' ? t('calories') : t(k)}</span>
                 <span style={{ fontSize: 13, lineHeight: '18px' }}>{t(`ex_${k}` as const)}</span>
