@@ -6,6 +6,7 @@ import { useT } from '../i18n'
 import type { Ingredient } from '../types'
 import { ingredientText, shortName, splitName, uid } from '../lib/util'
 import { equipmentIcon } from '../lib/equipment'
+import { recipeItems } from '../lib/matchFood'
 import { today } from '../lib/dates'
 import { defaultMeal } from '../ui-state'
 import { Icon, Stepper, toast } from '../components/ui'
@@ -213,11 +214,13 @@ export default function Cooking() {
           <img src="/icons/cat-fruitveg.png" alt="" style={{ width: 96, height: 96 }} />
           <h1 className="step-text">{t('cookedTitle')}</h1>
           <span className="soft">{t('howManyAte')}</span>
-          <div style={{ background: 'var(--on-green)', borderRadius: 999, padding: '6px 10px' }}><Stepper value={ate} onChange={setAte} label={t('servings')} /></div>
+          <div style={{ background: 'var(--on-green)', borderRadius: 999, padding: '6px 10px' }}><Stepper value={ate} onChange={setAte} min={0.25} step={0.25} label={t('servings')} /></div>
         </div>
         <div className="stack" style={{ marginTop: 32 }}>
-          <button className="btn primary block" onClick={() => {
-            saveLog({ id: uid(), date: today(), meal: new Date().getHours() < 11 ? 'breakfast' : defaultMeal(), name: r.title, photo: r.photo, recipeId: r.id, createdAt: Date.now(), items: [{ id: uid(), name: r.title, amount: ate, unit: 'serving', per: r.nutrition }] })
+          <button className="btn primary block" onClick={async () => {
+            const original = useStore.getState().recipes.find((x) => x.id === r.id) ?? r
+            const items = await recipeItems(original, ate, t.lang)
+            saveLog({ id: uid(), date: today(), meal: new Date().getHours() < 11 ? 'breakfast' : defaultMeal(), name: r.title, photo: r.photo, recipeId: r.id, createdAt: Date.now(), items })
             nav('/')
           }}>{t('logIt')}</button>
           <button className="btn block" style={{ background: 'transparent', color: 'var(--on-green)', border: '2px solid var(--green-edge)' }} onClick={() => nav(`/recipes/${r.id}`)}>{t('notNow')}</button>

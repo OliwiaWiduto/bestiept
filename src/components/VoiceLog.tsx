@@ -6,13 +6,13 @@ type Rec = { start: () => void; stop: () => void; abort: () => void; continuous:
 const getRec = (): (new () => Rec) | null => (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition ?? null
 
 /** Full-screen "say what you ate" page. Falls back to a plain text box where speech recognition isn't available. */
-export function VoiceLog({ onClose, onDone }: { onClose: () => void; onDone: (text: string) => Promise<boolean> }) {
+export function VoiceLog({ onClose, onDone, typing = false }: { onClose: () => void; onDone: (text: string) => Promise<boolean>; typing?: boolean }) {
   const t = useT()
   const Ctor = getRec()
   const [text, setText] = useState('')
   const [live, setLive] = useState('')
   const [listening, setListening] = useState(false)
-  const [blocked, setBlocked] = useState(!Ctor)
+  const [blocked, setBlocked] = useState(!Ctor || typing)
   const [denied, setDenied] = useState(false)
   const [busy, setBusy] = useState(false)
   const rec = useRef<Rec | null>(null)
@@ -59,16 +59,17 @@ export function VoiceLog({ onClose, onDone }: { onClose: () => void; onDone: (te
   }
 
   return (
-    <div className="voice" role="dialog" aria-modal="true" aria-label={t('voiceLog')}>
+    <div className="voice" role="dialog" aria-modal="true" aria-label={typing ? t('typeLog') : t('voiceLog')}>
       <div className="between">
         <button className="icon-btn" aria-label={t('back')} onClick={onClose}><Icon name="back" /></button>
-        <span style={{ fontSize: 15, fontWeight: 600 }}>{t('voiceLog')}</span>
+        <span style={{ fontSize: 15, fontWeight: 600 }}>{typing ? t('typeLog') : t('voiceLog')}</span>
         <span style={{ width: 44 }} />
       </div>
       <h1 className="display" style={{ margin: 0, fontSize: 22, lineHeight: '28px' }}>{listening ? t('voiceListening') : t('voicePrompt')}</h1>
-      <textarea className="voice-text" aria-label={t('voicePrompt')} placeholder={t('voicePh')} value={shown} readOnly={busy}
+      <textarea className="voice-text" autoFocus={typing} aria-label={t('voicePrompt')} placeholder={t('voicePh')} value={shown} readOnly={busy}
         onChange={(e) => { setText(e.target.value); setLive('') }} />
-      {blocked && <p className="soft" style={{ margin: 0 }}>{t(denied ? 'voiceDenied' : 'voiceNoMic')}</p>}
+      {blocked && !typing && <p className="soft" style={{ margin: 0 }}>{t(denied ? 'voiceDenied' : 'voiceNoMic')}</p>}
+      {typing && <p className="soft" style={{ margin: 0 }}>{t('typeHint')}</p>}
       {!blocked && !listening && !text && <p className="soft" style={{ margin: 0, textAlign: 'center' }}>{t('voiceTap')}</p>}
       {!blocked && (
         <button className={`voice-mic${listening ? ' on' : ''}`} aria-label={listening ? t('voiceListening') : t('voiceLog')} aria-pressed={listening} onClick={listening ? stop : start}>

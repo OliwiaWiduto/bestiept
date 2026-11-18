@@ -34,7 +34,7 @@ export function MealHeader({ photo, name, onName }: { photo?: string; name: stri
 export function IngredientRow({ item, onOpen }: { item: FoodItem; onOpen: () => void }) {
   const t = useT()
   const m = itemMacros(item)
-  const amount = item.unit === 'g' ? `${Math.round(item.amount)} g` : `${item.amount} ×`
+  const amount = item.unit === 'g' ? `${Math.round(item.amount)} g` : `${Math.round(item.amount * 100) / 100} ×`
   return (
     <button className="list-row" onClick={onOpen} aria-label={`${t('editIngredient')}: ${item.name}`}
       style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--line)', textAlign: 'left', gap: 12 }}>
@@ -43,7 +43,7 @@ export function IngredientRow({ item, onOpen }: { item: FoodItem; onOpen: () => 
           <span style={{ fontSize: 15, fontWeight: 600 }}>{item.name}</span>
           <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--green)', whiteSpace: 'nowrap', flex: 'none' }}>{amount}</span>
         </span>
-        <span className="caption">{Math.round(m.kcal)} {t('kcal')} · P {Math.round(m.protein)} · C {Math.round(m.carbs)} · F {Math.round(m.fat)}</span>
+        <span className="caption">{Math.round(m.kcal)} {t('kcal')} · P {Math.round(m.protein)} · C {Math.round(m.carbs)} · F {Math.round(m.fat)}{item.src === 'ai' && <> · <span style={{ color: 'var(--cherry)' }}>{t('estimate')}</span></>}</span>
       </span>
       <Icon name="forward" size={16} />
     </button>
@@ -61,27 +61,31 @@ export function IngredientForm({ item, onSave, onDelete, onCancel }: { item: Foo
   const [name, setName] = useState(item.name)
   const [amount, setAmount] = useState(isG ? String(Math.round(item.amount)) : String(item.amount))
   const [vals, setVals] = useState<Vals>({ kcal: show(start.kcal), protein: show(start.protein), carbs: show(start.carbs), fat: show(start.fat) })
-  const [extra, setExtra] = useState({ fibre: start.fibre, sugar: start.sugar })
+  // Figures for one unit of the amount (1 g, or 1 serving). Changing the amount always rescales from these,
+  // so clearing the box or typing digit by digit can't throw the numbers off.
+  const [unitVals, setUnitVals] = useState<Macros>(() => {
+    const per = item.per
+    return isG ? { kcal: per.kcal / 100, protein: per.protein / 100, carbs: per.carbs / 100, fat: per.fat / 100, fibre: per.fibre / 100, sugar: per.sugar / 100 } : { ...per }
+  })
 
   const changeAmount = (next: string) => {
-    const was = Number(amount), now = Number(next)
-    if (was > 0 && now > 0) {
-      const f = now / was
-      setVals({ kcal: show(Number(vals.kcal) * f), protein: show(Number(vals.protein) * f), carbs: show(Number(vals.carbs) * f), fat: show(Number(vals.fat) * f) })
-      setExtra({ fibre: extra.fibre * f, sugar: extra.sugar * f })
-    }
     setAmount(next)
+    const now = Number(next)
+    if (now > 0) setVals({ kcal: show(unitVals.kcal * now), protein: show(unitVals.protein * now), carbs: show(unitVals.carbs * now), fat: show(unitVals.fat * now) })
+  }
+  const changeVal = (k: keyof Vals, v: string) => {
+    setVals({ ...vals, [k]: v })
+    const now = Number(amount)
+    if (now > 0) setUnitVals({ ...unitVals, [k]: (Number(v) || 0) / now })
   }
 
   const amt = Number(amount)
   const ok = name.trim() && amt > 0
   const save = () => {
-    const div = isG ? amt / 100 : amt
-    const per: Macros = {
-      kcal: (Number(vals.kcal) || 0) / div, protein: (Number(vals.protein) || 0) / div, carbs: (Number(vals.carbs) || 0) / div, fat: (Number(vals.fat) || 0) / div,
-      fibre: extra.fibre / div, sugar: extra.sugar / div,
-    }
-    onSave({ ...item, name: name.trim(), amount: amt, per })
+    const m = isG ? 100 : 1
+    const per: Macros = { kcal: unitVals.kcal * m, protein: unitVals.protein * m, carbs: unitVals.carbs * m, fat: unitVals.fat * m, fibre: unitVals.fibre * m, sugar: unitVals.sugar * m }
+    const edited = (['kcal', 'protein', 'carbs', 'fat'] as const).some((k) => Math.abs(per[k] - item.per[k]) > 0.01)
+    onSave({ ...item, name: name.trim(), amount: amt, per, src: edited ? 'you' : item.src })
   }
 
   return (
@@ -93,7 +97,7 @@ export function IngredientForm({ item, onSave, onDelete, onCancel }: { item: Foo
         {isG ? (
           <span className="grams" style={{ height: 48 }}><input aria-label={t('grams')} type="number" inputMode="decimal" value={amount} onChange={(e) => changeAmount(e.target.value)} /><span className="muted">g</span></span>
         ) : (
-          <Stepper value={item.unit === 'g' ? amt : (amt || 1)} onChange={(n) => changeAmount(String(n))} label={t('servings')} />
+          <Stepper value={amt || 1} onChange={(n) => changeAmount(String(n))} min={0.25} step={0.25} label={t('servings')} />
         )}
       </div>
       <div className="stack" style={{ gap: 8 }}>
@@ -101,7 +105,7 @@ export function IngredientForm({ item, onSave, onDelete, onCancel }: { item: Foo
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
           {(['kcal', 'protein', 'carbs', 'fat'] as const).map((k) => (
             <label key={k} className="field"><span>{k === 'kcal' ? t('calories') : `${t(k)} (g)`}</span>
-              <input className="input" type="number" inputMode="decimal" value={vals[k]} onChange={(e) => setVals({ ...vals, [k]: e.target.value })} /></label>
+              <input className="input" type="number" inputMode="decimal" value={vals[k]} onChange={(e) => changeVal(k, e.target.value)} /></label>
           ))}
         </div>
       </div>

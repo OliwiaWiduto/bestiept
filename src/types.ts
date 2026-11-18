@@ -50,7 +50,8 @@ export type Recipe = {
 export type RecipeText = { title: string; ingredients: string[]; steps: string[]; equipment: string[] }
 
 /** A food in a logged meal. `per` is per 100g when unit is 'g', or per 1 serving when unit is 'serving'. */
-export type FoodItem = { id: string; name: string; amount: number; unit: 'g' | 'serving'; per: Macros }
+/** src: where the figures came from: 'uk' food data, the 'recipe' itself, or an 'ai' estimate */
+export type FoodItem = { id: string; name: string; amount: number; unit: 'g' | 'serving'; per: Macros; src?: string }
 
 export type LogEntry = {
   id: string

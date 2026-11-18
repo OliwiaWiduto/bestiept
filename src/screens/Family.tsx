@@ -58,7 +58,7 @@ export default function Family() {
     toast(t(`link_${r}`))
     if (r === 'requested' || r === 'linked') setWho('')
   }
-  const sharing = (id: string, key: keyof Share, v: boolean) => setShare(id, { [key]: v })
+  const sharing = async (id: string, key: keyof Share, v: boolean) => { if (!(await setShare(id, { [key]: v })) && key === 'recipes') toast(t('recipeShareSetup')) }
 
   return (
     <main className="screen">
@@ -109,7 +109,8 @@ export default function Family() {
       {people.map((l) => {
         const m = shareOf(mine, l.person.id)
         const th = shareOf(theirs, l.person.id)
-        const theyShare = [th.plan && t('mealPlan'), th.list && t('shoppingList'), th.macros && t('macros')].filter(Boolean) as string[]
+        const theyShare = [th.recipes && t('recipesWord'), th.plan && t('mealPlan'), th.list && t('shoppingList'), th.macros && t('macros')].filter(Boolean) as string[]
+        const recipesOnly = m.recipes && !m.plan && !m.list && !m.macros
         return (
           <section key={l.id} className="card stack" style={{ gap: 10 }}>
             <div className="between">
@@ -119,8 +120,12 @@ export default function Family() {
               </div>
               {(th.macros || th.plan) && <button className="btn secondary small" onClick={() => nav(`/family/${l.person.id}`)}>{t('seeTheirDay')}</button>}
             </div>
-            <span className="small muted">{t('recipesShared')}</span>
-            <span className="label" style={{ marginTop: 6 }}>{t('youShare', { name: l.person.name })}</span>
+            <div className="between" style={{ marginTop: 6 }}>
+              <span className="label">{t('youShare', { name: l.person.name })}</span>
+              {!recipesOnly && <button className="btn ghost small" style={{ border: 'none', padding: '0 4px' }}
+                onClick={() => setShare(l.person.id, { recipes: true, plan: false, list: false, macros: false })}>{t('recipesOnly')}</button>}
+            </div>
+            <Switch label={t('shareMyRecipes')} on={m.recipes} onChange={(v) => sharing(l.person.id, 'recipes', v)} />
             <Switch label={t('shareMyPlan')} on={m.plan} onChange={(v) => sharing(l.person.id, 'plan', v)} />
             <Switch label={t('shareMyList')} on={m.list} onChange={(v) => sharing(l.person.id, 'list', v)} />
             <Switch label={t('shareMyMacros')} on={m.macros} onChange={(v) => sharing(l.person.id, 'macros', v)} />

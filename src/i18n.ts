@@ -49,8 +49,8 @@ const en = {
   dinnerEmpty: 'What are we having tonight?', addMeal: 'Add a meal', mealEmpty: 'Nothing logged yet',
   scanBarcode: 'Barcode scanner', pointAtBarcode: 'Point your camera at the barcode', startingCamera: 'Starting camera…', typeInstead: 'Type the number instead', cameraDenied: 'Camera access is off. Allow it in your browser settings, or type the number below.', cameraUnavailable: 'Can’t use the camera here. Type the number below instead.',
   ukFoodData: 'UK food data: McCance & Widdowson (CoFID)',
-  familySummary: 'Link with family and friends to share recipes, plans and shopping lists.',
-  familyNotSetUp: 'Family sharing needs one more database step before it works. (Run supabase/family.sql in Supabase.)',
+  familySummary: 'Link up with your besties (friends, family, housemates) to share recipes, plans and shopping lists.',
+  familyNotSetUp: 'Bestie friends needs one more database step before it works. (Run supabase/family.sql in Supabase.)',
   familyIntro: 'Linked people can see and edit each other’s recipes. You choose what else to share with each person.',
   loading: 'Loading…', yourUsername: 'Your username', usernameRules: '3–20 letters, numbers, dots or underscores.', usernameTaken: 'That username’s taken, try another',
   addSomeone: 'Add someone', usernameOrCode: 'Their username or code', showMyCode: 'Show my code instead',
@@ -63,7 +63,7 @@ const en = {
   theyShare: '{name} shares: {what}', theyShareNothing: '{name} isn’t sharing their plan, list or macros with you yet.', mealPlan: 'meal plan', shoppingList: 'shopping list', macros: 'macros',
   seeTheirDay: 'See their day', unlink: 'Unlink', unlinkConfirm: 'Unlink from {name}? You’ll stop seeing each other’s recipes and anything shared.',
   notLinked: 'You’re not linked with this person.', theirWeek: '{name}’s week', nothingPlanned: 'Nothing planned this week.',
-  fromPerson: 'From {name}', includeFamily: 'Include family meals', includeMeals: '{name}’s meals ({n})',
+  fromPerson: 'From {name}', includeFamily: 'Include your besties’ meals', includeMeals: '{name}’s meals ({n})',
   gotIt: 'Got it', tipLog: 'Tap + to log your first meal. Snap a photo, scan a barcode, search or just say it.', tipRecipes: 'Add your own recipes here: paste a link, snap a cookbook page or type it in.',
   voiceLog: 'Say it', voiceLogSub: 'Tell me what you ate, I’ll sort the rest', voicePrompt: 'What did you eat?', voiceTap: 'Tap the mic and tell me', voiceListening: 'Listening…', voiceGo: 'Work it out', voiceWorking: 'Working it out…', voiceAgain: 'Start over', voiceNoMic: 'Voice isn’t available here. Type it below, or tap the mic on your keyboard to dictate.', voicePh: 'e.g. two scrambled eggs on toast with butter, and a latte', voiceDenied: 'I can’t use the microphone. Check it’s allowed for this site, or type it below.', editIngredient: 'Edit ingredient', totalsFor: 'Totals for this amount', removeIngredient: 'Remove ingredient', editName: 'Edit name', amountLabel: 'Amount',
   typeItIn: 'Type it in myself', orWord: 'or',
@@ -80,6 +80,10 @@ const en = {
   discard: 'Discard', saveChanges: 'Save changes', saveUpdateTargets: 'Save and update my targets', saveOnly: 'Just save', detailsChangedHint: 'Changed your details? We can work out new daily targets for you.',
   yourPicture: 'Your picture', av_strawberry: 'Strawberry', av_avocado: 'Avocado', av_lemon: 'Lemon', av_peach: 'Peach',
   recipeDeleted: 'Recipe deleted', undo: 'Undo', bringBackStarters: 'Bring back our starter recipes ({n})', startersBack: 'Starter recipes added back',
+  typeLog: 'Type it', typeHint: 'Write it how you’d say it, amounts help: “2 eggs scrambled with butter, 1 slice of toast, a small cappuccino”.', recipeLogHint: 'Each ingredient is logged separately, so you can change any of them afterwards.', recipe: 'Recipe',
+  estimate: 'estimate', workOut: 'Work it out from the ingredients', workedOut: 'Worked out from our food data', workingOut: 'Working it out…',
+  foundOf: '{n} of {t} ingredients found',
+  shareMyRecipes: 'My recipes', recipesOnly: 'Recipes only', recipesWord: 'recipes', recipeShareSetup: 'Recipe sharing needs a quick Supabase update first (family-recipes.sql).',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -146,7 +150,7 @@ const en = {
 
   language: 'Language', english: 'English', polish: 'Polski', yourDetails: 'Your details', recalc: 'Recalculate my targets',
   dailyTargets: 'Daily targets', staples: 'Cupboard staples', staplesSettingsHint: 'Things you always have. One per line.',
-  family: 'Family sharing', familySoon: 'Linking accounts with family and friends arrives in the next version.',
+  family: 'Bestie friends', familySoon: 'Linking accounts with family and friends arrives in the next version.',
   resetData: 'Delete all my data', resetConfirm: 'Delete everything on this phone? This can’t be undone.', saved: 'Saved',
 }
 
@@ -196,8 +200,8 @@ const pl: Dict = {
   dinnerEmpty: 'Co dziś na kolację?', addMeal: 'Dodaj posiłek', mealEmpty: 'Nic jeszcze nie dodano',
   scanBarcode: 'Skaner kodów', pointAtBarcode: 'Skieruj aparat na kod kreskowy', startingCamera: 'Włączam aparat…', typeInstead: 'Wpisz numer ręcznie', cameraDenied: 'Dostęp do aparatu jest wyłączony. Włącz go w ustawieniach przeglądarki albo wpisz numer poniżej.', cameraUnavailable: 'Nie da się tu użyć aparatu. Wpisz numer poniżej.',
   ukFoodData: 'Dane: brytyjska baza McCance & Widdowson (CoFID)',
-  familySummary: 'Połącz się z rodziną i znajomymi, żeby dzielić się przepisami, planami i listami zakupów.',
-  familyNotSetUp: 'Udostępnianie rodzinie wymaga jeszcze jednego kroku w bazie danych. (Uruchom supabase/family.sql w Supabase.)',
+  familySummary: 'Połącz się ze swoimi bestie (przyjaciółmi, rodziną, współlokatorami), żeby dzielić się przepisami, planami i listami zakupów.',
+  familyNotSetUp: 'Bestie friends wymaga jeszcze jednego kroku w bazie danych. (Uruchom supabase/family.sql w Supabase.)',
   familyIntro: 'Połączone osoby widzą i edytują nawzajem swoje przepisy. Ty decydujesz, czym jeszcze dzielisz się z każdą osobą.',
   loading: 'Ładowanie…', yourUsername: 'Twoja nazwa użytkownika', usernameRules: '3–20 liter, cyfr, kropek lub podkreśleń.', usernameTaken: 'Ta nazwa jest zajęta, spróbuj innej',
   addSomeone: 'Dodaj kogoś', usernameOrCode: 'Nazwa użytkownika lub kod', showMyCode: 'Pokaż mój kod',
@@ -210,7 +214,7 @@ const pl: Dict = {
   theyShare: '{name} udostępnia: {what}', theyShareNothing: '{name} jeszcze nie udostępnia Ci planu, listy ani makro.', mealPlan: 'plan posiłków', shoppingList: 'lista zakupów', macros: 'makro',
   seeTheirDay: 'Zobacz dzień', unlink: 'Rozłącz', unlinkConfirm: 'Rozłączyć się z: {name}? Przestaniecie widzieć swoje przepisy i wszystko, co udostępnione.',
   notLinked: 'Nie jesteście połączeni.', theirWeek: 'Tydzień: {name}', nothingPlanned: 'Nic nie zaplanowano w tym tygodniu.',
-  fromPerson: 'Od: {name}', includeFamily: 'Dodaj posiłki rodziny', includeMeals: 'Posiłki: {name} ({n})',
+  fromPerson: 'Od: {name}', includeFamily: 'Dodaj posiłki bestie', includeMeals: 'Posiłki: {name} ({n})',
   gotIt: 'Jasne', tipLog: 'Kliknij +, żeby dodać pierwszy posiłek. Zrób zdjęcie, zeskanuj kod, wyszukaj albo po prostu powiedz.', tipRecipes: 'Tu dodasz własne przepisy: wklej link, zrób zdjęcie strony z książki albo wpisz ręcznie.',
   voiceLog: 'Powiedz', voiceLogSub: 'Powiedz, co zjadłaś, resztą zajmę się ja', voicePrompt: 'Co zjadłaś?', voiceTap: 'Kliknij mikrofon i powiedz', voiceListening: 'Słucham…', voiceGo: 'Policz', voiceWorking: 'Liczę…', voiceAgain: 'Zacznij od nowa', voiceNoMic: 'Głos nie działa tutaj. Wpisz poniżej albo użyj mikrofonu na klawiaturze.', voicePh: 'np. dwie jajecznice na tosta z masłem i latte', voiceDenied: 'Nie mogę użyć mikrofonu. Sprawdź uprawnienia strony albo wpisz poniżej.', editIngredient: 'Edytuj składnik', totalsFor: 'Wartości dla tej ilości', removeIngredient: 'Usuń składnik', editName: 'Edytuj nazwę', amountLabel: 'Ilość',
   typeItIn: 'Wpiszę sama', orWord: 'lub',
@@ -227,6 +231,10 @@ const pl: Dict = {
   discard: 'Odrzuć', saveChanges: 'Zapisz zmiany', saveUpdateTargets: 'Zapisz i przelicz cele', saveOnly: 'Tylko zapisz', detailsChangedHint: 'Zmieniłaś dane? Możemy przeliczyć Twoje dzienne cele.',
   yourPicture: 'Twój obrazek', av_strawberry: 'Truskawka', av_avocado: 'Awokado', av_lemon: 'Cytryna', av_peach: 'Brzoskwinia',
   recipeDeleted: 'Przepis usunięty', undo: 'Cofnij', bringBackStarters: 'Przywróć przepisy startowe ({n})', startersBack: 'Przepisy startowe wróciły',
+  typeLog: 'Wpisz', typeHint: 'Napisz tak, jak byś powiedziała, ilości pomagają: „2 jajka smażone na maśle, 1 kromka tosta, małe cappuccino”.', recipeLogHint: 'Każdy składnik zapisuje się osobno, więc możesz potem zmienić dowolny z nich.', recipe: 'Przepis',
+  estimate: 'szacunek', workOut: 'Policz ze składników', workedOut: 'Policzone z naszej bazy produktów', workingOut: 'Liczę…',
+  foundOf: 'Znaleziono {n} z {t} składników',
+  shareMyRecipes: 'Moje przepisy', recipesOnly: 'Tylko przepisy', recipesWord: 'przepisy', recipeShareSetup: 'Udostępnianie przepisów wymaga najpierw krótkiej aktualizacji w Supabase (family-recipes.sql).',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 
@@ -293,7 +301,7 @@ const pl: Dict = {
 
   language: 'Język', english: 'English', polish: 'Polski', yourDetails: 'Twoje dane', recalc: 'Przelicz moje cele',
   dailyTargets: 'Dzienne cele', staples: 'Podstawowe produkty', staplesSettingsHint: 'Rzeczy, które zawsze masz. Każda w nowej linii.',
-  family: 'Udostępnianie rodzinie', familySoon: 'Łączenie kont z rodziną i znajomymi pojawi się w następnej wersji.',
+  family: 'Bestie friends', familySoon: 'Łączenie kont z rodziną i znajomymi pojawi się w następnej wersji.',
   resetData: 'Usuń wszystkie moje dane', resetConfirm: 'Usunąć wszystko z tego telefonu? Nie da się tego cofnąć.', saved: 'Zapisano',
 }
 

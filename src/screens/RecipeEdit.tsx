@@ -6,6 +6,7 @@ import { MEALS, type Ingredient, type Macros, type Meal } from '../types'
 import { formatAmount, ingredientText, parseIngredient, splitName, uid } from '../lib/util'
 import { equipmentIcon } from '../lib/equipment'
 import { recipeLang } from '../lib/recipeLang'
+import { recipeNutrition } from '../lib/matchFood'
 import { usePhoto } from '../lib/sync'
 import { importRecipe } from '../lib/ai'
 import { BackButton, Icon, MacroGrid, PhotoButton, Sheet, Stepper, toast } from '../components/ui'
@@ -41,6 +42,7 @@ export default function RecipeEdit() {
   const [stepText, setStepText] = useState('')
   const [equipText, setEquipText] = useState('')
   const [open, setOpen] = useState<Open>(null)
+  const [calc, setCalc] = useState<'busy' | { found: number; of: number } | null>(null)
   const photoUrl = usePhoto(photo)
   const [link, setLink] = useState('')
   const [importing, setImporting] = useState(false)
@@ -66,11 +68,19 @@ export default function RecipeEdit() {
     setIngText(ings.map(ingLine).join('\n')); setStepText(steps.join('\n')); setEquipText(equip.join(', '))
     setTyped(true); setStage('form'); window.scrollTo(0, 0)
   }
+  const workOut = async (list: Ingredient[], serves: number) => {
+    setCalc('busy')
+    const { per, found } = await recipeNutrition(list, serves, t.lang)
+    setNutrition(per)
+    setCalc({ found, of: list.length })
+  }
   const toReview = () => {
     if (!title.trim()) { toast(t('titleNeeded')); return }
-    setIngs(lines(ingText).map(parseIngredient)); setSteps(lines(stepText)); setEquip(equipText.split(',').map((s) => s.trim()).filter(Boolean))
+    const parsed = lines(ingText).map(parseIngredient)
+    setIngs(parsed); setSteps(lines(stepText)); setEquip(equipText.split(',').map((s) => s.trim()).filter(Boolean))
     setStage('review')
     window.scrollTo(0, 0)
+    if (!nutrition.kcal && parsed.length) workOut(parsed, servings)
   }
   const save = () => {
     if (!title.trim()) { toast(t('titleNeeded')); return }
@@ -164,7 +174,13 @@ export default function RecipeEdit() {
             <span className="label muted" style={{ fontWeight: 500 }}>{t('kcal')}</span>
           </div>
           <MacroGrid m={nutrition} />
+          {calc && calc !== 'busy' && <span className="caption">{t('workedOut')} · {t('foundOf', { n: calc.found, t: calc.of })}</span>}
         </section>
+        {ings.length > 0 && (
+          <button className="btn ghost small" style={{ alignSelf: 'flex-start', border: 'none' }} disabled={calc === 'busy'} onClick={() => workOut(ings, servings)}>
+            <Icon name="bolt" size={16} />{calc === 'busy' ? t('workingOut') : t('workOut')}
+          </button>
+        )}
 
         <div className="bottom-bar"><button className="btn primary block" onClick={save}>{t('saveRecipe')}</button></div>
 
@@ -261,13 +277,6 @@ export default function RecipeEdit() {
       <label className="field"><span>{t('stepsLines')}</span><textarea className="input" rows={6} placeholder={t('stepsPh')} value={stepText} onChange={(e) => setStepText(e.target.value)} /></label>
       <label className="field"><span>{t('equipmentComma')}</span><input className="input" placeholder={t('equipmentPh')} value={equipText} onChange={(e) => setEquipText(e.target.value)} /></label>
 
-      <h2 className="heading">{t('nutritionPer')}</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
-        {(['kcal', 'protein', 'carbs', 'fat', 'fibre'] as (keyof Macros)[]).map((k) => (
-          <label key={k} className="field"><span className="caption" style={{ fontWeight: 600 }}>{k === 'kcal' ? t('kcal') : `${t(k)} (g)`}</span>
-            <input className="input" type="number" inputMode="decimal" value={nutrition[k] || ''} onChange={(e) => setNutrition({ ...nutrition, [k]: Number(e.target.value) || 0 })} /></label>
-        ))}
-      </div>
 
       <div className="bottom-bar"><button className="btn primary block" onClick={toReview}>{t('next')}</button></div>
     </main>

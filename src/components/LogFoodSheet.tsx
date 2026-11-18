@@ -7,13 +7,14 @@ import { MEALS, type FoodItem, type LogEntry, type Macros, type Meal } from '../
 import { useFoodSearch } from '../lib/foodSearch'
 import { uid } from '../lib/util'
 import { BarcodeScanner } from './BarcodeScanner'
-import { scanMeal, scanMealText } from '../lib/ai'
+import { scanMeal, scanMealText, type ScannedItem } from '../lib/ai'
+import { checkAgainstFoodData, recipeItems } from '../lib/matchFood'
 import { IngredientForm, IngredientRow, MealHeader } from './MealParts'
 import { VoiceLog } from './VoiceLog'
 import { itemMacros, sumItems } from '../lib/nutrition'
 import { Icon, PhotoButton, Sheet, Stepper, Thumb, toast, type IconName } from './ui'
 
-type Mode = 'menu' | 'recipe' | 'search' | 'quick' | 'barcode' | 'scan' | 'voice' | 'again'
+type Mode = 'menu' | 'recipe' | 'search' | 'quick' | 'barcode' | 'scan' | 'voice' | 'type' | 'again'
 type Picked = { name: string; per: Macros; portion: number; source?: string }
 
 export default function LogFoodSheet() {
@@ -25,7 +26,8 @@ export default function LogFoodSheet() {
   const [mode, setMode] = useState<Mode>('menu')
   const [meal, setMeal] = useState<Meal>(defaultMeal())
   const [query, setQuery] = useState('')
-  const [tab, setTab] = useState<'food' | 'recipe'>('food')
+  const [tab, setTab] = useState<'all' | 'food' | 'recipe'>('all')
+  const [busy, setBusy] = useState(false)
   const [again, setAgain] = useState<LogEntry | null>(null)
   const [recipeId, setRecipeId] = useState<string | null>(null)
   const [servings, setServings] = useState(1)
@@ -45,7 +47,7 @@ export default function LogFoodSheet() {
 
   useEffect(() => {
     if (logOpen) {
-      setMode('menu'); setMeal(logMeal ?? defaultMeal()); setQuery(''); setTab('food'); setAgain(null); setRecipeId(null); setServings(1); setPicked(null)
+      setMode('menu'); setMeal(logMeal ?? defaultMeal()); setQuery(''); setTab('all'); setAgain(null); setRecipeId(null); setServings(1); setPicked(null)
       setQuick({ name: '', kcal: '', protein: '', carbs: '', fat: '' }); setCode(''); setLookup('idle'); setTyping(false); setScan(null); setEditId(null); setGuessNote(false); setScanning(false); setScanError(null); setDest('own'); setTargetId(null)
     }
   }, [logOpen, logMeal])
@@ -155,24 +157,26 @@ export default function LogFoodSheet() {
 
   const onScanFail = useCallback((why: 'denied' | 'unavailable') => { setScanError(why); setTyping(true) }, [])
 
-  const toItems = (items: { name: string; grams: number; per100: Macros }[]): FoodItem[] =>
-    items.map((i) => ({ id: uid(), name: i.name, amount: Math.max(1, Math.round(i.grams)), unit: 'g', per: i.per100 }))
+  // AI works out what and how much; the figures per 100g come from our food data wherever we have the food.
+  const toItems = (items: ScannedItem[]): Promise<FoodItem[]> =>
+    checkAgainstFoodData(items.map((i) => ({ id: uid(), name: i.name, amount: Math.max(1, Math.round(i.grams)), unit: 'g' as const, per: i.per100, search: i.search })), t.lang)
   const showGuess = () => {
     if (!(tips ?? []).includes('scanGuess')) { setGuessNote(true); seeTip('scanGuess') }
   }
   const runScan = async (photo: string) => {
     setScanning(true)
     const { data, error } = await scanMeal(photo, t.lang)
+    if (!data) { setScanning(false); toast(t(`ai_${error ?? 'failed'}`)); return }
+    const items = await toItems(data.meal.items)
     setScanning(false)
-    if (!data) { toast(t(`ai_${error ?? 'failed'}`)); return }
     showGuess()
-    setScan({ photo, name: data.meal.name, items: toItems(data.meal.items) })
+    setScan({ photo, name: data.meal.name, items })
   }
   const runVoice = async (text: string) => {
     const { data, error } = await scanMealText(text, t.lang)
     if (!data) { toast(t(`ai_${error ?? 'failed'}`)); return false }
     showGuess()
-    setScan({ name: data.meal.name, items: toItems(data.meal.items) })
+    setScan({ name: data.meal.name, items: await toItems(data.meal.items) })
     setMode('scan')
     return true
   }
@@ -196,17 +200,27 @@ export default function LogFoodSheet() {
   const logAgain = (l: LogEntry) => {
     const rec = l.recipeId ? recipes.find((x) => x.id === l.recipeId) : undefined
     const only = l.items.length === 1 ? l.items[0] : null
-    if (rec && only) { setRecipeId(rec.id); setServings(only.amount || 1); setMode('recipe') }
+    if (rec && only && only.unit === 'serving') { setRecipeId(rec.id); setServings(only.amount || 1); setMode('recipe') }
     else if (only && only.unit === 'g') { setPicked({ name: only.name, per: only.per, portion: only.amount }); setGrams(String(Math.round(only.amount))); setMode('search') }
     else { setAgain(l); setMode('again') }
   }
   const searching = mode === 'menu' && query.trim().length > 0
+  const recipeRow = (x: (typeof recipes)[number]) => (
+    <button key={x.id} className="meal-row" onClick={() => { setRecipeId(x.id); setServings(1); setMode('recipe') }}>
+      <Thumb cat={x.category} name={x.title} photo={x.photo} size={48} />
+      <span className="grow stack" style={{ gap: 0, minWidth: 0 }}>
+        <span style={{ fontWeight: 600 }}>{x.title}</span>
+        <span className="caption">{t('recipe')}</span>
+      </span>
+      <span className="small muted" style={{ whiteSpace: 'nowrap' }}>{Math.round(x.nutrition.kcal)} {t('kcal')}</span>
+    </button>
+  )
   const tile = (icon: IconName, label: string, onClick: () => void) => (
     <button key={label} className="log-tile" aria-label={label} title={label} onClick={onClick}><Icon name={icon} size={26} sw={1.75} /></button>
   )
 
   return (
-    <Sheet open={logOpen} onClose={closeLog} title={t('logFood')}>
+    <Sheet open={logOpen} onClose={closeLog} title={t('logFood')} tall={mode === 'menu'}>
       {back}
       {mode === 'menu' && (
         <div className="stack" style={{ gap: 14 }}>
@@ -214,7 +228,7 @@ export default function LogFoodSheet() {
             {tile('camera', t('photoScan'), () => setMode('scan'))}
             {tile('barcode', t('barcode'), () => setMode('barcode'))}
             {tile('mic', t('voiceLog'), () => setMode('voice'))}
-            {tile('book', t('fromRecipe'), () => { setQuery(''); setMode('recipe') })}
+            {tile('edit', t('typeLog'), () => setMode('type'))}
             {tile('plus', t('quickAdd'), () => setMode('quick'))}
           </div>
           <label className="search-field">
@@ -225,10 +239,13 @@ export default function LogFoodSheet() {
           {searching && (
             <>
               <div className="chips" role="group">
+                <button className="chip" aria-pressed={tab === 'all'} onClick={() => setTab('all')}>{t('all')}</button>
                 <button className="chip" aria-pressed={tab === 'food'} onClick={() => setTab('food')}>{t('foodsTab')}</button>
                 <button className="chip" aria-pressed={tab === 'recipe'} onClick={() => setTab('recipe')}>{t('recipes')} {recipeList.length > 0 && <span className="muted">· {recipeList.length}</span>}</button>
               </div>
-              {tab === 'food' && (foods.length === 0 ? <p className="muted" style={{ margin: 0 }}>{t('noResults')}</p> : (
+              {tab === 'all' && foods.length === 0 && recipeList.length === 0 && <p className="muted" style={{ margin: 0 }}>{t('noResults')}</p>}
+              {tab === 'all' && recipeList.slice(0, 4).map(recipeRow)}
+              {(tab === 'food' || tab === 'all') && (foods.length === 0 ? tab === 'all' ? null : <p className="muted" style={{ margin: 0 }}>{t('noResults')}</p> : (
                 <div className="card tight">
                   {foods.map((f) => (
                     <button key={f.key} className="list-row" style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--line)', textAlign: 'left' }}
@@ -239,13 +256,7 @@ export default function LogFoodSheet() {
                   ))}
                 </div>
               ))}
-              {tab === 'recipe' && (recipeList.length === 0 ? <p className="muted" style={{ margin: 0 }}>{t('noResults')}</p> : recipeList.map((x) => (
-                <button key={x.id} className="meal-row" onClick={() => { setRecipeId(x.id); setMeal(x.category); setMode('recipe') }}>
-                  <Thumb cat={x.category} name={x.title} photo={x.photo} size={48} />
-                  <span className="grow" style={{ fontWeight: 600 }}>{x.title}</span>
-                  <span className="small muted" style={{ whiteSpace: 'nowrap' }}>{x.nutrition.kcal} {t('kcal')}</span>
-                </button>
-              )))}
+              {tab === 'recipe' && (recipeList.length === 0 ? <p className="muted" style={{ margin: 0 }}>{t('noResults')}</p> : recipeList.map(recipeRow))}
             </>
           )}
           {!searching && recent.length > 0 && (
@@ -292,9 +303,15 @@ export default function LogFoodSheet() {
       {mode === 'recipe' && r && (
         <div className="stack" style={{ gap: 16 }}>
           <div className="meal-row"><Thumb cat={r.category} name={r.title} photo={r.photo} /><span className="grow" style={{ fontWeight: 600 }}>{r.title}</span></div>
-          <div className="between"><span className="label">{t('servingsEaten')}</span><Stepper value={servings} onChange={setServings} label={t('servings')} /></div>
+          <div className="between"><span className="label">{t('servingsEaten')}</span><Stepper value={servings} onChange={setServings} min={0.25} step={0.25} label={t('servings')} /></div>
           {mealChips}
-          <button className="btn primary block" onClick={() => save(r.title, [{ id: uid(), name: r.title, amount: servings, unit: 'serving', per: r.nutrition }], { photo: r.photo, recipeId: r.id })}>
+          <span className="small muted">{t('recipeLogHint')}</span>
+          <button className="btn primary block" disabled={busy} onClick={async () => {
+            setBusy(true)
+            const items = await recipeItems(r, servings, t.lang)
+            setBusy(false)
+            save(r.title, items, { photo: r.photo, recipeId: r.id })
+          }}>
             {t('addToMeal', { meal: t(meal) })}
           </button>
         </div>
@@ -343,6 +360,7 @@ export default function LogFoodSheet() {
         </div>
       )}
       {mode === 'voice' && <VoiceLog onClose={() => setMode('menu')} onDone={runVoice} />}
+      {mode === 'type' && <VoiceLog typing onClose={() => setMode('menu')} onDone={runVoice} />}
       {mode === 'scan' && scan && editing && (
         <IngredientForm item={editing} onCancel={() => setEditId(null)}
           onDelete={() => { setScan({ ...scan, items: scan.items.filter((x) => x.id !== editing.id) }); setEditId(null) }}

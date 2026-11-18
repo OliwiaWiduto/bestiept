@@ -7,8 +7,8 @@ import type { LogEntry, Macros, PlanItem } from '../types'
 
 export type Person = { id: string; username: string | null; name: string }
 export type Link = { id: string; person: Person; status: 'pending' | 'accepted'; incoming: boolean }
-export type Share = { plan: boolean; list: boolean; macros: boolean }
-const NO_SHARE: Share = { plan: false, list: false, macros: false }
+export type Share = { plan: boolean; list: boolean; macros: boolean; recipes: boolean }
+const NO_SHARE: Share = { plan: false, list: false, macros: false, recipes: true }
 
 type FamilyState = {
   uid: string | null
@@ -29,7 +29,7 @@ export async function loadFamily(uid: string) {
   const [me, links, shares] = await Promise.all([
     supabase.from('members').select('id, username, display_name').eq('id', uid).maybeSingle(),
     supabase.from('links').select('id, requester, addressee, status'),
-    supabase.from('shares').select('owner, viewer, plan, list, macros'),
+    supabase.from('shares').select('*'),
   ])
   if (me.error || links.error || shares.error) {
     // Tables missing = family.sql not run yet
@@ -42,7 +42,7 @@ export async function loadFamily(uid: string) {
   const mine: Record<string, Share> = {}
   const theirs: Record<string, Share> = {}
   for (const s of shares.data ?? []) {
-    const v = { plan: s.plan, list: s.list, macros: s.macros }
+    const v = { plan: s.plan, list: s.list, macros: s.macros, recipes: s.recipes ?? true }
     if (s.owner === uid) mine[s.viewer] = v
     else theirs[s.owner] = v
   }
@@ -110,13 +110,17 @@ export async function makeCode(): Promise<string | null> {
 export async function acceptLink(id: string) { await supabase.rpc('accept_link', { link_id: id }); await reload() }
 export async function removeLink(id: string) { await supabase.from('links').delete().eq('id', id); await reload() }
 
-export async function setShare(viewer: string, patch: Partial<Share>) {
+export async function setShare(viewer: string, patch: Partial<Share>): Promise<boolean> {
   const { uid, mine } = useFamily.getState()
-  if (!uid) return
+  if (!uid) return false
   const next = { ...shareOf(mine, viewer), ...patch }
   useFamily.setState({ mine: { ...mine, [viewer]: next } })
-  const { error } = await supabase.from('shares').upsert({ owner: uid, viewer, ...next, updated_at: new Date().toISOString() })
-  if (error) await reload()
+  // The recipes column only exists once family-recipes.sql has been run, so only send it when it changes.
+  const { recipes, ...rest } = next
+  const row = 'recipes' in patch ? { ...rest, recipes } : rest
+  const { error } = await supabase.from('shares').upsert({ owner: uid, viewer, ...row, updated_at: new Date().toISOString() })
+  if (error) { await reload(); return false }
+  return true
 }
 
 /** Someone's food log and targets for a day (only works if they share macros with me). */

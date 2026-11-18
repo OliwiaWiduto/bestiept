@@ -1,7 +1,9 @@
 // Picks one of our hand-drawn food pictures for anything without a photo:
 // by dish type from the name (English or Polish), otherwise by meal type, rotating so lists don't repeat.
 const DISH: [RegExp, string][] = [
-  [/smoothie|shake|juice|latte|frapp|drink|koktajl|sok\b|napój|kawa/, 'dish-smoothie'],
+  [/takeaway|to go|iced (latte|coffee)|cold brew|na wynos|mrożon/, 'dish-takeaway'],
+  [/cappuccino|cappucino|latte|flat white|coffee|espresso|americano|mocha|macchiato|cortado|tea\b|matcha|chai|hot chocolate|kaw|herbat|kakao/, 'dish-cappuccino'],
+  [/smoothie|shake|juice|frapp|drink|koktajl|sok\b|napój/, 'dish-smoothie'],
   [/pizza/, 'dish-pizza'],
   [/taco|burrito|fajita|wrap\b|wraps|quesadilla|tortilla|kebab|gyros|enchilada/, 'dish-taco'],
   [/lasagn|lazani|bake\b|baked|casserole|\bpie\b|gratin|moussaka|zapiekan|tarta|enchiladas/, 'dish-bake'],

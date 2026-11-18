@@ -102,7 +102,7 @@ export function BottomNav({ onLog }: { onLog: () => void }) {
   )
 }
 
-export function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title?: string; children: ReactNode }) {
+export function Sheet({ open, onClose, title, children, tall }: { open: boolean; onClose: () => void; title?: string; children: ReactNode; tall?: boolean }) {
   useEffect(() => {
     if (!open) return
     const k = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -113,7 +113,7 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
   if (!open) return null
   return (
     <div className="sheet-backdrop" onClick={onClose}>
-      <div className="sheet" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
+      <div className="sheet" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()} style={tall ? { height: '88dvh' } : undefined}>
         <div className="sheet-handle" />
         {title && <div className="between"><h2 className="heading">{title}</h2><button className="icon-btn" aria-label="Close" onClick={onClose}><Icon name="close" size={20} /></button></div>}
         {children}
@@ -169,12 +169,13 @@ export function Thumb({ photo: src, size = 56, cat, name }: { photo?: string; si
   )
 }
 
-export function Stepper({ value, onChange, min = 1, label }: { value: number; onChange: (n: number) => void; min?: number; label: string }) {
+export function Stepper({ value, onChange, min = 1, step = 1, label }: { value: number; onChange: (n: number) => void; min?: number; step?: number; label: string }) {
+  const r = (n: number) => Math.round(n * 100) / 100
   return (
     <div className="row" style={{ gap: 14 }}>
-      <button className="icon-btn peach" aria-label={`${label} −`} onClick={() => onChange(Math.max(min, value - 1))}><Icon name="minus" size={20} /></button>
-      <span style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700, color: 'var(--green)', minWidth: 20, textAlign: 'center' }} aria-live="polite">{value}</span>
-      <button className="icon-btn peach" aria-label={`${label} +`} onClick={() => onChange(value + 1)}><Icon name="plus" size={20} /></button>
+      <button className="icon-btn peach" aria-label={`${label} −`} disabled={value <= min} onClick={() => onChange(r(Math.max(min, value - step)))}><Icon name="minus" size={20} /></button>
+      <span style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700, color: 'var(--green)', minWidth: 44, textAlign: 'center' }} aria-live="polite">{r(value)}</span>
+      <button className="icon-btn peach" aria-label={`${label} +`} onClick={() => onChange(r(value + step))}><Icon name="plus" size={20} /></button>
     </div>
   )
 }

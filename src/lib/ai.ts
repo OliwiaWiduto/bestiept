@@ -7,7 +7,7 @@ export type RecipeDraft = {
   title: string; category: 'breakfast' | 'lunch' | 'dinner' | 'snack'; servings: number; minutes?: number
   ingredients: string[]; equipment: string[]; steps: string[]; nutrition: Macros; photo?: string; source?: string
 }
-export type ScannedItem = { name: string; grams: number; per100: Macros }
+export type ScannedItem = { name: string; grams: number; per100: Macros; search?: string }
 export type AiError = 'not_set_up' | 'daily_limit' | 'no_recipe' | 'no_food' | 'page_unreachable' | 'offline' | 'failed' | 'signed_out'
 
 async function call<T>(fn: string, body: object): Promise<{ data?: T; error?: AiError }> {
