@@ -294,3 +294,4 @@ input, textarea, select { font-size: max(16px, 1em); }
 .cook-start { color: var(--cherry); }
 input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 input[type=number] { -moz-appearance: textfield; }
+.sheet > * { flex-shrink: 0; }

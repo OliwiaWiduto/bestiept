@@ -5,6 +5,7 @@ import { FOODS } from './foods'
 import { loadUkFoods, type FoodHit } from './foodSearch'
 import { recipeLang } from './recipeLang'
 import { uid } from './util'
+import { COMMON } from './commonFoods'
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l')
 const FILLER = new Set(['fresh', 'freshly', 'large', 'small', 'medium', 'big', 'ripe', 'whole', 'extra', 'virgin', 'finely', 'roughly', 'thinly', 'chopped', 'grated', 'sliced', 'diced', 'crushed', 'minced', 'peeled', 'halved', 'of', 'a', 'an', 'the', 'and', 'with', 'some', 'little', 'bit', 'handful', 'pinch', 'good', 'quality', 'to', 'taste', 'optional', 'heaped', 'level'])
@@ -15,23 +16,39 @@ function tokensOf(name: string): string[] {
   return main.split(/[^a-z0-9]+/).filter((w) => w.length > 1 && !FILLER.has(w)).map((w) => ALIASES[w] ?? w)
 }
 
+// Whole words only (with simple plurals), so "lemon" never matches "lemonade" or "bread" "breadfruit".
+const same = (w: string, t: string) => w === t || w === t + 's' || w === t + 'es' || w + 's' === t || w + 'es' === t || (t.endsWith('ies') && w === t.slice(0, -3) + 'y') || (w.endsWith('ies') && t === w.slice(0, -3) + 'y')
+const DISH = /\b(homemade|retail|with|in|sauce|pie|curry|bake|soup|stew|casserole|burger|sandwich|salad|pudding|cake|chips|crisps|cordial|juice|bread|biscuits?)\b/
+
 function fits(foodName: string, tokens: string[]): number | null {
   const n = norm(foodName)
   const words = n.split(/[^a-z0-9]+/).filter(Boolean)
-  for (const tk of tokens) {
-    const stem = tk.length > 4 && tk.endsWith('s') ? tk.slice(0, -1) : tk
-    if (!words.some((w) => w.startsWith(stem))) return null
-  }
-  const first = n.split(',')[0]
+  for (const tk of tokens) if (!words.some((w) => same(w, tk))) return null
+  const first = n.split(',')[0].trim()
   let s = 0
-  if (first.startsWith(tokens[0])) s += 40
-  if (/\braw\b|\bboiled\b|\bplain\b/.test(n)) s += 4
-  if (/\bdried\b|\bpowder\b|\bcanned in syrup\b|\bfried in\b/.test(n)) s -= 6
-  return s - n.split(',').length * 3 - n.length / 20
+  if (same(first, tokens[0]) || first === tokens.join(' ')) s += 50
+  else if (first.split(/\s+/).some((w) => same(w, tokens[0]))) s += 25
+  if (/\braw\b|\bplain\b|\baverage\b/.test(n)) s += 6
+  const dish = n.match(DISH)
+  if (dish && !tokens.includes(dish[1])) s -= 25
+  if (/\bdried\b|\bpowder\b|\bcanned in syrup\b|\bfried in\b|\bweighed with\b/.test(n)) s -= 8
+  return s - n.split(',').length * 2 - n.length / 25
 }
 
-/** Best food for a name, or null when nothing fits well enough to trust. */
-export async function bestFood(name: string, lang: Lang): Promise<FoodHit | null> {
+const ukByName = new Map<string, FoodHit>()
+async function common(name: string): Promise<FoodHit | null> {
+  const n = name.toLowerCase().split(/[,(]/)[0]
+  const row = COMMON.find(([re]) => re.test(n))
+  if (!row) return null
+  const v = row[1]
+  if (typeof v !== 'string') return { key: 'c:' + n, name: n, per: { kcal: v[0], protein: v[1], carbs: v[2], fat: v[3], fibre: v[4], sugar: v[5] }, portion: 100 }
+  if (!ukByName.size) for (const f of await loadUkFoods()) ukByName.set(f.name, f)
+  return ukByName.get(v) ?? null
+}
+
+/** Best food for a name, or null when nothing fits well enough to trust. Raw = as bought, for recipe ingredients. */
+export async function bestFood(name: string, lang: Lang, raw = false): Promise<FoodHit | null> {
+  if (raw) { const c = await common(name); if (c) return c }
   const n = norm(name.split(/[,(]/)[0].trim())
   const starter = FOODS.find((f) => norm(f.en) === n || norm(f.pl) === n)
     ?? FOODS.find((f) => [f.en, f.pl].some((x) => { const xn = norm(x); return n.includes(xn) && xn.length >= 4 }))
@@ -43,7 +60,7 @@ export async function bestFood(name: string, lang: Lang): Promise<FoodHit | null
   const minLen = tokens.length >= 2 ? 2 : 1
   while (tokens.length >= minLen) {
     const ranked = uk.map((f) => [fits(f.name, tokens), f] as const).filter((x): x is readonly [number, FoodHit] => x[0] !== null).sort((a, b) => b[0] - a[0])
-    if (ranked.length) return ranked[0][1]
+    if (ranked.length && ranked[0][0] > 0) return ranked[0][1]
     tokens = tokens.slice(0, -1)
   }
   return null
@@ -85,7 +102,7 @@ export async function recipeItems(r: Recipe, servingsEaten: number, lang: Lang):
   const english = recipeLang(r) === 'en' ? null : r.tr?.en?.ingredients
   const rows = await Promise.all(r.ingredients.map(async (ing, n) => {
     const grams = Math.max(0, ingredientGrams(ing) * share)
-    const hit = (await bestFood(english?.[n] ?? ing.name, lang)) ?? (english ? await bestFood(ing.name, lang) : null)
+    const hit = (await bestFood(english?.[n] ?? ing.name, lang, true)) ?? (english ? await bestFood(ing.name, lang, true) : null)
     return { ing, grams, hit }
   }))
   const target = { ...ZERO }
@@ -119,7 +136,7 @@ export async function recipeNutrition(ings: Ingredient[], servings: number, lang
   const total = { ...ZERO }
   let found = 0
   for (const ing of ings) {
-    const hit = await bestFood(ing.name, lang)
+    const hit = await bestFood(ing.name, lang, true)
     if (!hit) continue
     found++
     const g = ingredientGrams(ing)

@@ -12,7 +12,7 @@ import { HeightField, UnitsToggle, WeightField } from '../components/BodyFields'
 // Same colours as the bars on the Today screen
 // Pastel background with a dark shade of the same colour for the words, per target.
 const TARGET_CARDS: ['kcal' | 'protein' | 'carbs' | 'fat' | 'fibre', string, string][] = [
-  ['kcal', '#A9D98C', '#1D3D0C'],
+  ['kcal', 'var(--green)', '#fff'],
   ['protein', '#F9B8C8', '#7A0024'],
   ['carbs', '#FFD57A', '#5E3B00'],
   ['fat', '#CDD49B', '#353B12'],
