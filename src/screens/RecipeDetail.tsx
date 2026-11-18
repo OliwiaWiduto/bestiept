@@ -7,6 +7,7 @@ import { ingredientText, siteName } from '../lib/util'
 import { usePhoto } from '../lib/sync'
 import { Icon, MacroGrid, PhotoButton, Stepper, toast } from '../components/ui'
 import { foodArt } from '../lib/art'
+import { equipmentIcon } from '../lib/equipment'
 import AddToPlanSheet from '../components/AddToPlanSheet'
 
 export default function RecipeDetail() {
@@ -79,7 +80,7 @@ export default function RecipeDetail() {
       {r.equipment.length > 0 && (
         <>
           <h2 className="heading">{t('alsoNeed')}</h2>
-          <div className="chips">{r.equipment.map((e) => <span key={e} className="chip" style={{ background: 'var(--surface-raised)' }}>{e}</span>)}</div>
+          <div className="equip-grid">{r.equipment.map((e) => <span key={e} className="equip light"><img src={equipmentIcon(e)} alt="" /><span>{e}</span></span>)}</div>
         </>
       )}
 
