@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useStore } from '../store'
 import { useRecipes } from '../lib/recipeLang'
 import { useT } from '../i18n'
@@ -17,7 +17,9 @@ export default function RecipeDetail() {
   const recipes = useRecipes()
   const r = recipes.find((x) => x.id === id)
   const original = originals.find((x) => x.id === id)
-  const [servings, setServings] = useState(r?.servings ?? 2)
+  // Opened from the plan? Start with the servings she planned to cook.
+  const [params] = useSearchParams()
+  const [servings, setServings] = useState(Number(params.get('s')) || r?.servings || 2)
   const [planOpen, setPlanOpen] = useState(false)
   const photo = usePhoto(r?.photo)
   if (!r) return <main className="screen"><button className="btn ghost" onClick={() => nav('/recipes')}>{t('back')}</button></main>

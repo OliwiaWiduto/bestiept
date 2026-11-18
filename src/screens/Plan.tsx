@@ -94,7 +94,7 @@ export default function Plan() {
                 if (!r) return null
                 return (
                   <div key={p.id} className="meal-row">
-                    <button onClick={() => nav(`/recipes/${r.id}`)} style={{ display: 'flex', gap: 12, alignItems: 'center', flex: 1, minWidth: 0, background: 'none', border: 'none', textAlign: 'left', padding: 0 }}>
+                    <button onClick={() => nav(`/recipes/${r.id}?s=${p.leftoverOf ? r.servings : p.servings}`)} style={{ display: 'flex', gap: 12, alignItems: 'center', flex: 1, minWidth: 0, background: 'none', border: 'none', textAlign: 'left', padding: 0 }}>
                       <Thumb photo={r.photo} cat={r.category} name={r.title} />
                       <span className="grow stack" style={{ gap: 2 }}>
                         <span className="row caption" style={{ gap: 6, whiteSpace: 'nowrap' }}>{t(p.meal)}{p.leftoverOf && <span className="tag" style={{ whiteSpace: 'nowrap' }}>{t('leftovers')}</span>}</span>
