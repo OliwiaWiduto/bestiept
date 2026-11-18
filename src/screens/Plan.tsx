@@ -28,7 +28,6 @@ export default function Plan() {
   const thisWeek = weekStart(today())
   const days = weekDays(planWeek)
   const inWeek = plan.filter((p) => days.includes(p.date))
-  const sortedDays = days.filter((d) => inWeek.some((p) => p.date === d)).length
   const list = useMemo(() => buildList(inWeek, recipes, shopping, today()), [inWeek, recipes, shopping])
   const toBuy = list.need.filter((l) => !shopping.ticked[`${planWeek}:${l.key}`]).length
   const range = `${fmt(days[0], t.lang, { day: 'numeric' })} – ${fmt(days[6], t.lang, { day: 'numeric', month: 'long' })}`
@@ -41,9 +40,6 @@ export default function Plan() {
           <h1 className="display">{planWeek === thisWeek ? t('thisWeek') : t('nextWeek')}</h1>
         </div>
         <div className="row" style={{ gap: 8, marginBottom: 6 }}>
-        <button className="chip" style={{ height: 40, gap: 6 }} onClick={() => setPeopleOpen(true)} aria-label={t('householdQ')}>
-          <Icon name="heart" size={16} />{t('cookingForN', { n: people })}
-        </button>
         <button className="icon-btn" aria-label={planWeek === thisWeek ? t('nextWeek') : t('thisWeek')}
           onClick={() => setPlanWeek(planWeek === thisWeek ? addDays(thisWeek, 7) : thisWeek)}>
           <Icon name={planWeek === thisWeek ? 'forward' : 'back'} />
@@ -83,7 +79,11 @@ export default function Plan() {
         })}
       </div>
 
-      {sortedDays > 0 && <div className="tip"><Icon name="heart" size={24} /><span>{sortedDays === 7 ? t('planTipAll') : t('planTip', { n: sortedDays })}</span></div>}
+      <button className="people-row" onClick={() => setPeopleOpen(true)}>
+        <Icon name="heart" size={20} />
+        <span className="grow">{t('cookingForLong', { n: people })}</span>
+        <span className="small" style={{ color: 'var(--cherry)', fontWeight: 600 }}>{t('change')}</span>
+      </button>
       {inWeek.length === 0 && <div className="empty"><img src="/icons/cat-cupboard.png" alt="" /><p style={{ margin: 0 }}>{t('planEmpty')}</p></div>}
 
       {days.map((d) => {

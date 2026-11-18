@@ -84,7 +84,7 @@ const en = {
   estimate: 'estimate', workOut: 'Work it out from the ingredients', workedOut: 'Worked out from our food data', workingOut: 'Working it out…',
   foundOf: '{n} of {t} ingredients found',
   shareMyRecipes: 'My recipes', recipesOnly: 'Recipes only', recipesWord: 'recipes', recipeShareSetup: 'Recipe sharing needs a quick Supabase update first (family-recipes.sql).',
-  householdQ: 'How many people do you cook for?', householdHint: 'We’ll plan portions for everyone, and count what’s left as leftovers.', people: 'People', cookingForN: 'For {n}', servingsHint: 'You cook for {n}. Anything extra becomes leftovers.',
+  householdQ: 'How many people do you cook for?', householdHint: 'We’ll plan portions for everyone, and count what’s left as leftovers.', people: 'People', cookingForN: 'For {n}', cookingForLong: 'Cooking for {n}', change: 'Change', servingsHint: 'You cook for {n}. Anything extra becomes leftovers.',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -236,7 +236,7 @@ const pl: Dict = {
   estimate: 'szacunek', workOut: 'Policz ze składników', workedOut: 'Policzone z naszej bazy produktów', workingOut: 'Liczę…',
   foundOf: 'Znaleziono {n} z {t} składników',
   shareMyRecipes: 'Moje przepisy', recipesOnly: 'Tylko przepisy', recipesWord: 'przepisy', recipeShareSetup: 'Udostępnianie przepisów wymaga najpierw krótkiej aktualizacji w Supabase (family-recipes.sql).',
-  householdQ: 'Dla ilu osób gotujesz?', householdHint: 'Zaplanujemy porcje dla wszystkich, a resztę policzymy jako resztki.', people: 'Osoby', cookingForN: 'Dla {n}', servingsHint: 'Gotujesz dla {n}. Reszta to resztki na później.',
+  householdQ: 'Dla ilu osób gotujesz?', householdHint: 'Zaplanujemy porcje dla wszystkich, a resztę policzymy jako resztki.', people: 'Osoby', cookingForN: 'Dla {n}', cookingForLong: 'Gotujesz dla: {n}', change: 'Zmień', servingsHint: 'Gotujesz dla {n}. Reszta to resztki na później.',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 
