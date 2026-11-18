@@ -10,11 +10,13 @@ import { Icon, NumberField } from '../components/ui'
 import { HeightField, UnitsToggle, WeightField } from '../components/BodyFields'
 
 // Same colours as the bars on the Today screen
-const TARGET_CARDS: ['protein' | 'carbs' | 'fat' | 'fibre', string, string][] = [
-  ['protein', 'var(--cherry)', '#fff'],
-  ['carbs', 'var(--butter)', 'var(--ink)'],
-  ['fat', 'var(--olive)', 'var(--ink)'],
-  ['fibre', 'var(--lime)', 'var(--ink)'],
+// Pastel background with a dark shade of the same colour for the words, per target.
+const TARGET_CARDS: ['kcal' | 'protein' | 'carbs' | 'fat' | 'fibre', string, string][] = [
+  ['kcal', '#E2E8D5', '#2E3A12'],
+  ['protein', '#FBDDE4', '#8C0029'],
+  ['carbs', '#FFEFCC', '#7A4E00'],
+  ['fat', '#EFEEDC', '#55561C'],
+  ['fibre', '#EEF4C2', '#526000'],
 ]
 
 export default function Onboarding() {
@@ -115,23 +117,19 @@ export default function Onboarding() {
         <div className="stack" style={{ gap: 12 }}>
           <h1 className="title">{t('obTargets')}</h1>
           <p className="muted" style={{ margin: 0, fontSize: 15 }}>{t('tgIntro')}</p>
-          <div className="card green" style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '16px 18px' }}>
-            <span style={{ fontSize: 13, fontWeight: 600, opacity: 0.85 }}>{t('calories')}</span>
-            <span style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-              <span className="number-hero" style={{ color: 'var(--lime)' }}>{targets.kcal}</span><span>{t('kcal')}</span>
-            </span>
-            <span style={{ fontSize: 13, lineHeight: '18px', opacity: 0.85 }}>{t('ex_kcal')}</span>
-          </div>
           {TARGET_CARDS.map(([k, bg, fg]) => (
-            <div key={k} className="card" style={{ background: bg, color: fg, display: 'flex', flexDirection: 'column', gap: 2, padding: '14px 18px', border: 'none' }}>
-              <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 600 }}>{t(k)}</span>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700, whiteSpace: 'nowrap' }}>{targets[k]}g</span>
+            <div key={k} className="card" style={{ background: bg, color: fg, display: 'flex', alignItems: 'center', gap: 16, padding: '16px 18px', border: 'none' }}>
+              <span style={{ flex: 'none', minWidth: 92, display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: k === 'kcal' ? 34 : 28, fontWeight: 800, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{k === 'kcal' ? targets.kcal : `${targets[k]}g`}</span>
+                {k === 'kcal' && <span style={{ fontSize: 13, fontWeight: 600, marginTop: 2 }}>{t('kcal')}</span>}
               </span>
-              <span style={{ fontSize: 13, lineHeight: '18px', opacity: 0.9 }}>{t(`ex_${k}` as const)}</span>
+              <span className="stack" style={{ gap: 2, minWidth: 0 }}>
+                <span style={{ fontSize: 15, fontWeight: 700 }}>{k === 'kcal' ? t('calories') : t(k)}</span>
+                <span style={{ fontSize: 13, lineHeight: '18px' }}>{t(`ex_${k}` as const)}</span>
+              </span>
             </div>
           ))}
-          <span className="caption" style={{ textAlign: 'center' }}>{t('tgLater')}</span>
+          <span className="caption" style={{ textAlign: 'center', paddingBottom: 96 }}>{t('tgLater')}</span>
         </div>
       )}
 
