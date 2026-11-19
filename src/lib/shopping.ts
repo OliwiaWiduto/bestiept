@@ -7,7 +7,10 @@ export const CATEGORY_ICON: Partial<Record<Category, string>> = {
   fruitveg: '/icons/cat-fruitveg.png',
   meatfish: '/icons/cat-meatfish.png',
   dairy: '/icons/cat-dairy.png',
+  bakery: '/icons/cat-bakery.png',
   cupboard: '/icons/cat-cupboard.png',
+  frozen: '/icons/cat-frozen.png',
+  drinks: '/icons/cat-drinks.png',
   household: '/icons/cat-extras.png',
   other: '/icons/cat-extras.png',
 }
