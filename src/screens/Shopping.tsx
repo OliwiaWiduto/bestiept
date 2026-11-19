@@ -128,7 +128,6 @@ export default function Shopping() {
           {icon && <img src={icon} alt="" width={32} height={32} style={{ width: 32, height: 32, margin: '-2px 0 -2px -2px' }} />}
           <h2 className="heading" style={{ fontSize: 18, lineHeight: '24px' }}>{title}</h2>
         </div>
-        <span className="small muted">{t(lines.length === 1 ? 'itemN' : 'itemsN', { n: lines.length })}</span>
       </div>
       <div className="card" style={{ padding: '4px 16px' }}>
         {lines.map((l, i) => row(l.key, l.name, l.amount, '', i === lines.length - 1))}

@@ -42,7 +42,7 @@ export default function RecipeEdit() {
   const [stepText, setStepText] = useState('')
   const [equipText, setEquipText] = useState('')
   const [open, setOpen] = useState<Open>(null)
-  const [calc, setCalc] = useState<'busy' | { found: number; of: number } | null>(null)
+  const [calc, setCalc] = useState<'busy' | { found: number; of: number; estimated: number } | null>(null)
   const photoUrl = usePhoto(photo)
   const [link, setLink] = useState('')
   const [importing, setImporting] = useState(false)
@@ -70,9 +70,9 @@ export default function RecipeEdit() {
   }
   const workOut = async (list: Ingredient[], serves: number) => {
     setCalc('busy')
-    const { per, found } = await recipeNutrition(list, serves, t.lang)
+    const { per, found, estimated } = await recipeNutrition(list, serves, t.lang)
     setNutrition(per)
-    setCalc({ found, of: list.length })
+    setCalc({ found, of: list.length, estimated })
   }
   const toReview = () => {
     if (!title.trim()) { toast(t('titleNeeded')); return }
@@ -174,7 +174,7 @@ export default function RecipeEdit() {
             <span className="label muted" style={{ fontWeight: 500 }}>{t('kcal')}</span>
           </div>
           <MacroGrid m={nutrition} />
-          {calc && calc !== 'busy' && <span className="caption">{t('workedOut')} · {t('foundOf', { n: calc.found, t: calc.of })}</span>}
+          {calc && calc !== 'busy' && <span className="caption">{t('workedOut')} · {t('foundOf', { n: calc.found, t: calc.of })}{calc.estimated > 0 && <> · {t('restEstimated', { n: calc.estimated })}</>}</span>}
         </section>
         {ings.length > 0 && (
           <button className="btn ghost small" style={{ alignSelf: 'flex-start', border: 'none' }} disabled={calc === 'busy'} onClick={() => workOut(ings, servings)}>

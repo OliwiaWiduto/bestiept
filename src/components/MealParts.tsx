@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useT } from '../i18n'
 import type { FoodItem, Macros } from '../types'
 import { itemMacros } from '../lib/nutrition'
+import { rememberFood } from '../lib/foodDb'
 import { usePhoto } from '../lib/sync'
 import { Icon, Stepper } from './ui'
 
@@ -85,6 +86,7 @@ export function IngredientForm({ item, onSave, onDelete, onCancel }: { item: Foo
     const m = isG ? 100 : 1
     const per: Macros = { kcal: unitVals.kcal * m, protein: unitVals.protein * m, carbs: unitVals.carbs * m, fat: unitVals.fat * m, fibre: unitVals.fibre * m, sugar: unitVals.sugar * m }
     const edited = (['kcal', 'protein', 'carbs', 'fat'] as const).some((k) => Math.abs(per[k] - item.per[k]) > 0.01)
+    if (edited) rememberFood({ name: name.trim(), per, portion: isG ? amt : 100, source: 'user' }, t.lang)
     onSave({ ...item, name: name.trim(), amount: amt, per, src: edited ? 'you' : item.src })
   }
 

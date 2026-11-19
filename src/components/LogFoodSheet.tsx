@@ -9,6 +9,7 @@ import { uid } from '../lib/util'
 import { BarcodeScanner } from './BarcodeScanner'
 import { scanMeal, scanMealText, type ScannedItem } from '../lib/ai'
 import { checkAgainstFoodData, recipeItems } from '../lib/matchFood'
+import { foodByBarcode, rememberFood } from '../lib/foodDb'
 import { IngredientForm, IngredientRow, MealHeader } from './MealParts'
 import { VoiceLog } from './VoiceLog'
 import { itemMacros, sumItems } from '../lib/nutrition'
@@ -135,6 +136,15 @@ export default function LogFoodSheet() {
 
   const lookUp = async (c: string = code) => {
     setLookup('loading')
+    // Our own database first: no outside lookup needed if anyone has scanned this before.
+    const mine = await foodByBarcode(c)
+    if (mine) {
+      setPicked({ name: mine.name, per: mine.per, portion: mine.portion, source: t('ourFoodData') })
+      setGrams(String(Math.round(mine.portion)))
+      setLookup('idle')
+      rememberFood({ name: mine.name, per: mine.per, portion: mine.portion, barcode: c.trim(), source: mine.source }, t.lang)
+      return
+    }
     try {
       const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(c.trim())}.json?fields=product_name,brands,nutriments,serving_quantity`)
       const data = await res.json()
@@ -149,6 +159,7 @@ export default function LogFoodSheet() {
       })
       setGrams(String(Math.round(+data.product.serving_quantity || 100)))
       setLookup('idle')
+      rememberFood({ name, per: { kcal: +n['energy-kcal_100g'] || 0, protein: +n.proteins_100g || 0, carbs: +n.carbohydrates_100g || 0, fat: +n.fat_100g || 0, fibre: +n.fiber_100g || 0, sugar: +n.sugars_100g || 0 }, portion: +data.product.serving_quantity || 100, barcode: c.trim(), source: 'barcode' }, t.lang)
     } catch {
       setLookup('notfound'); setTyping(true)
     }

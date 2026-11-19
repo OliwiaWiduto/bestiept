@@ -6,6 +6,8 @@ import { loadUkFoods, type FoodHit } from './foodSearch'
 import { recipeLang } from './recipeLang'
 import { uid } from './util'
 import { COMMON } from './commonFoods'
+import { prefetchFoods, rememberFood, savedFood } from './foodDb'
+import { scanMealText } from './ai'
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l')
 const FILLER = new Set(['fresh', 'freshly', 'large', 'small', 'medium', 'big', 'ripe', 'whole', 'extra', 'virgin', 'finely', 'roughly', 'thinly', 'chopped', 'grated', 'sliced', 'diced', 'crushed', 'minced', 'peeled', 'halved', 'of', 'a', 'an', 'the', 'and', 'with', 'some', 'little', 'bit', 'handful', 'pinch', 'good', 'quality', 'to', 'taste', 'optional', 'heaped', 'level'])
@@ -47,7 +49,15 @@ async function common(name: string): Promise<FoodHit | null> {
 }
 
 /** Best food for a name, or null when nothing fits well enough to trust. Raw = as bought, for recipe ingredients. */
-export async function bestFood(name: string, lang: Lang, raw = false): Promise<FoodHit | null> {
+export async function bestFood(name: string, lang: Lang, raw = false, allowAi = false): Promise<FoodHit | null> {
+  const saved = await savedFood(name)
+  if (saved) return saved
+  const fromTables = await tableFood(name, lang, raw)
+  if (fromTables) return fromTables
+  return allowAi ? savedFood(name, true) : null
+}
+
+async function tableFood(name: string, lang: Lang, raw: boolean): Promise<FoodHit | null> {
   if (raw) { const c = await common(name); if (c) return c }
   const n = norm(name.split(/[,(]/)[0].trim())
   const starter = FOODS.find((f) => norm(f.en) === n || norm(f.pl) === n)
@@ -100,9 +110,10 @@ export async function recipeItems(r: Recipe, servingsEaten: number, lang: Lang):
   const share = servingsEaten / (r.servings || 1)
   if (!r.ingredients.length) return [{ id: uid(), name: r.title, amount: servingsEaten, unit: 'serving', per: r.nutrition }]
   const english = recipeLang(r) === 'en' ? null : r.tr?.en?.ingredients
+  await prefetchFoods([...r.ingredients.map((i) => i.name), ...(english ?? [])])
   const rows = await Promise.all(r.ingredients.map(async (ing, n) => {
     const grams = Math.max(0, ingredientGrams(ing) * share)
-    const hit = (await bestFood(english?.[n] ?? ing.name, lang, true)) ?? (english ? await bestFood(ing.name, lang, true) : null)
+    const hit = (await bestFood(english?.[n] ?? ing.name, lang, true, true)) ?? (english ? await bestFood(ing.name, lang, true, true) : null)
     return { ing, grams, hit }
   }))
   const target = { ...ZERO }
@@ -125,24 +136,40 @@ export async function recipeItems(r: Recipe, servingsEaten: number, lang: Lang):
 
 /** Swap AI-estimated figures for our food data wherever we can find the food. */
 export async function checkAgainstFoodData(items: (FoodItem & { search?: string })[], lang: Lang): Promise<FoodItem[]> {
+  await prefetchFoods(items.flatMap((i) => [i.name, i.search ?? '']))
   return Promise.all(items.map(async ({ search, ...i }) => {
-    const hit = (search ? await bestFood(search, lang) : null) ?? (lang === 'en' ? await bestFood(i.name, lang) : null)
-    return hit ? { ...i, per: hit.per, src: 'uk' } : { ...i, src: 'ai' }
+    const hit = (await savedFood(i.name)) ?? (search ? await bestFood(search, lang) : null) ?? (lang === 'en' ? await bestFood(i.name, lang) : null)
+    if (hit) return { ...i, per: hit.per, src: 'uk' }
+    rememberFood({ name: search || i.name, per: i.per, portion: i.amount, source: 'ai' }, lang)
+    return { ...i, src: 'ai' }
   }))
 }
 
 /** Nutrition per serving for a recipe, from our food data. Ingredients we can't find are left out. */
-export async function recipeNutrition(ings: Ingredient[], servings: number, lang: Lang): Promise<{ per: Macros; found: number }> {
+export async function recipeNutrition(ings: Ingredient[], servings: number, lang: Lang): Promise<{ per: Macros; found: number; estimated: number }> {
   const total = { ...ZERO }
+  const add = (per: Macros, g: number) => { for (const k of Object.keys(ZERO) as (keyof Macros)[]) total[k] += ((per[k] || 0) * g) / 100 }
+  await prefetchFoods(ings.map((i) => i.name))
   let found = 0
+  const missing: Ingredient[] = []
   for (const ing of ings) {
-    const hit = await bestFood(ing.name, lang, true)
-    if (!hit) continue
+    const hit = await bestFood(ing.name, lang, true, true)
+    if (!hit) { missing.push(ing); continue }
     found++
-    const g = ingredientGrams(ing)
-    for (const k of Object.keys(ZERO) as (keyof Macros)[]) total[k] += (hit.per[k] * g) / 100
+    add(hit.per, ingredientGrams(ing))
+  }
+  // Whatever our data doesn't know, the AI estimates, and we keep its answer so it's only asked once.
+  let estimated = 0
+  if (missing.length) {
+    const list = missing.map((i) => [i.amount !== null ? `${i.amount}${i.unit ? ' ' + i.unit : ''}` : '', i.name].filter(Boolean).join(' ')).join('\n')
+    const { data } = await scanMealText(`These are ingredients for a whole recipe (not one portion). Use exactly these amounts:\n${list}`, lang)
+    for (const it of data?.meal.items ?? []) {
+      add(it.per100, it.grams)
+      rememberFood({ name: it.search || it.name, per: it.per100, portion: it.grams, source: 'ai' }, lang)
+    }
+    if (data) estimated = missing.length
   }
   const per = { ...ZERO }
   for (const k of Object.keys(ZERO) as (keyof Macros)[]) per[k] = Math.round(total[k] / (servings || 1))
-  return { per, found }
+  return { per, found, estimated }
 }

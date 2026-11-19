@@ -4,8 +4,8 @@
 export type Common = [RegExp, string | [number, number, number, number, number, number]]
 
 export const COMMON: Common[] = [
-  [/\b(salt|sól|soli)\b|water|woda|wody|ice\b|lód/, [0, 0, 0, 0, 0, 0]],
-  [/black pepper|pieprz|chilli flakes|płatki chili|paprika|papryka słodka|cumin|kmin|cinnamon|cynamon|turmeric|kurkum|oregano|thyme|tymianek|spice|przypraw|bay lea|liść laur|nutmeg|gałka/, [280, 10, 50, 4, 25, 2]],
+  [/\b(salt|sól|soli)\b|water|woda|wody|\bice\b|\blód/, [0, 0, 0, 0, 0, 0]],
+  [/black pepper|pieprz|chilli flakes|płatki chili|paprika|papryka słodka|cumin|kmin|cinnamon|cynamon|turmeric|kurkum|oregano|thyme|tymianek|\bspices?\b|przypraw|bay lea|liść laur|nutmeg|gałka/, [280, 10, 50, 4, 25, 2]],
   [/chicken breast|pierś z kurczaka|piersi z kurczaka|filet z kurczaka/, [106, 24, 0, 1.1, 0, 0]],
   [/chicken thigh|udko|udka|chicken\b|kurczak/, [126, 19, 0, 5.4, 0, 0]],
   [/turkey mince|mielony z indyka|mięso z indyka/, [140, 20, 0, 6.5, 0, 0]],
