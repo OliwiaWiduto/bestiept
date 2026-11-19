@@ -72,6 +72,7 @@ export default function Shopping() {
   const done = allKeys.filter(isTicked).length
   const inBasket = items.filter((i) => isTicked(i.key))
   const shoppingNow = !!shopping.shoppingMode
+  const bought = new Set(inBasket.map((i) => lineText(i.amount, i.name).toLowerCase()))
 
   // The list as text, one item per line. Edits are saved when she leaves the box or starts shopping.
   const asText = () => items.map((i) => lineText(i.amount, i.name)).join('\n')
@@ -178,8 +179,16 @@ export default function Shopping() {
       {!shoppingNow && (
         <section className="stack" style={{ gap: 8 }}>
           <span className="small muted">{t('listHint')}</span>
-          <textarea className="input list-text" aria-label={t('shopping')} placeholder={t('listPh')} value={text} rows={Math.max(6, text.split('\n').length + 1)}
-            onFocus={() => { editing.current = true }} onChange={(e) => setText(e.target.value)} onBlur={commit} />
+          {/* The text box sits over a copy of its text where bought lines are crossed out (a textarea can't style single lines). */}
+          <div className="list-wrap">
+            <div className="input list-text list-back" aria-hidden="true">
+              {text.split('\n').map((l, i) => <div key={i} className={bought.has(l.trim().toLowerCase()) ? 'bought' : undefined}>{l || '\u00a0'}</div>)}
+              <div>{'\u00a0'}</div>
+            </div>
+            <textarea className="input list-text list-front" aria-label={t('shopping')} placeholder={t('listPh')} value={text}
+              onFocus={() => { editing.current = true }} onChange={(e) => setText(e.target.value)} onBlur={commit} />
+          </div>
+          {inBasket.length > 0 && <span className="caption">{t('boughtHint', { n: inBasket.length })}</span>}
         </section>
       )}
 
