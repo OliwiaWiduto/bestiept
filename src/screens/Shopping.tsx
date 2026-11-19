@@ -132,7 +132,7 @@ export default function Shopping() {
   )
 
   return (
-    <main className="screen" style={{ paddingBottom: 'calc(var(--nav-h) + 110px + env(safe-area-inset-bottom))' }}>
+    <main className="screen" style={shoppingNow ? { paddingBottom: 'calc(var(--nav-h) + 100px + env(safe-area-inset-bottom))' } : undefined}>
       <div className="between" style={{ paddingTop: 8, alignItems: 'flex-end' }}>
         <div className="stack" style={{ gap: 2 }}>
           <span className="eyebrow">{t('forWeek', { range })}</span>
@@ -143,6 +143,11 @@ export default function Shopping() {
           <Icon name={planWeek === thisWeek ? 'forward' : 'back'} />
         </button>
       </div>
+      {!shoppingNow && (
+        <button className="btn primary block" disabled={text.trim() === ''} onClick={() => { commit(); setShopping({ shoppingMode: true }); window.scrollTo(0, 0) }}>
+          <Icon name="bag" size={20} />{t('startShopping')}
+        </button>
+      )}
       {family.length > 0 && (
         <div className="chips" role="group" aria-label={t('includeFamily')}>
           {family.map((f) => (
@@ -213,13 +218,6 @@ export default function Shopping() {
         </section>
       )}
 
-      {!shoppingNow && (
-        <div className="shop-bar">
-          <button className="btn primary block" disabled={text.trim() === ''} onClick={() => { commit(); setShopping({ shoppingMode: true }); window.scrollTo(0, 0) }}>
-            <Icon name="bag" size={20} />{t('startShopping')}
-          </button>
-        </div>
-      )}
       {shoppingNow && (
         <div className="row" style={{ justifyContent: 'center', gap: 8 }}>
           <button className="btn ghost small" style={{ border: 'none' }} onClick={() => setShopping({ shoppingMode: false })}><Icon name="edit" size={16} />{t('editList')}</button>
