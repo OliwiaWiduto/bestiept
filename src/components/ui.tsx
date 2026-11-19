@@ -6,6 +6,7 @@ import { useT } from '../i18n'
 import { foodArt } from '../lib/art'
 import { useStore } from '../store'
 import { useLocation } from 'react-router-dom'
+import { useUI } from '../ui-state'
 
 const PATHS = {
   back: 'M15 18l-6-6 6-6',
@@ -79,7 +80,12 @@ export function Avatar({ name, avatar, size = 48 }: { name: string; avatar?: str
 
 export function BottomNav({ onLog }: { onLog: () => void }) {
   const t = useT()
-  const onToday = useLocation().pathname === '/'
+  const path = useLocation().pathname
+  const onToday = path === '/'
+  // In shopping mode the middle button becomes the basket, so it isn't competing with logging food.
+  const basketMode = useStore((s) => path === '/shopping' && !!s.shopping.shoppingMode)
+  const basketCount = useUI((s) => s.basketCount)
+  const setBasketOpen = useUI((s) => s.setBasketOpen)
   const noLogsYet = useStore((s) => s.logs.length === 0)
   const seeTip = useStore((s) => s.seeTip)
   const tab = (to: string, icon: IconName, label: string) => (
@@ -93,7 +99,14 @@ export function BottomNav({ onLog }: { onLog: () => void }) {
       {tab('/', 'clock', t('navToday'))}
       {tab('/recipes', 'book', t('navRecipes'))}
       <span style={{ position: 'relative', marginTop: -30, display: 'flex' }}>
-        <button className="fab" style={{ marginTop: 0 }} aria-label={t('logFood')} onClick={() => { seeTip('log'); onLog() }}><Icon name="plus" size={28} sw={2.5} /></button>
+        {basketMode ? (
+          <button id="basket-btn" className="fab" style={{ marginTop: 0, position: 'relative' }} aria-label={t('basketTitle')} onClick={() => setBasketOpen(true)}>
+            <Icon name="bag" size={28} sw={2.25} />
+            {basketCount > 0 && <span className="basket-count">{basketCount}</span>}
+          </button>
+        ) : (
+          <button className="fab" style={{ marginTop: 0 }} aria-label={t('logFood')} onClick={() => { seeTip('log'); onLog() }}><Icon name="plus" size={28} sw={2.5} /></button>
+        )}
         <CoachTip id="log" when={onToday && noLogsYet} place="above" align="center">{t('tipLog')}</CoachTip>
       </span>
       {tab('/plan', 'calendar', t('navPlan'))}

@@ -96,7 +96,10 @@ export default function Shopping() {
     })
     setShopping({ hidden: [...nextHidden], extras: [...keep, ...added] })
   }
-  const [basketOpen, setBasketOpen] = useState(false)
+  const basketOpen = useUI((u) => u.basketOpen)
+  const setBasketOpen = useUI((u) => u.setBasketOpen)
+  const setBasketCount = useUI((u) => u.setBasketCount)
+  useEffect(() => { setBasketCount(done) }, [done, setBasketCount])
 
   const [staplePick, setStaplePick] = useState<string[]>(() => staplesIn(shopping.staples, t.lang))
   const stapleOptions = Array.from(new Set([...(t.lang === 'pl' ? DEFAULT_STAPLES_PL : DEFAULT_STAPLES), ...staplesIn(shopping.staples, t.lang)]))
@@ -132,7 +135,7 @@ export default function Shopping() {
   )
 
   return (
-    <main className="screen" style={shoppingNow ? { paddingBottom: 'calc(var(--nav-h) + 100px + env(safe-area-inset-bottom))' } : undefined}>
+    <main className="screen">
       <div className="between" style={{ paddingTop: 8, alignItems: 'flex-end' }}>
         <div className="stack" style={{ gap: 2 }}>
           <span className="eyebrow">{t('forWeek', { range })}</span>
@@ -180,12 +183,6 @@ export default function Shopping() {
         </section>
       )}
 
-      {shoppingNow && allKeys.length > 0 && (
-        <section className="card stack" style={{ gap: 8, padding: '16px 20px' }}>
-          <div className="between label"><span>{t('inBasket', { a: done, b: allKeys.length })}</span><span className="muted" style={{ fontWeight: 400 }}>{t('toGo', { n: allKeys.length - done })}</span></div>
-          <div className="track" style={{ height: 10 }}><span style={{ width: `${(done / allKeys.length) * 100}%`, background: 'var(--cherry)' }} /></div>
-        </section>
-      )}
 
       {shoppingNow && allKeys.length > 0 && done === allKeys.length && (
         <div className="empty"><img src="/icons/cat-fruitveg.png" alt="" /><p style={{ margin: 0 }}>{t('allInBasket')}</p></div>
@@ -223,12 +220,6 @@ export default function Shopping() {
           <button className="btn ghost small" style={{ border: 'none' }} onClick={() => setShopping({ shoppingMode: false })}><Icon name="edit" size={16} />{t('editList')}</button>
           <button className="btn secondary small" onClick={() => { setShopping({ shoppingMode: false }); toast(t('shopDone')) }}>{t('finishShopping')}</button>
         </div>
-      )}
-      {shoppingNow && (
-        <button id="basket-btn" className="basket-btn" aria-label={t('basketTitle')} onClick={() => setBasketOpen(true)}>
-          <Icon name="bag" size={26} sw={2} />
-          {done > 0 && <span className="basket-count">{done}</span>}
-        </button>
       )}
       <Sheet open={basketOpen} onClose={() => setBasketOpen(false)} title={t('basketTitle')}>
         {inBasket.length === 0 ? <p className="muted" style={{ margin: 0 }}>{t('basketEmpty')}</p> : (

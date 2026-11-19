@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { useRecipes } from '../lib/recipeLang'
@@ -6,7 +6,6 @@ import { useUI } from '../ui-state'
 import { useT } from '../i18n'
 import type { Meal, Recipe } from '../types'
 import { MEALS } from '../types'
-import { buildList } from '../lib/shopping'
 import { rankRecipes } from '../lib/pick'
 import { addDays, fmt, today, weekDays, weekStart } from '../lib/dates'
 import { Icon, Sheet, Stepper, Thumb } from '../components/ui'
@@ -15,7 +14,7 @@ import AddToPlanSheet from '../components/AddToPlanSheet'
 export default function Plan() {
   const t = useT()
   const nav = useNavigate()
-  const { plan, removePlan, shopping, profile, updateProfile } = useStore()
+  const { plan, removePlan, profile, updateProfile } = useStore()
   const people = profile?.household ?? 1
   const [peopleOpen, setPeopleOpen] = useState(false)
   const recipes = useRecipes()
@@ -28,8 +27,6 @@ export default function Plan() {
   const thisWeek = weekStart(today())
   const days = weekDays(planWeek)
   const inWeek = plan.filter((p) => days.includes(p.date))
-  const list = useMemo(() => buildList(inWeek, recipes, shopping, today()), [inWeek, recipes, shopping])
-  const toBuy = list.need.filter((l) => !shopping.ticked[`${planWeek}:${l.key}`]).length
   const range = `${fmt(days[0], t.lang, { day: 'numeric' })} – ${fmt(days[6], t.lang, { day: 'numeric', month: 'long' })}`
 
   return (
@@ -53,16 +50,6 @@ export default function Plan() {
         <button className="btn primary block" onClick={() => setPeopleOpen(false)}>{t('done')}</button>
       </Sheet>
 
-      {inWeek.some((p) => !p.leftoverOf) && (
-        <button className="shop-card" onClick={() => nav('/shopping')}>
-          <img src="/icons/cat-fruitveg.png" alt="" />
-          <span className="grow stack" style={{ gap: 0, minWidth: 0 }}>
-            <span style={{ fontWeight: 700, fontSize: 16 }}>{t('yourList')}</span>
-            <span className="small" style={{ color: 'var(--green-soft)' }}>{toBuy ? t('toBuyN', { n: toBuy }) : t('allBought')}</span>
-          </span>
-          <Icon name="forward" size={20} />
-        </button>
-      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 6 }}>
         {days.map((d) => {

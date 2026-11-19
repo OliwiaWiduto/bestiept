@@ -12,6 +12,10 @@ type UI = {
   closeLog: () => void
   planWeek: string
   setPlanWeek: (k: string) => void
+  basketOpen: boolean
+  setBasketOpen: (v: boolean) => void
+  basketCount: number
+  setBasketCount: (n: number) => void
 }
 
 export const useUI = create<UI>()((set) => ({
@@ -23,6 +27,10 @@ export const useUI = create<UI>()((set) => ({
   closeLog: () => set({ logOpen: false }),
   planWeek: weekStart(today()),
   setPlanWeek: (planWeek) => set({ planWeek }),
+  basketOpen: false,
+  setBasketOpen: (basketOpen) => set({ basketOpen }),
+  basketCount: 0,
+  setBasketCount: (basketCount) => set({ basketCount }),
 }))
 
 export function defaultMeal(): Meal {
