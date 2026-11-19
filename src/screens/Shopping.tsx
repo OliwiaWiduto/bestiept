@@ -1,22 +1,46 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../store'
 import { useRecipes } from '../lib/recipeLang'
 import { useUI } from '../ui-state'
 import { useT } from '../i18n'
 import { addDays, fmt, today, weekDays, weekStart } from '../lib/dates'
-import { buildList, CATEGORIES, CATEGORY_ICON, DEFAULT_STAPLES, DEFAULT_STAPLES_PL, displayAmount, staplesIn, type ShoppingLine } from '../lib/shopping'
-import { uid } from '../lib/util'
-import { Icon } from '../components/ui'
+import { buildList, categorise, CATEGORIES, CATEGORY_ICON, DEFAULT_STAPLES, DEFAULT_STAPLES_PL, displayAmount, staplesIn, type ShoppingLine } from '../lib/shopping'
+import { formatAmount, parseIngredient, uid } from '../lib/util'
+import { Icon, Sheet, toast } from '../components/ui'
 import { useFamilyLists } from '../lib/family'
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+const lineText = (amount: string, name: string) => [amount, cap(name)].filter(Boolean).join(' ')
+
+/** A small chip that flies from the ticked row into the basket button. */
+function flyToBasket(from: HTMLElement, label: string) {
+  const basket = document.getElementById('basket-btn')
+  if (!basket || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  const a = from.getBoundingClientRect()
+  const b = basket.getBoundingClientRect()
+  const chip = document.createElement('div')
+  chip.className = 'fly-chip'
+  chip.textContent = label
+  chip.style.left = `${a.left + 12}px`
+  chip.style.top = `${a.top + a.height / 2 - 16}px`
+  document.body.appendChild(chip)
+  const dx = b.left + b.width / 2 - (a.left + 12) - 20
+  const dy = b.top + b.height / 2 - (a.top + a.height / 2)
+  chip.animate([
+    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+    { transform: `translate(${dx * 0.6}px, ${dy * 0.35 - 60}px) scale(.8)`, opacity: 1, offset: 0.55 },
+    { transform: `translate(${dx}px, ${dy}px) scale(.2)`, opacity: 0.2 },
+  ], { duration: 650, easing: 'cubic-bezier(.5,0,.6,1)' }).onfinish = () => {
+    chip.remove()
+    basket.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.18)' }, { transform: 'scale(1)' }], { duration: 300, easing: 'ease-out' })
+  }
+}
 
 export default function Shopping() {
   const t = useT()
   const { plan, shopping, setShopping } = useStore()
   const recipes = useRecipes()
   const { planWeek, setPlanWeek } = useUI()
-  const [newItem, setNewItem] = useState('')
   const days = weekDays(planWeek)
   const thisWeek = weekStart(today())
   const weekPlan = useMemo(() => plan.filter((p) => days.includes(p.date)), [plan, days])
@@ -36,8 +60,43 @@ export default function Shopping() {
       out: on ? shopping.out.filter((k) => k !== key) : shopping.out,
     })
   }
-  const allKeys = [...need.map((l) => l.key), ...shopping.extras.map((e) => `extra:${e.id}`)]
+  // Planned items she deleted from the list text this week
+  const hidden = new Set((shopping.hidden ?? []).filter((h) => h.startsWith(planWeek + ':')).map((h) => h.slice(planWeek.length + 1)))
+  const visible = need.filter((l) => !hidden.has(l.key))
+  type Item = { key: string; name: string; amount: string; category: ShoppingLine['category'] }
+  const items: Item[] = [
+    ...visible.map((l) => ({ key: l.key, name: l.name, amount: displayAmount(l), category: l.category })),
+    ...shopping.extras.map((e) => ({ key: `extra:${e.id}`, name: e.name, amount: e.amount, category: categorise(e.name) })),
+  ]
+  const allKeys = items.map((i) => i.key)
   const done = allKeys.filter(isTicked).length
+  const inBasket = items.filter((i) => isTicked(i.key))
+  const shoppingNow = !!shopping.shoppingMode
+
+  // The list as text, one item per line. Edits are saved when she leaves the box or starts shopping.
+  const asText = () => items.map((i) => lineText(i.amount, i.name)).join('\n')
+  const [text, setText] = useState(asText)
+  const editing = useRef(false)
+  const listKey = items.map((i) => i.key + i.amount).join('|')
+  useEffect(() => { if (!editing.current) setText(asText()) }, [listKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  const commit = () => {
+    editing.current = false
+    const lines = text.split('\n').map((l) => l.trim()).filter(Boolean)
+    const wanted = new Map(lines.map((l) => [l.toLowerCase(), l]))
+    const planned = new Map(need.map((l) => [lineText(displayAmount(l), l.name).toLowerCase(), l.key]))
+    const nextHidden = new Set(shopping.hidden ?? [])
+    for (const [txt, key] of planned) {
+      if (wanted.has(txt)) { nextHidden.delete(`${planWeek}:${key}`); wanted.delete(txt) } else nextHidden.add(`${planWeek}:${key}`)
+    }
+    const keep = shopping.extras.filter((e) => { const k = lineText(e.amount, e.name).toLowerCase(); if (wanted.has(k)) { wanted.delete(k); return true } return false })
+    const added = [...wanted.values()].map((l) => {
+      const ing = parseIngredient(l)
+      const amount = ing.amount === null ? '' : [formatAmount(ing.amount), ing.unit].filter(Boolean).join(['g', 'kg', 'ml', 'l'].includes(ing.unit) ? '' : ' ')
+      return { id: uid(), name: ing.name || l, amount }
+    })
+    setShopping({ hidden: [...nextHidden], extras: [...keep, ...added] })
+  }
+  const [basketOpen, setBasketOpen] = useState(false)
 
   const [staplePick, setStaplePick] = useState<string[]>(() => staplesIn(shopping.staples, t.lang))
   const stapleOptions = Array.from(new Set([...(t.lang === 'pl' ? DEFAULT_STAPLES_PL : DEFAULT_STAPLES), ...staplesIn(shopping.staples, t.lang)]))
@@ -45,7 +104,7 @@ export default function Shopping() {
   const row = (key: string, name: string, amount: string, caption: string, last: boolean) => {
     const on = isTicked(key)
     return (
-      <button key={key} aria-pressed={on} onClick={() => toggle(key)}
+      <button key={key} aria-pressed={on} onClick={(e) => { if (!on) flyToBasket(e.currentTarget, cap(name)); toggle(key) }}
         style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', background: 'transparent', border: 'none', borderBottom: last ? 'none' : '1px solid var(--line)', textAlign: 'left', width: '100%' }}>
         <span className={`check ${on ? 'on' : ''}`}>{on && <Icon name="check" size={16} sw={2.5} />}</span>
         <span className="grow stack" style={{ gap: 2 }}>
@@ -57,7 +116,7 @@ export default function Shopping() {
     )
   }
 
-  const section = (title: string, icon: string | undefined, lines: ShoppingLine[]) => (
+  const section = (title: string, icon: string | undefined, lines: Item[]) => (
     <section key={title} className="stack">
       <div className="between">
         <div className="row" style={{ gap: 8 }}>
@@ -67,13 +126,13 @@ export default function Shopping() {
         <span className="small muted">{t(lines.length === 1 ? 'itemN' : 'itemsN', { n: lines.length })}</span>
       </div>
       <div className="card" style={{ padding: '4px 16px' }}>
-        {lines.map((l, i) => row(l.key, l.name, displayAmount(l), '', i === lines.length - 1))}
+        {lines.map((l, i) => row(l.key, l.name, l.amount, '', i === lines.length - 1))}
       </div>
     </section>
   )
 
   return (
-    <main className="screen">
+    <main className="screen" style={{ paddingBottom: 'calc(var(--nav-h) + 110px + env(safe-area-inset-bottom))' }}>
       <div className="between" style={{ paddingTop: 8, alignItems: 'flex-end' }}>
         <div className="stack" style={{ gap: 2 }}>
           <span className="eyebrow">{t('forWeek', { range })}</span>
@@ -94,7 +153,7 @@ export default function Shopping() {
         </div>
       )}
 
-      {!shopping.staplesAsked && need.length + probably.length > 0 && (
+      {!shoppingNow && !shopping.staplesAsked && need.length + probably.length > 0 && (
         <section className="card stack" style={{ gap: 12, background: 'var(--peach-soft)' }}>
           <h2 className="heading" style={{ fontSize: 18 }}>{t('staplesTitle')}</h2>
           <span className="small">{t('staplesHint')}</span>
@@ -108,47 +167,35 @@ export default function Shopping() {
         </section>
       )}
 
-      {allKeys.length > 0 && (
-        <section className="card stack" style={{ gap: 8, padding: '16px 20px' }}>
-          <div className="between label"><span>{t('inBasket', { a: done, b: allKeys.length })}</span><span className="muted" style={{ fontWeight: 400 }}>{t('toGo', { n: allKeys.length - done })}</span></div>
-          <div className="track" style={{ height: 10 }}><span style={{ width: `${(done / allKeys.length) * 100}%`, background: 'var(--green)' }} /></div>
+      {!shoppingNow && (
+        <section className="stack" style={{ gap: 8 }}>
+          <span className="small muted">{t('listHint')}</span>
+          <textarea className="input list-text" aria-label={t('shopping')} placeholder={t('listPh')} value={text} rows={Math.max(6, text.split('\n').length + 1)}
+            onFocus={() => { editing.current = true }} onChange={(e) => setText(e.target.value)} onBlur={commit} />
         </section>
       )}
 
-      <form className="row input" style={{ borderRadius: 999, gap: 10 }} onSubmit={(e) => {
-        e.preventDefault()
-        if (!newItem.trim()) return
-        setShopping({ extras: [...shopping.extras, { id: uid(), name: newItem.trim(), amount: '' }] })
-        setNewItem('')
-      }}>
-        <Icon name="plus" size={20} />
-        <label className="grow"><span className="sr-only">{t('addOwn')}</span>
-          <input placeholder={t('addOwn')} value={newItem} onChange={(e) => setNewItem(e.target.value)} style={{ border: 'none', background: 'transparent', width: '100%', outline: 'none' }} />
-        </label>
-      </form>
+      {shoppingNow && allKeys.length > 0 && (
+        <section className="card stack" style={{ gap: 8, padding: '16px 20px' }}>
+          <div className="between label"><span>{t('inBasket', { a: done, b: allKeys.length })}</span><span className="muted" style={{ fontWeight: 400 }}>{t('toGo', { n: allKeys.length - done })}</span></div>
+          <div className="track" style={{ height: 10 }}><span style={{ width: `${(done / allKeys.length) * 100}%`, background: 'var(--cherry)' }} /></div>
+        </section>
+      )}
 
-      {need.length === 0 && shopping.extras.length === 0 && probably.length === 0 && (
+      {shoppingNow && allKeys.length > 0 && done === allKeys.length && (
+        <div className="empty"><img src="/icons/cat-fruitveg.png" alt="" /><p style={{ margin: 0 }}>{t('allInBasket')}</p></div>
+      )}
+
+      {items.length === 0 && probably.length === 0 && !shoppingNow && text.trim() === '' && (
         <div className="empty"><img src="/icons/cat-extras.png" alt="" /><p style={{ margin: 0 }}>{t('emptyList')}</p></div>
       )}
 
-      {CATEGORIES.map((c) => {
-        const lines = need.filter((l) => l.category === c)
+      {shoppingNow && CATEGORIES.map((c) => {
+        const lines = items.filter((l) => l.category === c && !isTicked(l.key))
         return lines.length ? section(t(`cat_${c}` as const), CATEGORY_ICON[c], lines) : null
       })}
 
-      {shopping.extras.length > 0 && (
-        <section className="stack">
-          <div className="row" style={{ gap: 8 }}>
-            <img src="/icons/cat-extras.png" alt="" width={32} height={32} style={{ width: 32, height: 32, margin: '-2px 0 -2px -2px' }} />
-            <h2 className="heading" style={{ fontSize: 18 }}>{t('yourExtras')}</h2>
-          </div>
-          <div className="card" style={{ padding: '4px 16px' }}>
-            {shopping.extras.map((e, i) => row(`extra:${e.id}`, e.name, e.amount, t('addedByYou'), i === shopping.extras.length - 1))}
-          </div>
-        </section>
-      )}
-
-      {probably.length > 0 && (
+      {!shoppingNow && probably.length > 0 && (
         <section className="stack">
           <h2 className="heading" style={{ fontSize: 18 }}>{t('probably')}</h2>
           <div className="stack" style={{ background: 'var(--stone-soft)', borderRadius: 28, padding: 16, gap: 6 }}>
@@ -166,9 +213,35 @@ export default function Shopping() {
         </section>
       )}
 
-      {shopping.extras.some((e) => isTicked(`extra:${e.id}`)) && (
-        <button className="btn ghost" style={{ alignSelf: 'center' }} onClick={() => setShopping({ extras: shopping.extras.filter((e) => !isTicked(`extra:${e.id}`)) })}>{t('clearTicked')}</button>
+      {!shoppingNow && (
+        <div className="shop-bar">
+          <button className="btn primary block" disabled={text.trim() === ''} onClick={() => { commit(); setShopping({ shoppingMode: true }); window.scrollTo(0, 0) }}>
+            <Icon name="bag" size={20} />{t('startShopping')}
+          </button>
+        </div>
       )}
+      {shoppingNow && (
+        <div className="row" style={{ justifyContent: 'center', gap: 8 }}>
+          <button className="btn ghost small" style={{ border: 'none' }} onClick={() => setShopping({ shoppingMode: false })}><Icon name="edit" size={16} />{t('editList')}</button>
+          <button className="btn secondary small" onClick={() => { setShopping({ shoppingMode: false }); toast(t('shopDone')) }}>{t('finishShopping')}</button>
+        </div>
+      )}
+      {shoppingNow && (
+        <button id="basket-btn" className="basket-btn" aria-label={t('basketTitle')} onClick={() => setBasketOpen(true)}>
+          <Icon name="bag" size={26} sw={2} />
+          {done > 0 && <span className="basket-count">{done}</span>}
+        </button>
+      )}
+      <Sheet open={basketOpen} onClose={() => setBasketOpen(false)} title={t('basketTitle')}>
+        {inBasket.length === 0 ? <p className="muted" style={{ margin: 0 }}>{t('basketEmpty')}</p> : (
+          <>
+            <span className="small muted">{t('basketHint')}</span>
+            <div className="card" style={{ padding: '4px 16px' }}>
+              {inBasket.map((l, i) => row(l.key, l.name, l.amount, '', i === inBasket.length - 1))}
+            </div>
+          </>
+        )}
+      </Sheet>
     </main>
   )
 }

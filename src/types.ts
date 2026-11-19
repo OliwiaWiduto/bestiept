@@ -84,6 +84,10 @@ export type ShoppingState = {
   staplesAsked: boolean
   out: string[]
   lastBought: Record<string, string> // key -> YYYY-MM-DD
+  /** Planned items she deleted from the list text, as week:key */
+  hidden?: string[]
+  /** True while she's in the shop working through the list */
+  shoppingMode?: boolean
 }
 
 export type WeightEntry = { date: string; kg: number }

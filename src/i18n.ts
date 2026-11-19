@@ -85,6 +85,7 @@ const en = {
   foundOf: '{n} of {t} ingredients found',
   shareMyRecipes: 'My recipes', recipesOnly: 'Recipes only', recipesWord: 'recipes', recipeShareSetup: 'Recipe sharing needs a quick Supabase update first (family-recipes.sql).',
   householdQ: 'How many people do you cook for?', householdHint: 'We’ll plan portions for everyone, and count what’s left as leftovers.', people: 'People', cookingForN: 'For {n}', cookingForLong: 'Cooking for {n}', change: 'Change', servingsHint: 'You cook for {n}. Anything extra becomes leftovers.',
+  listHint: 'Everything from your plan is here. Add, change or delete anything, one item per line.', listPh: 'One thing per line, e.g. 2 lemons', allInBasket: 'Everything’s in the basket. Nice one!', startShopping: 'Start shopping', editList: 'Edit list', finishShopping: 'Finish shopping', shopDone: 'Shopping done', basketTitle: 'In your basket', basketEmpty: 'Tick things off and they’ll land here.', basketHint: 'Tap anything to put it back on the list.',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -237,6 +238,7 @@ const pl: Dict = {
   foundOf: 'Znaleziono {n} z {t} składników',
   shareMyRecipes: 'Moje przepisy', recipesOnly: 'Tylko przepisy', recipesWord: 'przepisy', recipeShareSetup: 'Udostępnianie przepisów wymaga najpierw krótkiej aktualizacji w Supabase (family-recipes.sql).',
   householdQ: 'Dla ilu osób gotujesz?', householdHint: 'Zaplanujemy porcje dla wszystkich, a resztę policzymy jako resztki.', people: 'Osoby', cookingForN: 'Dla {n}', cookingForLong: 'Gotujesz dla: {n}', change: 'Zmień', servingsHint: 'Gotujesz dla {n}. Reszta to resztki na później.',
+  listHint: 'Tu jest wszystko z Twojego planu. Dodawaj, zmieniaj lub usuwaj, jedna rzecz w linii.', listPh: 'Jedna rzecz w linii, np. 2 cytryny', allInBasket: 'Wszystko w koszyku. Brawo!', startShopping: 'Zacznij zakupy', editList: 'Edytuj listę', finishShopping: 'Koniec zakupów', shopDone: 'Zakupy zrobione', basketTitle: 'W koszyku', basketEmpty: 'Odhaczaj rzeczy, a wylądują tutaj.', basketHint: 'Kliknij, żeby odłożyć z powrotem na listę.',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 
