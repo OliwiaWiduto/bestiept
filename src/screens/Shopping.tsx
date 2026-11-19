@@ -7,6 +7,7 @@ import { addDays, fmt, today, weekDays, weekStart } from '../lib/dates'
 import { buildList, categorise, CATEGORIES, CATEGORY_ICON, DEFAULT_STAPLES, DEFAULT_STAPLES_PL, displayAmount, staplesIn, type ShoppingLine } from '../lib/shopping'
 import { formatAmount, parseIngredient, uid } from '../lib/util'
 import { Icon, Sheet, toast } from '../components/ui'
+import { LineEditor } from '../components/LineEditor'
 import { useFamilyLists } from '../lib/family'
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
@@ -179,15 +180,8 @@ export default function Shopping() {
       {!shoppingNow && (
         <section className="stack" style={{ gap: 8 }}>
           <span className="small muted">{t('listHint')}</span>
-          {/* The text box sits over a copy of its text where bought lines are crossed out (a textarea can't style single lines). */}
-          <div className="list-wrap">
-            <div className="input list-text list-back" aria-hidden="true">
-              {text.split('\n').map((l, i) => <div key={i} className={bought.has(l.trim().toLowerCase()) ? 'bought' : undefined}>{l || '\u00a0'}</div>)}
-              <div>{'\u00a0'}</div>
-            </div>
-            <textarea className="input list-text list-front" aria-label={t('shopping')} placeholder={t('listPh')} value={text}
-              onFocus={() => { editing.current = true }} onChange={(e) => setText(e.target.value)} onBlur={commit} />
-          </div>
+          <LineEditor value={text} onChange={setText} onFocus={() => { editing.current = true }} onDone={commit}
+            struck={(l) => bought.has(l)} placeholder={t('listPh')} label={t('shopping')} />
           {inBasket.length > 0 && <span className="caption">{t('boughtHint', { n: inBasket.length })}</span>}
         </section>
       )}
