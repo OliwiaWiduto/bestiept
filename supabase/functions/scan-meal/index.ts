@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     const said = typeof text === 'string' ? text.trim().slice(0, 1500) : ''
     if (!image && !said) return json({ error: 'nothing_to_scan' }, 400)
     const r = await askClaude<{ found: boolean; name: string; items: unknown[] }>({
-      system: `You estimate what's in a meal for a food diary, from a photo or from a spoken description. List each separate food or ingredient (include obvious oils, sauces and dressings), with a realistic portion in grams and standard nutrition per 100g. Be honest about portion size; don't lowball. If she says she used less or more of something, use that amount. A drink like a cappuccino or latte is listed as its parts (milk, coffee, any syrup). Names in ${lang === 'pl' ? 'Polish' : 'British English'}.`,
+      system: `You estimate what's in a meal for a food diary, from a photo or from a spoken description. List each separate food or ingredient (include obvious oils, sauces and dressings), with a realistic portion in grams and standard nutrition per 100g. Be honest about portion size; don't lowball. If she says she used less or more of something, use that amount. A drink like a cappuccino or latte is listed as its parts (milk, coffee, any syrup). For a branded or packaged product (a named chocolate bar, yoghurt, ready meal), list it as one item and use that product's own label figures per 100 g and its usual pack size; put the product name in search. Names in ${lang === 'pl' ? 'Polish' : 'British English'}.`,
       content: image ? [imageBlock(String(image)), { type: 'text', text: 'What is in this meal?' }] : [{ type: 'text', text: `Here is what I ate, dictated by voice (may contain speech-recognition slips): ${said}` }],
       tool: TOOL,
       maxTokens: 2000,

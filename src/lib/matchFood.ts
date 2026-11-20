@@ -60,8 +60,8 @@ export async function bestFood(name: string, lang: Lang, raw = false, allowAi = 
 async function tableFood(name: string, lang: Lang, raw: boolean): Promise<FoodHit | null> {
   if (raw) { const c = await common(name); if (c) return c }
   const n = norm(name.split(/[,(]/)[0].trim())
+  // Only an exact name match: "coconut milk" must never turn into the plain milk on our starter list.
   const starter = FOODS.find((f) => norm(f.en) === n || norm(f.pl) === n)
-    ?? FOODS.find((f) => [f.en, f.pl].some((x) => { const xn = norm(x); return n.includes(xn) && xn.length >= 4 }))
   if (starter) return { key: 'b:' + starter.en, name: starter[lang], per: starter.per, portion: starter.portion }
   let tokens = tokensOf(name)
   if (!tokens.length) return null
@@ -134,12 +134,21 @@ export async function recipeItems(r: Recipe, servingsEaten: number, lang: Lang):
   })
 }
 
+const plausible = (found: number, ai: number) => {
+  if (!(ai > 0)) return true
+  if (ai < 40 && found < 60) return true // drinks, veg and other very light foods
+  const r = found / ai
+  return r >= 0.6 && r <= 1.65
+}
+
 /** Swap AI-estimated figures for our food data wherever we can find the food. */
 export async function checkAgainstFoodData(items: (FoodItem & { search?: string })[], lang: Lang): Promise<FoodItem[]> {
   await prefetchFoods(items.flatMap((i) => [i.name, i.search ?? '']))
   return Promise.all(items.map(async ({ search, ...i }) => {
     const hit = (await savedFood(i.name)) ?? (search ? await bestFood(search, lang) : null) ?? (lang === 'en' ? await bestFood(i.name, lang) : null)
-    if (hit) return { ...i, per: hit.per, src: 'uk' }
+    // A match is only trusted if it's roughly the same kind of food as the AI described. A chocolate bar
+    // the AI puts at ~550 kcal per 100g can't be swapped for a 46 kcal match, whatever the name says.
+    if (hit && plausible(hit.per.kcal, i.per.kcal)) return { ...i, per: hit.per, src: 'uk' }
     rememberFood({ name: search || i.name, per: i.per, portion: i.amount, source: 'ai' }, lang)
     return { ...i, src: 'ai' }
   }))
