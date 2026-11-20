@@ -2,12 +2,11 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../store'
 import { useT } from '../i18n'
-import { MEALS, type FoodItem, type LogEntry } from '../types'
+import { MEALS, type LogEntry } from '../types'
 import { sumItems } from '../lib/nutrition'
-import { useFoodSearch } from '../lib/foodSearch'
-import { uid } from '../lib/util'
 import { BackButton, Icon, MacroGrid, PhotoButton, Sheet } from '../components/ui'
 import { IngredientForm, IngredientRow, MealHeader } from '../components/MealParts'
+import { AddItemSheet } from '../components/AddItemSheet'
 
 export default function MealEdit() {
   const t = useT()
@@ -68,40 +67,7 @@ export default function MealEdit() {
           onDelete={() => { setDraft({ ...draft, items: draft.items.filter((x) => x.id !== editing.id) }); setEditId(null) }}
           onSave={(i) => { setDraft({ ...draft, items: draft.items.map((x) => (x.id === i.id ? i : x)) }); setEditId(null) }} />}
       </Sheet>
-      <AddItemSheet open={adding} onClose={() => setAdding(false)} onAdd={(item) => { setDraft({ ...draft, items: [...draft.items, item] }); setAdding(false) }} />
+      <AddItemSheet open={adding} onClose={() => setAdding(false)} onAdd={(items) => { setDraft({ ...draft, items: [...draft.items, ...items] }); setAdding(false) }} />
     </main>
-  )
-}
-
-function AddItemSheet({ open, onClose, onAdd }: { open: boolean; onClose: () => void; onAdd: (i: FoodItem) => void }) {
-  const t = useT()
-  const [q, setQ] = useState('')
-  const [custom, setCustom] = useState({ name: '', kcal: '', protein: '', carbs: '', fat: '' })
-  const list = useFoodSearch(q, t.lang, 12)
-  return (
-    <Sheet open={open} onClose={onClose} title={t('addSomething')}>
-      <input className="input" placeholder={t('searchPh')} value={q} onChange={(e) => setQ(e.target.value)} />
-      <div className="card tight">
-        {list.map((f) => (
-          <button key={f.key} className="list-row" style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--line)', textAlign: 'left' }}
-            onClick={() => onAdd({ id: uid(), name: f.name, amount: f.portion, unit: 'g', per: f.per })}>
-            <span className="grow" style={{ fontWeight: 600, fontSize: 15 }}>{f.name}</span>
-            <span className="small muted">{f.portion}g</span>
-          </button>
-        ))}
-      </div>
-      <h3 className="heading" style={{ fontSize: 17 }}>{t('quickAdd')}</h3>
-      <input className="input" placeholder={t('quickName')} value={custom.name} onChange={(e) => setCustom({ ...custom, name: e.target.value })} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
-        {(['kcal', 'protein', 'carbs', 'fat'] as const).map((k) => (
-          <label key={k} className="field"><span className="caption">{k === 'kcal' ? t('kcal') : t(k)}</span>
-            <input className="input" style={{ padding: '0 10px' }} type="text" inputMode="decimal" value={custom[k]} onChange={(e) => setCustom({ ...custom, [k]: e.target.value })} /></label>
-        ))}
-      </div>
-      <button className="btn green block" disabled={!custom.name.trim() || custom.kcal === ''}
-        onClick={() => { onAdd({ id: uid(), name: custom.name.trim(), amount: 1, unit: 'serving', per: { kcal: +custom.kcal || 0, protein: +custom.protein || 0, carbs: +custom.carbs || 0, fat: +custom.fat || 0, fibre: 0, sugar: 0 } }); setCustom({ name: '', kcal: '', protein: '', carbs: '', fat: '' }) }}>
-        {t('add')}
-      </button>
-    </Sheet>
   )
 }

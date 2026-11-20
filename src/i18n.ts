@@ -105,7 +105,7 @@ const en = {
   fromRecipe: 'From a recipe', searchFoods: 'Search foods', quickAdd: 'Quick add', barcode: 'Barcode', photoScan: 'Scan a photo',
   comingSoon: 'Coming in the next version', searchPh: 'Search foods, e.g. banana', noResults: 'Nothing found. Try Quick add instead.',
   howMuch: 'How much?', servingsEaten: 'Servings eaten', whichMeal: 'Which meal?', addToMeal: 'Add to {meal}',
-  quickName: 'What was it?', enterBarcode: 'Barcode number', lookUp: 'Look it up', notFound: 'We couldn’t find that one. Try Quick add.',
+  quickName: 'What was it?', enterBarcode: 'Barcode number', lookUp: 'Look it up', barcodePh: 'Type the barcode number', notFound: 'We couldn’t find that one. Try Quick add.',
   lookingUp: 'Looking it up…', foodData: 'Food data from Open Food Facts', approx: 'Typical values',
   per100: 'per 100g', grams: 'Grams',
 
@@ -259,7 +259,7 @@ const pl: Dict = {
   fromRecipe: 'Z przepisu', searchFoods: 'Szukaj produktów', quickAdd: 'Szybkie dodawanie', barcode: 'Kod kreskowy', photoScan: 'Skanuj zdjęcie',
   comingSoon: 'W następnej wersji', searchPh: 'Szukaj, np. banan', noResults: 'Nic nie znaleziono. Spróbuj szybkiego dodawania.',
   howMuch: 'Ile?', servingsEaten: 'Zjedzone porcje', whichMeal: 'Który posiłek?', addToMeal: 'Dodaj do: {meal}',
-  quickName: 'Co to było?', enterBarcode: 'Numer kodu kreskowego', lookUp: 'Wyszukaj', notFound: 'Nie znalazłyśmy tego produktu. Spróbuj szybkiego dodawania.',
+  quickName: 'Co to było?', enterBarcode: 'Numer kodu kreskowego', lookUp: 'Wyszukaj', barcodePh: 'Wpisz numer kodu', notFound: 'Nie znalazłyśmy tego produktu. Spróbuj szybkiego dodawania.',
   lookingUp: 'Szukam…', foodData: 'Dane z Open Food Facts', approx: 'Typowe wartości',
   per100: 'na 100g', grams: 'Gramy',
 

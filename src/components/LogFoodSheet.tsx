@@ -9,9 +9,10 @@ import { uid } from '../lib/util'
 import { BarcodeScanner } from './BarcodeScanner'
 import { scanMeal, scanMealText, type ScannedItem } from '../lib/ai'
 import { checkAgainstFoodData, recipeItems } from '../lib/matchFood'
-import { foodByBarcode, rememberFood } from '../lib/foodDb'
+import { lookupBarcode } from '../lib/barcode'
 import { IngredientForm, IngredientRow, MealHeader } from './MealParts'
 import { VoiceLog } from './VoiceLog'
+import { AddItemSheet } from './AddItemSheet'
 import { itemMacros, sumItems } from '../lib/nutrition'
 import { Icon, PhotoButton, Sheet, Stepper, Thumb, toast, type IconName } from './ui'
 
@@ -30,6 +31,7 @@ export default function LogFoodSheet() {
   const [tab, setTab] = useState<'all' | 'food' | 'recipe'>('all')
   const [busy, setBusy] = useState(false)
   const [focusSearch, setFocusSearch] = useState(false)
+  const [addingMore, setAddingMore] = useState(false)
   const [again, setAgain] = useState<LogEntry | null>(null)
   const [recipeId, setRecipeId] = useState<string | null>(null)
   const [servings, setServings] = useState(1)
@@ -136,33 +138,11 @@ export default function LogFoodSheet() {
 
   const lookUp = async (c: string = code) => {
     setLookup('loading')
-    // Our own database first: no outside lookup needed if anyone has scanned this before.
-    const mine = await foodByBarcode(c)
-    if (mine) {
-      setPicked({ name: mine.name, per: mine.per, portion: mine.portion, source: t('ourFoodData') })
-      setGrams(String(Math.round(mine.portion)))
-      setLookup('idle')
-      rememberFood({ name: mine.name, per: mine.per, portion: mine.portion, barcode: c.trim(), source: mine.source }, t.lang)
-      return
-    }
-    try {
-      const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(c.trim())}.json?fields=product_name,brands,nutriments,serving_quantity`)
-      const data = await res.json()
-      const n = data?.product?.nutriments
-      if (!data?.product || !n || n['energy-kcal_100g'] === undefined) { setLookup('notfound'); setTyping(true); return }
-      const name = [data.product.brands?.split(',')[0], data.product.product_name].filter(Boolean).join(' ') || c
-      setPicked({
-        name,
-        per: { kcal: +n['energy-kcal_100g'] || 0, protein: +n.proteins_100g || 0, carbs: +n.carbohydrates_100g || 0, fat: +n.fat_100g || 0, fibre: +n.fiber_100g || 0, sugar: +n.sugars_100g || 0 },
-        portion: +data.product.serving_quantity || 100,
-        source: t('foodData'),
-      })
-      setGrams(String(Math.round(+data.product.serving_quantity || 100)))
-      setLookup('idle')
-      rememberFood({ name, per: { kcal: +n['energy-kcal_100g'] || 0, protein: +n.proteins_100g || 0, carbs: +n.carbohydrates_100g || 0, fat: +n.fat_100g || 0, fibre: +n.fiber_100g || 0, sugar: +n.sugars_100g || 0 }, portion: +data.product.serving_quantity || 100, barcode: c.trim(), source: 'barcode' }, t.lang)
-    } catch {
-      setLookup('notfound'); setTyping(true)
-    }
+    const f = await lookupBarcode(c, t.lang)
+    if (!f) { setLookup('notfound'); setTyping(true); return }
+    setPicked({ name: f.name, per: f.per, portion: f.portion, source: f.mine ? t('ourFoodData') : t('foodData') })
+    setGrams(String(Math.round(f.portion)))
+    setLookup('idle')
   }
 
   const onScan = useCallback((c: string) => { setCode(c); lookUp(c) }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -389,6 +369,8 @@ export default function LogFoodSheet() {
           <div className="card tight">
             {scan.items.map((i) => <IngredientRow key={i.id} item={i} onOpen={() => setEditId(i.id)} />)}
           </div>
+          <button className="dashed" onClick={() => setAddingMore(true)}><Icon name="plus" size={20} />{t('addSomething')}</button>
+          <AddItemSheet open={addingMore} onClose={() => setAddingMore(false)} onAdd={(more) => { setScan({ ...scan, items: [...scan.items, ...more] }); setAddingMore(false) }} />
           <div className="between"><span className="label">{t('total')}</span><b>{Math.round(scanFoods.reduce((a, f) => a + itemMacros(f).kcal, 0))} {t('kcal')}</b></div>
           {mealChips}
           <button className="btn primary block" disabled={!scanFoods.length} onClick={() => save(scan.name.trim() || t('photoScan'), scanFoods, scan.photo ? { photo: scan.photo } : undefined)}>
