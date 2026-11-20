@@ -10,7 +10,7 @@ import { prefetchFoods, rememberFood, savedFood } from './foodDb'
 import { scanMealText } from './ai'
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l')
-const FILLER = new Set(['fresh', 'freshly', 'large', 'small', 'medium', 'big', 'ripe', 'whole', 'extra', 'virgin', 'finely', 'roughly', 'thinly', 'chopped', 'grated', 'sliced', 'diced', 'crushed', 'minced', 'peeled', 'halved', 'of', 'a', 'an', 'the', 'and', 'with', 'some', 'little', 'bit', 'handful', 'pinch', 'good', 'quality', 'to', 'taste', 'optional', 'heaped', 'level'])
+const FILLER = new Set(['raw', 'fresh', 'freshly', 'large', 'small', 'medium', 'big', 'ripe', 'whole', 'extra', 'virgin', 'finely', 'roughly', 'thinly', 'chopped', 'grated', 'sliced', 'diced', 'crushed', 'minced', 'peeled', 'halved', 'of', 'a', 'an', 'the', 'and', 'with', 'some', 'little', 'bit', 'handful', 'pinch', 'good', 'quality', 'to', 'taste', 'optional', 'heaped', 'level'])
 const ALIASES: Record<string, string> = { hummus: 'houmous', zucchini: 'courgette', eggplant: 'aubergine', cilantro: 'coriander', yoghurt: 'yogurt', fries: 'chips', mayo: 'mayonnaise', scallion: 'spring', scallions: 'spring' }
 
 function tokensOf(name: string): string[] {
