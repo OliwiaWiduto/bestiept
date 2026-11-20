@@ -98,6 +98,25 @@ export default function Shopping() {
     })
     setShopping({ hidden: [...nextHidden], extras: [...keep, ...added] })
   }
+  // Take everything in the basket off the list (planned items are hidden for this week, added ones deleted), with Undo.
+  const [finishOpen, setFinishOpen] = useState(false)
+  const clearBought = (finish = false) => {
+    const before = { hidden: shopping.hidden ?? [], extras: shopping.extras, ticked: shopping.ticked, shoppingMode: shopping.shoppingMode }
+    const keys = inBasket.map((i) => i.key)
+    const ticked = { ...shopping.ticked }
+    for (const k of keys) delete ticked[tk(k)]
+    const nextHidden = new Set(shopping.hidden ?? [])
+    for (const k of keys) if (!k.startsWith('extra:')) nextHidden.add(`${planWeek}:${k}`)
+    setShopping({
+      ticked,
+      hidden: [...nextHidden],
+      extras: shopping.extras.filter((e) => !keys.includes(`extra:${e.id}`)),
+      ...(finish ? { shoppingMode: false } : {}),
+    })
+    setFinishOpen(false)
+    window.scrollTo(0, 0)
+    toast(t('clearedN', { n: keys.length }), { label: t('undo'), run: () => setShopping(before) })
+  }
   const basketOpen = useUI((u) => u.basketOpen)
   const setBasketOpen = useUI((u) => u.setBasketOpen)
   const setBasketCount = useUI((u) => u.setBasketCount)
@@ -181,7 +200,12 @@ export default function Shopping() {
           <span className="small muted">{t('listHint')}</span>
           <LineEditor value={text} onChange={setText} onFocus={() => { editing.current = true }} onDone={commit}
             struck={(l) => bought.has(l)} placeholder={t('listPh')} label={t('shopping')} />
-          {inBasket.length > 0 && <span className="caption">{t('boughtHint', { n: inBasket.length })}</span>}
+          {inBasket.length > 0 && (
+            <div className="between" style={{ gap: 12 }}>
+              <span className="caption">{t('boughtHint', { n: inBasket.length })}</span>
+              <button className="btn ghost small" style={{ border: 'none', padding: '0 4px', flex: 'none' }} onClick={() => clearBought()}>{t('clearBoughtN', { n: inBasket.length })}</button>
+            </div>
+          )}
         </section>
       )}
 
@@ -220,9 +244,14 @@ export default function Shopping() {
       {shoppingNow && (
         <div className="row" style={{ justifyContent: 'center', gap: 8 }}>
           <button className="btn ghost small" style={{ border: 'none' }} onClick={() => setShopping({ shoppingMode: false })}><Icon name="edit" size={16} />{t('editList')}</button>
-          <button className="btn secondary small" onClick={() => { setShopping({ shoppingMode: false }); toast(t('shopDone')) }}>{t('finishShopping')}</button>
+          <button className="btn secondary small" onClick={() => (done ? setFinishOpen(true) : setShopping({ shoppingMode: false }))}>{t('clearBasket')}</button>
         </div>
       )}
+      <Sheet open={finishOpen} onClose={() => setFinishOpen(false)} title={t('doneShoppingQ')}>
+        <p style={{ margin: 0 }}>{t('finishBody', { n: done })} {allKeys.length - done > 0 && t('stillToGet', { n: allKeys.length - done })}</p>
+        <button className="btn primary block" onClick={() => clearBought(true)}>{t('clearAndFinish')}</button>
+        <button className="btn ghost block" style={{ border: 'none' }} onClick={() => { setFinishOpen(false); setShopping({ shoppingMode: false }) }}>{t('keepCrossed')}</button>
+      </Sheet>
       <Sheet open={basketOpen} onClose={() => setBasketOpen(false)} title={t('basketTitle')}>
         {inBasket.length === 0 ? <p className="muted" style={{ margin: 0 }}>{t('basketEmpty')}</p> : (
           <>
