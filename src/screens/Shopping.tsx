@@ -3,7 +3,7 @@ import { useStore } from '../store'
 import { useRecipes } from '../lib/recipeLang'
 import { useUI } from '../ui-state'
 import { useT } from '../i18n'
-import { addDays, fmt, today, weekDays, weekStart } from '../lib/dates'
+import { fmt, today, weekDays, weekStart } from '../lib/dates'
 import { buildList, categorise, CATEGORIES, CATEGORY_ICON, DEFAULT_STAPLES, DEFAULT_STAPLES_PL, displayAmount, staplesIn, type ShoppingLine } from '../lib/shopping'
 import { formatAmount, parseIngredient, uid } from '../lib/util'
 import { Icon, Sheet, toast } from '../components/ui'
@@ -41,9 +41,8 @@ export default function Shopping() {
   const t = useT()
   const { plan, shopping, setShopping } = useStore()
   const recipes = useRecipes()
-  const { planWeek, setPlanWeek } = useUI()
+  const planWeek = weekStart(today())
   const days = weekDays(planWeek)
-  const thisWeek = weekStart(today())
   const weekPlan = useMemo(() => plan.filter((p) => days.includes(p.date)), [plan, days])
   const family = useFamilyLists(planWeek)
   const [skip, setSkip] = useState<Record<string, boolean>>({})
@@ -161,10 +160,6 @@ export default function Shopping() {
           <span className="eyebrow">{t('forWeek', { range })}</span>
           <h1 className="display">{t('shopping')}</h1>
         </div>
-        <button className="icon-btn" style={{ marginBottom: 6 }} aria-label={planWeek === thisWeek ? t('nextWeek') : t('thisWeek')}
-          onClick={() => setPlanWeek(planWeek === thisWeek ? addDays(thisWeek, 7) : thisWeek)}>
-          <Icon name={planWeek === thisWeek ? 'forward' : 'back'} />
-        </button>
       </div>
       {!shoppingNow && (
         <button className="btn primary block" disabled={text.trim() === ''} onClick={() => { commit(); setShopping({ shoppingMode: true }); window.scrollTo(0, 0) }}>
