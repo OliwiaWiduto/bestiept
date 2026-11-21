@@ -11,6 +11,7 @@ import { usePhoto } from '../lib/sync'
 import { importRecipe } from '../lib/ai'
 import { BackButton, Icon, MacroGrid, PhotoButton, Sheet, Stepper, toast } from '../components/ui'
 import { MealHeader } from '../components/MealParts'
+import { SortableList } from '../components/SortableList'
 
 const MAX_SHOTS = 6
 const ingLine = (i: Ingredient) => [i.amount !== null ? formatAmount(i.amount) : '', i.unit, i.name].filter(Boolean).join(' ').replace(/^(\S+) (g|kg|ml|l) /, '$1$2 ')
@@ -148,12 +149,18 @@ export default function RecipeEdit() {
         <h2 className="heading">{t('method')}</h2>
         {steps.length > 0 && (
           <div className="card tight">
-            {steps.map((s, i) => (
-              <button key={i} className="list-row" style={{ ...rowStyle, alignItems: 'flex-start' }} aria-label={`${t('editStep')} ${i + 1}`} onClick={() => setOpen({ kind: 'step', index: i })}>
-                <span className="tag" style={{ height: 24, minWidth: 24, justifyContent: 'center', flex: 'none' }}>{i + 1}</span>
-                <span className="grow" style={{ fontSize: 15, lineHeight: '22px' }}>{s}</span>
-              </button>
-            ))}
+            <SortableList items={steps} keyOf={(s, i) => `${i}:${s.slice(0, 20)}`} handleLabel={(i) => t('moveStep', { n: i + 1 })}
+              onMove={(from, to) => { const next = [...steps]; const [x] = next.splice(from, 1); next.splice(to, 0, x); setSteps(next) }}
+              render={(s, i, handle) => (
+                <div className="list-row" style={{ ...rowStyle, alignItems: 'flex-start', padding: 0, gap: 0, borderBottom: i === steps.length - 1 ? 'none' : rowStyle.borderBottom }}>
+                  <button style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flex: 1, minWidth: 0, background: 'none', border: 'none', textAlign: 'left', padding: '14px 0' }}
+                    aria-label={`${t('editStep')} ${i + 1}`} onClick={() => setOpen({ kind: 'step', index: i })}>
+                    <span className="tag" style={{ height: 24, minWidth: 24, justifyContent: 'center', flex: 'none' }}>{i + 1}</span>
+                    <span className="grow" style={{ fontSize: 15, lineHeight: '22px', color: 'var(--ink)' }}>{s}</span>
+                  </button>
+                  {steps.length > 1 && handle}
+                </div>
+              )} />
           </div>
         )}
         <button className="dashed" onClick={() => setOpen({ kind: 'step', index: null })}><Icon name="plus" size={20} />{t('addStep')}</button>

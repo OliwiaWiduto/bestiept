@@ -317,3 +317,5 @@ input[type=number] { -moz-appearance: textfield; }
 .line-editor input:focus { outline: none; }
 .line-editor:focus-within { border-color: var(--cherry); }
 .line-editor input.struck { text-decoration: line-through; text-decoration-thickness: 2px; color: var(--ink-muted); }
+.drag-handle { flex: none; width: 44px; align-self: stretch; display: grid; place-items: center; color: var(--ink-muted); touch-action: none; cursor: grab; }
+.drag-handle:active { cursor: grabbing; color: var(--cherry); }
