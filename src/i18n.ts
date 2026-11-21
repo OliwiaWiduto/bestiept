@@ -113,7 +113,7 @@ const en = {
   yourMeal: 'Your meal', whatsIn: 'What’s in it', addSomething: 'Add something we missed', addHint: 'Cooked it in oil? Add it here, it counts.',
   saveTo: 'Save to {meal}', deleteMeal: 'Delete this meal', addPhoto: 'Add a photo', changePhoto: 'Change photo', ingredientsN: '{n} ingredients', itemName: 'Name',
 
-  recipes: 'Recipes', all: 'All', favourites: 'Favourites', searchRecipes: 'Search recipes or ingredients', addRecipe: 'Add a recipe',
+  recipes: 'Recipes', all: 'All', favourites: 'Favourites', highProtein: 'High protein', searchRecipes: 'Search recipes or ingredients', addRecipe: 'Add a recipe',
   emptyRecipes: 'Nothing here yet. Add a recipe you love and we’ll save it.', minutes: '{n} min', stepsN: '{n} steps',
   perServing: 'kcal per serving', servings: 'Servings', ingredients: 'Ingredients', alsoNeed: 'You’ll also need', method: 'Method',
   addToPlan: 'Add to plan', startCooking: 'Start cooking', deleteRecipe: 'Delete recipe', confirmDeleteRecipe: 'Delete this recipe? This can’t be undone.',
@@ -268,7 +268,7 @@ const pl: Dict = {
   yourMeal: 'Twój posiłek', whatsIn: 'Co w nim jest', addSomething: 'Dodaj coś, co pominęłyśmy', addHint: 'Smażone na oleju? Dodaj go tutaj, to się liczy.',
   saveTo: 'Zapisz: {meal}', deleteMeal: 'Usuń ten posiłek', addPhoto: 'Dodaj zdjęcie', changePhoto: 'Zmień zdjęcie', ingredientsN: 'Składniki: {n}', itemName: 'Nazwa',
 
-  recipes: 'Przepisy', all: 'Wszystkie', favourites: 'Ulubione', searchRecipes: 'Szukaj przepisów lub składników', addRecipe: 'Dodaj przepis',
+  recipes: 'Przepisy', all: 'Wszystkie', favourites: 'Ulubione', highProtein: 'Dużo białka', searchRecipes: 'Szukaj przepisów lub składników', addRecipe: 'Dodaj przepis',
   emptyRecipes: 'Na razie pusto. Dodaj przepis, który kochasz, a my go zapiszemy.', minutes: '{n} min', stepsN: 'Kroki: {n}',
   perServing: 'kcal na porcję', servings: 'Porcje', ingredients: 'Składniki', alsoNeed: 'Przyda się też', method: 'Przygotowanie',
   addToPlan: 'Dodaj do planu', startCooking: 'Zacznij gotować', deleteRecipe: 'Usuń przepis', confirmDeleteRecipe: 'Usunąć ten przepis? Nie da się tego cofnąć.',

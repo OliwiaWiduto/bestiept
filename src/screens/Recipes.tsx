@@ -10,7 +10,14 @@ import { missingSamples } from '../lib/samples'
 import { foodArt } from '../lib/art'
 import { personName, useFamily } from '../lib/family'
 
-type Filter = 'all' | 'fav' | Meal
+type Filter = 'all' | 'fav' | 'protein' | Meal
+
+// One serving: at least 20g protein (10g for snacks) and at least 25% of calories from protein.
+function highProtein(r: Recipe) {
+  const n = r.nutrition
+  if (!n || !n.kcal || !n.protein) return false
+  return n.protein >= (r.category === 'snack' ? 10 : 20) && (n.protein * 4) / n.kcal >= 0.25
+}
 
 export default function Recipes() {
   const t = useT()
@@ -27,7 +34,7 @@ export default function Recipes() {
   const list = useMemo(() => {
     const query = q.trim().toLowerCase()
     return recipes
-      .filter((r) => filter === 'all' || (filter === 'fav' ? r.favourite : r.category === filter))
+      .filter((r) => filter === 'all' || (filter === 'fav' ? r.favourite : filter === 'protein' ? highProtein(r) : r.category === filter))
       .filter((r) => !query || r.title.toLowerCase().includes(query) || r.ingredients.some((i) => i.name.toLowerCase().includes(query)))
       .sort((a, b) => b.createdAt - a.createdAt)
   }, [recipes, filter, q])
@@ -51,6 +58,7 @@ export default function Recipes() {
       <div className="chips scroll" role="group" aria-label="Filter">
         <button className="chip" aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>{t('all')}</button>
         <button className="chip" aria-pressed={filter === 'fav'} onClick={() => setFilter('fav')}><Icon name="heart" size={14} fill />&nbsp;{t('favourites')}</button>
+        <button className="chip" aria-pressed={filter === 'protein'} onClick={() => setFilter('protein')}>{t('highProtein')}</button>
         {MEALS.map((m) => <button key={m} className="chip" aria-pressed={filter === m} onClick={() => setFilter(m)}>{t(m)}</button>)}
       </div>
 
