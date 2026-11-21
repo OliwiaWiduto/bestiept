@@ -1,4 +1,5 @@
 import type { Ingredient } from '../types'
+import { parseIngredient } from './util'
 
 const PIECE: [RegExp, number][] = [
   [/aubergine|eggplant|bakłażan/, 300], [/egg|jajk|jaj/, 50], [/spring onion|scallion|dymk/, 15], [/onion|cebul/, 150], [/shallot|szalotk/, 30], [/garlic|czosn/, 5], [/lemongrass|trawa cytrynowa/, 20], [/lemon|cytryn/, 100], [/lime|limonk/, 70],
@@ -19,6 +20,8 @@ const UNIT_G: Record<string, number> = { g: 1, kg: 1000, ml: 1, l: 1000, tsp: 5,
 
 /** How many grams an ingredient line is, roughly. */
 export function ingredientGrams(i: Ingredient): number {
+  // Recipes saved before we knew a unit ("2 tablespoons olive oil" kept as 2 × "tablespoons olive oil") are read again.
+  if (!i.unit && i.amount !== null) { const again = parseIngredient(`${i.amount} ${i.name}`); if (again.unit) i = { ...i, unit: again.unit, amount: again.amount, name: again.name } }
   const unit = i.unit.toLowerCase()
   if (i.amount === null) return /salt|sól|pepper|pieprz|spice|przypraw|herb|zioł/i.test(i.name) ? 1 : 10
   const n = i.name.toLowerCase()

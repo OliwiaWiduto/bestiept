@@ -37,3 +37,5 @@ const grams: [string, number, number][] = [
 let badG = 0
 for (const [l, lo, hi] of grams) { const g = ingredientGrams(parseIngredient(l)); if (g < lo || g > hi) { badG++; console.log('BAD grams', l, '->', g) } }
 console.log(badG ? 'FAILED ' + badG : 'ok', 'of', grams.length, 'amounts'); if (badG) process.exit(1)
+// An old recipe line saved before the unit was known
+if (ingredientGrams({ id: 'x', amount: 2, unit: '', name: 'tablespoons olive oil' }) !== 30) { console.log('FAILED old unit line'); process.exit(1) }
