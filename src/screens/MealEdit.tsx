@@ -17,7 +17,7 @@ export default function MealEdit() {
   const [draft, setDraft] = useState<LogEntry | null>(original ?? null)
   const [adding, setAdding] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
-  if (!draft) return <main className="screen"><BackButton to="/" /></main>
+  if (!draft) return <main className="screen"><div className="row"><BackButton to="/" /></div><p className="muted">{t('notHere')}</p></main>
 
   const totals = sumItems(draft.items)
   const editing = draft.items.find((i) => i.id === editId)

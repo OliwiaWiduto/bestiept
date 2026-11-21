@@ -88,6 +88,8 @@ const en = {
   listHint: 'Everything from your plan is here. Add, change or delete anything, one item per line.', listPh: 'One thing per line, e.g. 2 lemons', allInBasket: 'Everything’s in the basket. Nice one!', startShopping: 'Start shopping', editList: 'Edit list', finishShopping: 'Finish shopping', shopDone: 'Shopping done', basketTitle: 'In your basket', basketEmpty: 'Tick things off and they’ll land here.', basketHint: 'Tap anything to put it back on the list.', boughtHint: '{n} crossed out = already in your basket.',
   clearBasket: 'Clear basket', doneShoppingQ: 'Done shopping?', finishBody: 'You got {n} things. Clear them off your list?', stillToGet: '{n} still left to get.', clearAndFinish: 'Clear and finish', keepCrossed: 'Keep them crossed out', clearBoughtN: 'Clear {n} bought', clearedN: 'Cleared {n} items',
   recalcHint: 'Works out calories and macros again for all your recipes from their ingredients, using our food data first.', recalcAll: 'Recalculate all recipes', recalcProgress: 'Working it out… {n} of {t}', recalcDone: 'Updated {n} recipes',
+  yourMonth: 'Your month', summaryFew: 'A good start. Log a few more days to see your pattern.', monthSummaryEmpty: 'Nothing logged this month yet. Start whenever you’re ready.',
+  notHere: 'This isn’t here any more. It may have been deleted on another device.',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -149,8 +151,8 @@ const en = {
   itemsN: '{n} items', itemN: '{n} item',
 
   trends: 'Trends', week: 'Week', month: 'Month', avgDay: 'Average a day', onTarget: '{n} of {t} days on target', weightTrend: 'Weight',
-  noWeight: 'Log a few weigh-ins to see your trend.', yourWeek: 'Your week', weekSummaryGood: 'Really good week. Keep doing what you’re doing.',
-  weekSummaryOk: 'Solid week. Every logged day counts.', weekSummaryEmpty: 'Nothing logged this week yet. Start whenever you’re ready.', target: 'target',
+  noWeight: 'Log a few weigh-ins to see your trend.', yourWeek: 'Your week', weekSummaryGood: 'Really good going. Keep doing what you’re doing.',
+  weekSummaryOk: 'Steady going. Every logged day counts.', weekSummaryEmpty: 'Nothing logged this week yet. Start whenever you’re ready.', target: 'target',
 
   language: 'Language', english: 'English', polish: 'Polski', yourDetails: 'Your details', recalc: 'Recalculate my targets',
   dailyTargets: 'Daily targets', staples: 'Cupboard staples', staplesSettingsHint: 'Things you always have. One per line.',
@@ -185,7 +187,7 @@ const pl: Dict = {
   next: 'Dalej', continue: 'Dalej', skip: 'Pomiń', kcal: 'kcal', g: 'g', remove: 'Usuń', search: 'Szukaj',
 
   breakfast: 'Śniadanie', lunch: 'Obiad', dinner: 'Kolacja', snack: 'Przekąska',
-  calories: 'Kalorie', protein: 'Białko', carbs: 'Węglowodany', fat: 'Tłuszcz', fibre: 'Błonnik', sugar: 'Cukier', limit: 'limit',
+  calories: 'Kalorie', protein: 'Białko', carbs: 'Węglo\u00ADwodany', fat: 'Tłuszcz', fibre: 'Błonnik', sugar: 'Cukier', limit: 'limit',
 
   navToday: 'Dziś', navRecipes: 'Przepisy', navPlan: 'Plan', navShopping: 'Zakupy', logFood: 'Dodaj posiłek', settings: 'Ustawienia',
 
@@ -243,6 +245,8 @@ const pl: Dict = {
   listHint: 'Tu jest wszystko z Twojego planu. Dodawaj, zmieniaj lub usuwaj, jedna rzecz w linii.', listPh: 'Jedna rzecz w linii, np. 2 cytryny', allInBasket: 'Wszystko w koszyku. Brawo!', startShopping: 'Zacznij zakupy', editList: 'Edytuj listę', finishShopping: 'Koniec zakupów', shopDone: 'Zakupy zrobione', basketTitle: 'W koszyku', basketEmpty: 'Odhaczaj rzeczy, a wylądują tutaj.', basketHint: 'Kliknij, żeby odłożyć z powrotem na listę.', boughtHint: 'Przekreślone ({n}) są już w koszyku.',
   clearBasket: 'Opróżnij koszyk', doneShoppingQ: 'Koniec zakupów?', finishBody: 'Masz już {n} rzeczy. Usunąć je z listy?', stillToGet: 'Zostało jeszcze: {n}.', clearAndFinish: 'Usuń i zakończ', keepCrossed: 'Zostaw przekreślone', clearBoughtN: 'Usuń kupione ({n})', clearedN: 'Usunięto: {n}',
   recalcHint: 'Ponownie liczy kalorie i makro dla wszystkich Twoich przepisów ze składników, najpierw z naszej bazy.', recalcAll: 'Przelicz wszystkie przepisy', recalcProgress: 'Liczę… {n} z {t}', recalcDone: 'Zaktualizowano przepisy: {n}',
+  yourMonth: 'Twój miesiąc', summaryFew: 'Dobry początek. Zapisz jeszcze kilka dni, żeby zobaczyć, jak Ci idzie.', monthSummaryEmpty: 'W tym miesiącu jeszcze nic. Zacznij, kiedy chcesz.',
+  notHere: 'Tego już tu nie ma. Może zostało usunięte na innym urządzeniu.',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 
@@ -304,8 +308,8 @@ const pl: Dict = {
   itemsN: 'Produkty: {n}', itemN: 'Produkty: {n}',
 
   trends: 'Trendy', week: 'Tydzień', month: 'Miesiąc', avgDay: 'Średnio dziennie', onTarget: 'Dni w celu: {n} z {t}', weightTrend: 'Waga',
-  noWeight: 'Zapisz kilka ważeń, żeby zobaczyć trend.', yourWeek: 'Twój tydzień', weekSummaryGood: 'Świetny tydzień. Tak trzymaj.',
-  weekSummaryOk: 'Solidny tydzień. Każdy zapisany dzień się liczy.', weekSummaryEmpty: 'W tym tygodniu jeszcze nic. Zacznij, kiedy chcesz.', target: 'cel',
+  noWeight: 'Zapisz kilka ważeń, żeby zobaczyć trend.', yourWeek: 'Twój tydzień', weekSummaryGood: 'Świetnie Ci idzie. Tak trzymaj.',
+  weekSummaryOk: 'Idzie Ci równo. Każdy zapisany dzień się liczy.', weekSummaryEmpty: 'W tym tygodniu jeszcze nic. Zacznij, kiedy chcesz.', target: 'cel',
 
   language: 'Język', english: 'English', polish: 'Polski', yourDetails: 'Twoje dane', recalc: 'Przelicz moje cele',
   dailyTargets: 'Dzienne cele', staples: 'Podstawowe produkty', staplesSettingsHint: 'Rzeczy, które zawsze masz. Każda w nowej linii.',

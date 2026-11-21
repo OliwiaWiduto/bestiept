@@ -86,11 +86,17 @@ export default function RecipeEdit() {
   const save = () => {
     if (!title.trim()) { toast(t('titleNeeded')); return }
     const rid = existing?.id ?? uid()
+    const cleanIngs = ings.filter((i) => i.name.trim())
+    const cleanSteps = steps.map((s) => s.trim()).filter(Boolean)
+    // A translation only stays while the words it was made from are the same.
+    const sameText = !!existing && existing.title === title.trim() && JSON.stringify(existing.steps) === JSON.stringify(cleanSteps)
+      && JSON.stringify(existing.ingredients.map((i) => i.name)) === JSON.stringify(cleanIngs.map((i) => i.name)) && JSON.stringify(existing.equipment) === JSON.stringify(equip)
     saveRecipe({
+      ownerId: existing?.ownerId, tr: sameText ? existing?.tr : existing ? {} : undefined,
       id: rid, title: title.trim(), category, servings, minutes: Number(minutes) || undefined, source: source.trim() || undefined, photo,
       favourite: existing?.favourite ?? false, createdAt: existing?.createdAt ?? Date.now(),
-      ingredients: ings.filter((i) => i.name.trim()),
-      steps: steps.map((s) => s.trim()).filter(Boolean),
+      ingredients: cleanIngs,
+      steps: cleanSteps,
       equipment: equip,
       nutrition,
       lang: existing ? recipeLang(existing) : t.lang,

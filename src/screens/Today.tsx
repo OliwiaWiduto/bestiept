@@ -80,7 +80,7 @@ export default function Today() {
             <span className="number-hero" style={{ color: over ? 'var(--cherry)' : 'var(--lime)' }}>{over ? '+' : ''}{Math.abs(Math.round(left))}</span>
             <span className="label" style={{ fontWeight: over ? 600 : 500 }}>{over ? t('kcalOver') : t('kcalLeft')}</span>
           </div>
-          <span className="label" style={{ fontWeight: 400 }}><b>{Math.round(totals.kcal).toLocaleString()}</b> / {targets.kcal.toLocaleString()}</span>
+          <span className="label" style={{ fontWeight: 400 }}><b>{Math.round(totals.kcal)}</b> / {targets.kcal}</span>
         </div>
         <div role="img" aria-label={`${Math.round(totals.kcal)} / ${targets.kcal} ${t('kcal')}`} style={{ height: 20, borderRadius: 999, background: over ? 'rgba(213, 0, 66, .14)' : 'var(--green-deep)', overflow: 'hidden', display: 'flex', gap: over ? 3 : 0 }}>
           <div style={{ width: `${over ? (targets.kcal / totals.kcal) * 100 : Math.min(100, (totals.kcal / targets.kcal) * 100)}%`, height: '100%', borderRadius: 999, background: over ? '#fff' : 'var(--on-green)', transition: 'width .3s' }} />

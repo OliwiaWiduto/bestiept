@@ -25,3 +25,15 @@ for (const [n, lo, hi] of tests) {
   if (!ok) { bad++; console.log('BAD', n, '->', kcal, row ? String(row[0]).slice(0,40) : '') }
 }
 console.log(bad ? 'FAILED ' + bad : 'ok', 'of', tests.length); if (bad) process.exit(1)
+
+// How many grams a recipe line comes to, roughly.
+import { parseIngredient } from '../src/lib/util'
+import { ingredientGrams } from '../src/lib/grams'
+const grams: [string, number, number][] = [
+  ['2 tablespoons olive oil', 25, 35], ['1 teaspoon salt', 4, 6], ['8 oz cream cheese', 220, 235], ['1 lb chicken thighs', 440, 470], ['2-3 garlic cloves', 10, 15],
+  ['1 1/2 cups flour', 170, 200], ['1 cup rolled oats', 80, 100], ['1 cup milk', 230, 250], ['2 cups spinach', 50, 70], ['1 eggplant', 250, 350], ['3 spring onions', 30, 60],
+  ['1 onion', 120, 180], ['2 x 400g tins chickpeas', 800, 800], ['2 eggs', 90, 110], ['1 stick butter', 110, 116], ['2 szklanki mąki', 240, 260], ['3 łyżek oliwy', 40, 50],
+]
+let badG = 0
+for (const [l, lo, hi] of grams) { const g = ingredientGrams(parseIngredient(l)); if (g < lo || g > hi) { badG++; console.log('BAD grams', l, '->', g) } }
+console.log(badG ? 'FAILED ' + badG : 'ok', 'of', grams.length, 'amounts'); if (badG) process.exit(1)

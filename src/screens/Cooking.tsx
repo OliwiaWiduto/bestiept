@@ -187,7 +187,7 @@ export default function Cooking() {
   }, [cam, stage])
 
   const allIngs = useMemo(() => r?.ingredients ?? [], [r])
-  if (!r) return <main className="cooking"><button className="icon-btn" onClick={() => nav('/recipes')}><Icon name="close" /></button></main>
+  if (!r) return <main className="cooking"><button className="icon-btn" onClick={() => nav('/recipes')}><Icon name="close" /></button><p style={{ marginTop: 24 }}>{t('notHere')}</p></main>
 
   const current = r.steps[step] ?? ''
   const needs = stepIngredients(current, allIngs, r.steps.slice(0, step))

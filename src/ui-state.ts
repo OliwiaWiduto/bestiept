@@ -40,3 +40,22 @@ export function defaultMeal(): Meal {
   if (h < 21) return 'dinner'
   return 'snack'
 }
+
+// The app can stay open in the background for days. When the date changes, anything that was
+// showing "today" or "this week" moves on with it, so food isn't logged to yesterday by mistake.
+let lastDay = today()
+export function rollDay() {
+  const now = today()
+  if (now === lastDay) return
+  const { viewDate, planWeek } = useUI.getState()
+  useUI.setState({
+    ...(viewDate === lastDay ? { viewDate: now } : {}),
+    ...(planWeek === weekStart(lastDay) ? { planWeek: weekStart(now) } : {}),
+  })
+  lastDay = now
+}
+if (typeof window !== 'undefined') {
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') rollDay() })
+  window.addEventListener('focus', rollDay)
+  setInterval(rollDay, 60_000)
+}

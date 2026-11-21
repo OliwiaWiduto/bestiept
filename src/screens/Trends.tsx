@@ -15,7 +15,9 @@ export default function Trends() {
 
   const perDay = useMemo(() => days.map((d) => logs.filter((l) => l.date === d).reduce((acc, l) => add(acc, sumItems(l.items)), { ...ZERO })), [days, logs])
   if (!targets) return null
-  const logged = perDay.filter((m) => m.kcal > 0)
+  // Today is still going, so it only counts once it's on target (or when it's the only day logged).
+  const done = perDay.filter((m, i) => m.kcal > 0 && (i < range - 1 || m.kcal >= targets.kcal * 0.9))
+  const logged = done.length ? done : perDay.filter((m) => m.kcal > 0)
   const avg: Macros = logged.length ? scale(logged.reduce((a, b) => add(a, b), { ...ZERO }), 1 / logged.length) : { ...ZERO }
   const onTarget = logged.filter((m) => Math.abs(m.kcal - targets.kcal) <= targets.kcal * 0.1).length
 
@@ -33,7 +35,7 @@ export default function Trends() {
     return [(i / (span - 1)) * W, H - ((w.kg - wMin) / (wMax - wMin || 1)) * H] as const
   })
 
-  const summary = logged.length === 0 ? t('weekSummaryEmpty') : onTarget >= Math.ceil(logged.length * 0.6) ? t('weekSummaryGood') : t('weekSummaryOk')
+  const summary = logged.length === 0 ? t(range === 7 ? 'weekSummaryEmpty' : 'monthSummaryEmpty') : logged.length < 3 ? t('summaryFew') : onTarget >= Math.ceil(logged.length * 0.6) ? t('weekSummaryGood') : t('weekSummaryOk')
 
   return (
     <main className="screen">
@@ -45,7 +47,7 @@ export default function Trends() {
       </div>
 
       <section className="card green stack" style={{ gap: 8 }}>
-        <span className="label" style={{ color: 'var(--green-soft)' }}>{t('yourWeek')}</span>
+        <span className="label" style={{ color: 'var(--green-soft)' }}>{t(range === 7 ? 'yourWeek' : 'yourMonth')}</span>
         <span style={{ fontFamily: 'var(--font-display)', fontSize: 24, lineHeight: '30px', fontWeight: 700 }}>{summary}</span>
         <span className="small" style={{ color: 'var(--green-soft)' }}>{t('onTarget', { n: onTarget, t: range })}</span>
       </section>

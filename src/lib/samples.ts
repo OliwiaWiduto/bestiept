@@ -69,7 +69,16 @@ const PL: Sample[] = [
   },
 ]
 
-const asText = (s: Sample) => ({ title: s.title, ingredients: s.ingredients.map((l) => parseIngredient(l).name), steps: s.steps, equipment: s.equipment })
+// When the original line has no unit ("2 garlic cloves") keep this language's counting word in the name ("ząbki czosnku").
+const asText = (s: Sample, orig?: Sample) => ({
+  title: s.title,
+  ingredients: s.ingredients.map((l, n) => {
+    const p = parseIngredient(l)
+    const o = orig?.ingredients[n] ? parseIngredient(orig.ingredients[n]) : null
+    return o && !o.unit && p.unit && !/^(g|kg|ml|l)$/.test(p.unit) ? `${p.unit} ${p.name}` : p.name
+  }),
+  steps: s.steps, equipment: s.equipment,
+})
 
 export function sampleRecipes(lang: Lang): Recipe[] {
   const other: Lang = lang === 'pl' ? 'en' : 'pl'
@@ -81,7 +90,7 @@ export function sampleRecipes(lang: Lang): Recipe[] {
     createdAt: Date.now() - i * 1000,
     ingredients: s.ingredients.map(parseIngredient),
     lang,
-    tr: theirs[i] ? { [other]: asText(theirs[i]) } : undefined,
+    tr: theirs[i] ? { [other]: asText(theirs[i], s) } : undefined,
   }))
 }
 
@@ -93,7 +102,8 @@ export function sampleText(title: string, lang: Lang): ReturnType<typeof asText>
   const k = i >= 0 ? i : j
   if (k < 0) return undefined
   const s = (lang === 'pl' ? PL : EN)[k]
-  return s ? asText(s) : undefined
+  const orig = (lang === 'pl' ? EN : PL)[k]
+  return s ? asText(s, orig) : undefined
 }
 
 /** Our starter recipes she no longer has (in either language), ready to add back. */

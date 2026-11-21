@@ -23,7 +23,7 @@ export default function RecipeDetail() {
   const [servings, setServings] = useState(Number(params.get('s')) || r?.servings || 2)
   const [planOpen, setPlanOpen] = useState(false)
   const photo = usePhoto(r?.photo)
-  if (!r) return <main className="screen"><button className="btn ghost" onClick={() => nav('/recipes')}>{t('back')}</button></main>
+  if (!r) return <main className="screen"><p className="muted">{t('notHere')}</p><button className="btn secondary" onClick={() => nav('/recipes')}>{t('back')}</button></main>
   const factor = servings / (r.servings || 1)
 
   return (

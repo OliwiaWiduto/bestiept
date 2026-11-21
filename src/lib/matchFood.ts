@@ -4,8 +4,10 @@ import type { FoodItem, Ingredient, Lang, Macros, Recipe } from '../types'
 import { FOODS } from './foods'
 import { loadUkFoods, type FoodHit } from './foodSearch'
 import { recipeLang } from './recipeLang'
-import { uid } from './util'
+import { shortName, uid } from './util'
 import { COMMON } from './commonFoods'
+import { ingredientGrams } from './grams'
+export { ingredientGrams }
 import { prefetchFoods, rememberFood, savedFood } from './foodDb'
 import { scanMealText } from './ai'
 
@@ -77,24 +79,6 @@ async function tableFood(name: string, lang: Lang, raw: boolean): Promise<FoodHi
 }
 
 // Rough weights for things counted rather than weighed
-const PIECE: [RegExp, number][] = [
-  [/egg|jajk|jaj/, 50], [/aubergine|eggplant|bakłażan/, 300], [/onion|cebul/, 150], [/shallot|szalotk/, 30], [/garlic|czosn/, 5], [/lemon|cytryn/, 100], [/lime|limonk/, 70],
-  [/sweet potato|batat/, 200], [/potato|ziemniak/, 170], [/carrot|marchew/, 80], [/cherry tomato|pomidork/, 15], [/tomato|pomidor/, 85], [/banana|banan/, 120], [/apple|jabłk/, 150],
-  [/pepper|papryk/, 160], [/courgette|zucchini|cukini/, 200], [/avocado|awokado/, 150], [/chicken breast|pierś/, 150], [/chicken thigh|udk/, 120], [/tortilla|wrap/, 60],
-  [/slice|kromk/, 40], [/bagel|bun|bułk/, 85], [/pitta|pita/, 60], [/spring onion|dymk/, 15], [/chilli|chili/, 15], [/cucumber|ogór/, 300], [/salmon|łosoś/, 120], [/stock cube|kostk/, 10],
-]
-const UNIT_G: Record<string, number> = { g: 1, kg: 1000, ml: 1, l: 1000, tsp: 5, tbsp: 15, cup: 240, cups: 240, tin: 400, tins: 400, can: 400, cans: 400, clove: 5, cloves: 5, pinch: 0.5, handful: 30,
-  'łyżeczka': 5, 'łyżeczki': 5, 'łyżecz.': 5, 'łyżka': 15, 'łyżki': 15, 'łyż.': 15, 'szklanka': 240, 'szkl.': 240, 'puszka': 400, 'puszki': 400, 'pusz.': 400, 'ząbek': 5, 'ząbki': 5, 'ząb.': 5, 'szczypta': 0.5, 'garść': 30 }
-
-/** How many grams an ingredient line is, roughly. */
-export function ingredientGrams(i: Ingredient): number {
-  const unit = i.unit.toLowerCase()
-  if (i.amount === null) return /salt|sól|pepper|pieprz|spice|przypraw|herb|zioł/i.test(i.name) ? 1 : 10
-  if (UNIT_G[unit]) return i.amount * UNIT_G[unit]
-  const n = i.name.toLowerCase()
-  return i.amount * (PIECE.find(([re]) => re.test(n))?.[1] ?? 100)
-}
-
 const ZERO: Macros = { kcal: 0, protein: 0, carbs: 0, fat: 0, fibre: 0, sugar: 0 }
 const per100 = (m: Macros, grams: number): Macros => {
   const f = grams > 0 ? 100 / grams : 0
@@ -126,11 +110,11 @@ export async function recipeItems(r: Recipe, servingsEaten: number, lang: Lang):
   for (const k of Object.keys(ZERO) as (keyof Macros)[]) left[k] = Math.max(0, target[k] - matched[k])
   return rows.filter((x) => x.grams > 0).map(({ ing, grams, hit }) => {
     const g = Math.round(grams)
-    if (hit) return { id: uid(), name: ing.name, amount: Math.max(1, g), unit: 'g' as const, per: hit.per, src: 'uk' }
+    if (hit) return { id: uid(), name: shortName(ing.name), amount: Math.max(1, g), unit: 'g' as const, per: hit.per, src: 'uk' }
     const portion = unmatchedGrams > 0 ? grams / unmatchedGrams : 0
     const mine = { ...ZERO }
     for (const k of Object.keys(ZERO) as (keyof Macros)[]) mine[k] = left[k] * portion
-    return { id: uid(), name: ing.name, amount: Math.max(1, g), unit: 'g' as const, per: per100(mine, Math.max(1, g)), src: 'recipe' }
+    return { id: uid(), name: shortName(ing.name), amount: Math.max(1, g), unit: 'g' as const, per: per100(mine, Math.max(1, g)), src: 'recipe' }
   })
 }
 

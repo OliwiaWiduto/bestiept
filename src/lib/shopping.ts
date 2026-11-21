@@ -120,7 +120,7 @@ export function buildList(plan: PlanItem[], recipes: Recipe[], shop: ShoppingSta
   return { need, probably }
 }
 
-export function displayAmount(l: { amount: number | null; unit: string }): string {
+export function displayAmount(l: { amount: number | null; unit: string }, lang: 'en' | 'pl' = 'en'): string {
   if (l.amount === null) return ''
   let a = l.amount
   let u = l.unit
@@ -128,5 +128,6 @@ export function displayAmount(l: { amount: number | null; unit: string }): strin
   if (u === 'ml' && a >= 1000) { a = a / 1000; u = 'l' }
   const n = a >= 10 ? Math.round(a) : Math.round(a * 4) / 4
   const glue = ['g', 'kg', 'ml', 'l'].includes(u)
-  return glue ? `${n}${u}` : `${n}${u ? ' ' + u : ''}`
+  const num = lang === 'pl' ? String(n).replace('.', ',') : String(n)
+  return glue ? `${num}${u}` : `${num}${u ? ' ' + u : ''}`
 }

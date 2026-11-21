@@ -24,7 +24,8 @@ export function unitFor(unit: string, lang: Lang): string {
 }
 
 function textFor(r: Recipe, lang: Lang): RecipeText | undefined {
-  const t = r.tr?.[lang] ?? sampleText(r.title, lang)
+  // Our starter text is only a fallback for recipes that never had translations stored (an edited one has tr: {}).
+  const t = r.tr ? r.tr[lang] : sampleText(r.title, lang)
   if (!t || t.ingredients.length !== r.ingredients.length || t.steps.length !== r.steps.length) return undefined
   return t
 }

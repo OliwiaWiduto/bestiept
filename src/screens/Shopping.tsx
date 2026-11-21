@@ -4,6 +4,7 @@ import { useRecipes } from '../lib/recipeLang'
 import { useUI } from '../ui-state'
 import { useT } from '../i18n'
 import { fmt, today, weekDays, weekStart } from '../lib/dates'
+import { plBasic } from '../lib/plNames'
 import { buildList, categorise, CATEGORIES, CATEGORY_ICON, DEFAULT_STAPLES, DEFAULT_STAPLES_PL, displayAmount, staplesIn, type ShoppingLine } from '../lib/shopping'
 import { formatAmount, parseIngredient, uid } from '../lib/util'
 import { Icon, Sheet, toast } from '../components/ui'
@@ -12,6 +13,12 @@ import { useFamilyLists } from '../lib/family'
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 const lineText = (amount: string, name: string) => [amount, cap(name)].filter(Boolean).join(' ')
+// "7 onion" → "7 onions"; Polish counts would need the right plural, so "7 × cebula" reads cleanly instead.
+const plural = (n: string) => n.replace(/(\w+)$/, (w) => /s$/i.test(w) ? w : /(o|ch|sh|x)$/i.test(w) && !/(avocado|mango)$/i.test(w) ? w + 'es' : /[^aeiou]y$/i.test(w) ? w.slice(0, -1) + 'ies' : w + 's')
+const plannedText = (amount: string, name: string, lang: string) => {
+  if (!/^\d+([.,]\d+)?$/.test(amount) || Number(amount.replace(',', '.')) <= 1) return lineText(amount, name)
+  return lang === 'pl' ? `${amount} × ${plBasic(name)}` : lineText(amount, plural(name))
+}
 
 /** A small chip that flies from the ticked row into the basket button. */
 function flyToBasket(from: HTMLElement, label: string) {
@@ -63,19 +70,19 @@ export default function Shopping() {
   // Planned items she deleted from the list text this week
   const hidden = new Set((shopping.hidden ?? []).filter((h) => h.startsWith(planWeek + ':')).map((h) => h.slice(planWeek.length + 1)))
   const visible = need.filter((l) => !hidden.has(l.key))
-  type Item = { key: string; name: string; amount: string; category: ShoppingLine['category'] }
+  type Item = { key: string; name: string; amount: string; category: ShoppingLine['category']; text: string }
   const items: Item[] = [
-    ...visible.map((l) => ({ key: l.key, name: l.name, amount: displayAmount(l), category: l.category })),
-    ...shopping.extras.map((e) => ({ key: `extra:${e.id}`, name: e.name, amount: e.amount, category: categorise(e.name) })),
+    ...visible.map((l) => ({ key: l.key, name: l.name, amount: displayAmount(l, t.lang), category: l.category, text: plannedText(displayAmount(l, t.lang), l.name, t.lang) })),
+    ...shopping.extras.map((e) => ({ key: `extra:${e.id}`, name: e.name, amount: e.amount, category: categorise(e.name), text: lineText(e.amount, e.name) })),
   ]
   const allKeys = items.map((i) => i.key)
   const done = allKeys.filter(isTicked).length
   const inBasket = items.filter((i) => isTicked(i.key))
   const shoppingNow = !!shopping.shoppingMode
-  const bought = new Set(inBasket.map((i) => lineText(i.amount, i.name).toLowerCase()))
+  const bought = new Set(inBasket.map((i) => i.text.toLowerCase()))
 
   // The list as text, one item per line. Edits are saved when she leaves the box or starts shopping.
-  const asText = () => items.map((i) => lineText(i.amount, i.name)).join('\n')
+  const asText = () => items.map((i) => i.text).join('\n')
   const [text, setText] = useState(asText)
   const editing = useRef(false)
   const listKey = items.map((i) => i.key + i.amount).join('|')
@@ -84,7 +91,7 @@ export default function Shopping() {
     editing.current = false
     const lines = text.split('\n').map((l) => l.trim()).filter(Boolean)
     const wanted = new Map(lines.map((l) => [l.toLowerCase(), l]))
-    const planned = new Map(need.map((l) => [lineText(displayAmount(l), l.name).toLowerCase(), l.key]))
+    const planned = new Map(need.map((l) => [plannedText(displayAmount(l, t.lang), l.name, t.lang).toLowerCase(), l.key]))
     const nextHidden = new Set(shopping.hidden ?? [])
     for (const [txt, key] of planned) {
       if (wanted.has(txt)) { nextHidden.delete(`${planWeek}:${key}`); wanted.delete(txt) } else nextHidden.add(`${planWeek}:${key}`)
@@ -127,11 +134,11 @@ export default function Shopping() {
   const row = (key: string, name: string, amount: string, caption: string, last: boolean) => {
     const on = isTicked(key)
     return (
-      <button key={key} aria-pressed={on} onClick={(e) => { if (!on) flyToBasket(e.currentTarget, cap(name)); toggle(key) }}
+      <button key={key} aria-pressed={on} onClick={(e) => { if (!on) flyToBasket(e.currentTarget, cap(plBasic(name))); toggle(key) }}
         style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', background: 'transparent', border: 'none', borderBottom: last ? 'none' : '1px solid var(--line)', textAlign: 'left', width: '100%' }}>
         <span className={`check ${on ? 'on' : ''}`}>{on && <Icon name="check" size={16} sw={2.5} />}</span>
         <span className="grow stack" style={{ gap: 2 }}>
-          <span style={{ fontSize: 15, lineHeight: '20px', fontWeight: 600, color: on ? 'var(--ink-muted)' : 'var(--ink)', textDecoration: on ? 'line-through' : 'none' }}>{cap(name)}</span>
+          <span style={{ fontSize: 15, lineHeight: '20px', fontWeight: 600, color: on ? 'var(--ink-muted)' : 'var(--ink)', textDecoration: on ? 'line-through' : 'none' }}>{cap(plBasic(name))}</span>
           {caption && <span className="caption">{caption}</span>}
         </span>
         <span style={{ fontSize: 14, fontWeight: 600, color: on ? 'var(--ink-muted)' : 'var(--green)', whiteSpace: 'nowrap' }}>{amount}</span>
@@ -226,8 +233,8 @@ export default function Shopping() {
             {probably.map((l, i) => (
               <div key={l.key} className="between" style={{ padding: '8px 0', borderBottom: i === probably.length - 1 ? 'none' : '1px solid #DDD0C6' }}>
                 <span className="stack" style={{ gap: 2 }}>
-                  <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink-muted)' }}>{cap(l.name)}</span>
-                  <span className="caption">{[displayAmount(l), t(l.reason === 'staple' ? 'reasonStaple' : l.reason === 'small' ? 'reasonSmall' : 'reasonRecent')].filter(Boolean).join(' · ')}</span>
+                  <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink-muted)' }}>{cap(plBasic(l.name))}</span>
+                  <span className="caption">{[displayAmount(l, t.lang), t(l.reason === 'staple' ? 'reasonStaple' : l.reason === 'small' ? 'reasonSmall' : 'reasonRecent')].filter(Boolean).join(' · ')}</span>
                 </span>
                 <button className="chip" style={{ borderColor: 'var(--green)', color: 'var(--green)' }} onClick={() => setShopping({ out: [...shopping.out, l.key] })}>{t('imOut')}</button>
               </div>
