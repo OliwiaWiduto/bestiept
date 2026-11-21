@@ -172,10 +172,14 @@ export async function recipeNutrition(ings: Ingredient[], servings: number, lang
   if (missing.length) {
     const list = missing.map((i) => [i.amount !== null ? `${i.amount}${i.unit ? ' ' + i.unit : ''}` : '', i.name].filter(Boolean).join(' ')).join('\n')
     const { data } = await scanMealText(`These are ingredients for a whole recipe (not one portion). Use exactly these amounts:\n${list}`, lang)
-    for (const it of data?.meal.items ?? []) {
+    const got = data?.meal.items ?? []
+    got.forEach((it, k) => {
       add(it.per100, it.grams)
       rememberFood({ name: it.search || it.name, per: it.per100, portion: it.grams, source: 'ai' }, lang)
-    }
+      // One answer per ingredient, in order: also keep it under the recipe's own wording, so logging
+      // this recipe ingredient by ingredient finds the same figures.
+      if (got.length === missing.length) rememberFood({ name: missing[k].name.split(/[,(]/)[0].trim(), per: it.per100, portion: it.grams, source: 'ai' }, lang)
+    })
     if (data) estimated = missing.length
   }
   const per = { ...ZERO }
