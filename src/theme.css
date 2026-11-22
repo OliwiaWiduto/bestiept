@@ -319,3 +319,7 @@ input[type=number] { -moz-appearance: textfield; }
 .line-editor input.struck { text-decoration: line-through; text-decoration-thickness: 2px; color: var(--ink-muted); }
 .drag-handle { flex: none; width: 44px; height: 44px; align-self: center; display: grid; place-items: center; color: var(--ink-muted); touch-action: pan-y; cursor: grab; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; border-radius: 12px; }
 .drag-handle:active { cursor: grabbing; color: var(--cherry); }
+/* Bestie friends list: picture, name, chevron */
+.friend-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 8px; border: none; background: none; color: var(--ink); text-align: left; border-radius: var(--radius-md); }
+.friend-row + .friend-row { border-top: 1px solid var(--line); border-radius: 0; }
+.friend-row > svg { color: var(--ink-muted); }

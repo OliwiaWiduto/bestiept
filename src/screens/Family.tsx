@@ -2,23 +2,14 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { useT } from '../i18n'
-import { BackButton, Icon, toast } from '../components/ui'
-import { acceptLink, addPerson, removeLink, saveMe, setShare, shareOf, useFamily, type Share } from '../lib/family'
-
-function Switch({ label, on, onChange }: { label: string; on: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button className="switch-row" role="switch" aria-checked={on} onClick={() => onChange(!on)}>
-      <span className="grow">{label}</span>
-      <span className="switch" aria-hidden><span /></span>
-    </button>
-  )
-}
+import { Avatar, BackButton, Icon, toast } from '../components/ui'
+import { acceptLink, addPerson, removeLink, saveMe, useFamily } from '../lib/family'
 
 export default function Family() {
   const t = useT()
   const nav = useNavigate()
   const profile = useStore((s) => s.profile)
-  const { me, links, mine, theirs, loaded, unavailable } = useFamily()
+  const { me, links, loaded, unavailable } = useFamily()
   const [username, setUsername] = useState('')
   const [who, setWho] = useState('')
   const [editing, setEditing] = useState(false)
@@ -59,7 +50,6 @@ export default function Family() {
     toast(t(`link_${r}`))
     if (r === 'requested' || r === 'linked') setWho('')
   }
-  const sharing = async (id: string, key: keyof Share, v: boolean) => { if (!(await setShare(id, { [key]: v })) && key === 'recipes') toast(t('recipeShareSetup')) }
 
   return (
     <main className="screen">
@@ -111,35 +101,20 @@ export default function Family() {
         </section>
       )}
 
-      {people.map((l) => {
-        const m = shareOf(mine, l.person.id)
-        const th = shareOf(theirs, l.person.id)
-        const theyShare = [th.recipes && t('recipesWord'), th.plan && t('mealPlan'), th.list && t('shoppingList'), th.macros && t('macros')].filter(Boolean) as string[]
-        const recipesOnly = m.recipes && !m.plan && !m.list && !m.macros
-        return (
-          <section key={l.id} className="card stack" style={{ gap: 10 }}>
-            <div className="between">
-              <div className="stack" style={{ gap: 0 }}>
-                <h2 className="heading">{l.person.name}</h2>
+      {people.length > 0 && (
+        <section className="card stack" style={{ gap: 0, padding: '6px 8px' }}>
+          {people.map((l) => (
+            <button key={l.id} className="friend-row" onClick={() => nav(`/family/${l.person.id}`)}>
+              <Avatar name={l.person.name} avatar={l.person.avatar} size={44} />
+              <span className="stack grow" style={{ gap: 0 }}>
+                <span style={{ fontWeight: 600 }}>{l.person.name}</span>
                 {l.person.username && <span className="caption">@{l.person.username}</span>}
-              </div>
-              {(th.macros || th.plan) && <button className="btn secondary small" onClick={() => nav(`/family/${l.person.id}`)}>{t('seeTheirDay')}</button>}
-            </div>
-            <div className="between" style={{ marginTop: 6 }}>
-              <span className="label">{t('youShare', { name: l.person.name })}</span>
-              {!recipesOnly && <button className="btn ghost small" style={{ border: 'none', padding: '0 4px' }}
-                onClick={() => setShare(l.person.id, { recipes: true, plan: false, list: false, macros: false })}>{t('recipesOnly')}</button>}
-            </div>
-            <Switch label={t('shareMyRecipes')} on={m.recipes} onChange={(v) => sharing(l.person.id, 'recipes', v)} />
-            <Switch label={t('shareMyPlan')} on={m.plan} onChange={(v) => sharing(l.person.id, 'plan', v)} />
-            <Switch label={t('shareMyList')} on={m.list} onChange={(v) => sharing(l.person.id, 'list', v)} />
-            <Switch label={t('shareMyMacros')} on={m.macros} onChange={(v) => sharing(l.person.id, 'macros', v)} />
-            <span className="caption">{t('weightNeverShared')}</span>
-            <span className="small muted">{theyShare.length ? t('theyShare', { name: l.person.name, what: theyShare.join(', ') }) : t('theyShareNothing', { name: l.person.name })}</span>
-            <button className="btn ghost small" style={{ alignSelf: 'flex-start' }} onClick={() => { if (confirm(t('unlinkConfirm', { name: l.person.name }))) removeLink(l.id) }}>{t('unlink')}</button>
-          </section>
-        )
-      })}
+              </span>
+              <Icon name="forward" size={20} />
+            </button>
+          ))}
+        </section>
+      )}
 
       {outgoing.length > 0 && (
         <section className="card stack" style={{ gap: 10 }}>

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { startAutoSync, syncNow } from './lib/sync'
-import { loadFamily } from './lib/family'
+import { loadFamily, syncAvatar } from './lib/family'
 import Auth from './screens/Auth'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useHydrated, useStore } from './store'
@@ -58,7 +58,7 @@ export default function App() {
     let alive = true
     syncNow(uid)
       .catch((e) => { console.error(e); toast(translate(useStore.getState().lang, 'syncError')) })
-      .finally(() => { if (alive) { setSynced(uid); stop = startAutoSync(uid); loadFamily(uid).catch(console.error) } })
+      .finally(() => { if (alive) { setSynced(uid); stop = startAutoSync(uid); loadFamily(uid).then(() => syncAvatar(useStore.getState().profile?.avatar)).catch(console.error) } })
     // New family requests show up when she comes back to the app.
     const onVisible = () => { if (document.visibilityState === 'visible') loadFamily(uid).catch(() => {}) }
     document.addEventListener('visibilitychange', onVisible)

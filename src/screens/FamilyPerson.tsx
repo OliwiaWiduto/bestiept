@@ -2,12 +2,23 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useRecipes } from '../lib/recipeLang'
 import { useT } from '../i18n'
-import { BackButton, Icon, MacroBar } from '../components/ui'
-import { fetchTheirDay, fetchTheirPlan, shareOf, useFamily } from '../lib/family'
+import { Avatar, BackButton, Icon, MacroBar, toast } from '../components/ui'
+import { useNavigate } from 'react-router-dom'
+import { fetchTheirDay, fetchTheirPlan, removeLink, setShare, shareOf, useFamily, type Share } from '../lib/family'
 import { add } from '../lib/nutrition'
 import { sumItems } from '../lib/nutrition'
 import { addDays, fmt, today, weekDays, weekStart } from '../lib/dates'
 import { MEALS, type LogEntry, type Macros, type PlanItem } from '../types'
+
+
+function Switch({ label, on, onChange }: { label: string; on: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button className="switch-row" role="switch" aria-checked={on} onClick={() => onChange(!on)}>
+      <span className="grow">{label}</span>
+      <span className="switch" aria-hidden><span /></span>
+    </button>
+  )
+}
 
 const ZERO: Macros = { kcal: 0, protein: 0, carbs: 0, fat: 0, fibre: 0, sugar: 0 }
 
@@ -17,6 +28,8 @@ export default function FamilyPerson() {
   const recipes = useRecipes()
   const link = useFamily((s) => s.links.find((l) => l.person.id === id && l.status === 'accepted'))
   const theirs = useFamily((s) => shareOf(s.theirs, id))
+  const mine = useFamily((s) => shareOf(s.mine, id))
+  const nav = useNavigate()
   const [date, setDate] = useState(today())
   const [day, setDay] = useState<{ logs: LogEntry[]; targets: Macros | null } | null>(null)
   const [plan, setPlan] = useState<PlanItem[] | null>(null)
@@ -29,11 +42,34 @@ export default function FamilyPerson() {
   const name = link.person.name
   const totals = (day?.logs ?? []).reduce((acc, l) => add(acc, sumItems(l.items)), { ...ZERO })
   const tg = day?.targets
+  const recipesOnly = mine.recipes && !mine.plan && !mine.list && !mine.macros
+  const theyShare = [theirs.recipes && t('recipesWord'), theirs.plan && t('mealPlan'), theirs.list && t('shoppingList'), theirs.macros && t('macros')].filter(Boolean) as string[]
+  const sharing = async (key: keyof Share, v: boolean) => { if (!(await setShare(id, { [key]: v })) && key === 'recipes') toast(t('recipeShareSetup')) }
 
   return (
     <main className="screen">
       <div className="row"><BackButton to="/family" /></div>
-      <h1 className="display">{name}</h1>
+      <div className="row" style={{ gap: 14 }}>
+        <Avatar name={name} avatar={link.person.avatar} size={64} />
+        <div className="stack" style={{ gap: 0 }}>
+          <h1 className="display" style={{ margin: 0 }}>{name}</h1>
+          {link.person.username && <span className="caption">@{link.person.username}</span>}
+        </div>
+      </div>
+
+      <section className="card stack" style={{ gap: 10 }}>
+        <div className="between">
+          <h2 className="heading">{t('youShare', { name })}</h2>
+          {!recipesOnly && <button className="btn ghost small" style={{ border: 'none', padding: '0 4px' }}
+            onClick={() => setShare(id, { recipes: true, plan: false, list: false, macros: false })}>{t('recipesOnly')}</button>}
+        </div>
+        <Switch label={t('shareMyRecipes')} on={mine.recipes} onChange={(v) => sharing('recipes', v)} />
+        <Switch label={t('shareMyPlan')} on={mine.plan} onChange={(v) => sharing('plan', v)} />
+        <Switch label={t('shareMyList')} on={mine.list} onChange={(v) => sharing('list', v)} />
+        <Switch label={t('shareMyMacros')} on={mine.macros} onChange={(v) => sharing('macros', v)} />
+        <span className="caption">{t('weightNeverShared')}</span>
+      </section>
+      <p className="small muted" style={{ margin: 0 }}>{theyShare.length ? t('theyShare', { name, what: theyShare.join(', ') }) : t('theyShareNothing', { name })}</p>
 
       {theirs.macros && (
         <>
@@ -78,7 +114,7 @@ export default function FamilyPerson() {
         </section>
       )}
 
-      {!theirs.macros && !theirs.plan && <p className="muted">{t('theyShareNothing', { name })}</p>}
+      <button className="btn ghost small" style={{ alignSelf: 'flex-start' }} onClick={async () => { if (confirm(t('unlinkConfirm', { name }))) { await removeLink(link.id); nav('/family') } }}>{t('unlink')}</button>
     </main>
   )
 }

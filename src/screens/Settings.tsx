@@ -1,8 +1,8 @@
 import { useState } from 'react'
+import { syncAvatar } from '../lib/family'
 import { useStore } from '../store'
 import { useT, type TKey } from '../i18n'
 import { staplesIn } from '../lib/shopping'
-import { recipeNutrition } from '../lib/matchFood'
 import InstallNudge from '../components/InstallNudge'
 import type { Activity, Goal, Macros, Profile, Sex } from '../types'
 import { AVATARS, Avatar, BackButton, Icon, NumberField, toast } from '../components/ui'
@@ -14,8 +14,6 @@ import { HeightField, UnitsToggle, WeightField } from '../components/BodyFields'
 
 export default function Settings() {
   const t = useT()
-  const [recalc, setRecalc] = useState<{ done: number; total: number } | null>(null)
-  const saveRecipe = useStore((s) => s.saveRecipe)
   const installed = window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true
   const nav = useNavigate()
   const { lang, setLang, profile, targets, updateProfile, setTargets, shopping, setShopping, resetAll } = useStore()
@@ -25,24 +23,6 @@ export default function Settings() {
   const [email, setEmail] = useState('')
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? '')) }, [])
   if (!p || !tg || !profile || !targets) return null
-
-  // Work every one of her recipes out again from its ingredients (our food data, AI only for gaps).
-  const recalcAll = async () => {
-    const mine = useStore.getState().recipes.filter((r) => !r.ownerId && r.ingredients.length)
-    setRecalc({ done: 0, total: mine.length })
-    let changed = 0
-    for (let k = 0; k < mine.length; k++) {
-      const r = mine[k]
-      const { per, found, estimated } = await recipeNutrition(r.ingredients, r.servings || 1, t.lang)
-      if (found + estimated > 0 && per.kcal > 0) {
-        const fresh = useStore.getState().recipes.find((x) => x.id === r.id)
-        if (fresh) { saveRecipe({ ...fresh, nutrition: per }); changed++ }
-      }
-      setRecalc({ done: k + 1, total: mine.length })
-    }
-    setRecalc(null)
-    toast(t('recalcDone', { n: changed }))
-  }
 
   // Each section shows its own action in a bar at the bottom, only once something in it has changed.
   const savedStaples = staplesIn(shopping.staples, t.lang).join('\n')
@@ -77,21 +57,13 @@ export default function Settings() {
           {AVATARS.map((a) => {
             const on = profile.avatar === a.id
             return (
-              <button key={a.id} role="radio" aria-checked={on} aria-label={t(`av_${a.id}` as TKey)} onClick={() => { updateProfile({ ...profile, avatar: a.id }, false); setP({ ...p, avatar: a.id }) }}
+              <button key={a.id} role="radio" aria-checked={on} aria-label={t(`av_${a.id}` as TKey)} onClick={() => { updateProfile({ ...profile, avatar: a.id }, false); setP({ ...p, avatar: a.id }); syncAvatar(a.id) }}
                 style={{ padding: 3, border: `3px solid ${on ? 'var(--cherry)' : 'transparent'}`, borderRadius: 999, background: 'none' }}>
                 <Avatar name={p.name} avatar={a.id} size={56} />
               </button>
             )
           })}
         </div>
-      </section>
-
-      <section className="card stack" style={{ gap: 10 }}>
-        <h2 className="heading">{t('recipes')}</h2>
-        <span className="small muted">{t('recalcHint')}</span>
-        <button className="btn secondary" disabled={recalc !== null} onClick={recalcAll}>
-          <Icon name="bolt" size={18} />{recalc ? t('recalcProgress', { n: recalc.done, t: recalc.total }) : t('recalcAll')}
-        </button>
       </section>
 
       <section className="card stack" style={{ gap: 12 }}>
@@ -101,6 +73,11 @@ export default function Settings() {
           <button className="chip" aria-pressed={lang === 'pl'} onClick={() => setLang('pl')}>{t('polish')}</button>
         </div>
       </section>
+
+      <button className="card stack" style={{ gap: 8, border: 'none', textAlign: 'left' }} onClick={() => nav('/family')}>
+        <span className="between"><h2 className="heading">{t('family')}</h2><Icon name="forward" /></span>
+        <span className="small muted">{t('familySummary')}</span>
+      </button>
 
       <section className="card stack" style={{ gap: 12 }}>
         <h2 className="heading">{t('yourDetails')}</h2>
@@ -136,10 +113,6 @@ export default function Settings() {
           <InstallNudge inline />
         </section>
       )}
-      <button className="card stack" style={{ gap: 8, border: 'none', textAlign: 'left' }} onClick={() => nav('/family')}>
-        <span className="between"><h2 className="heading">{t('family')}</h2><Icon name="forward" /></span>
-        <span className="small muted">{t('familySummary')}</span>
-      </button>
 
       <section className="card stack" style={{ gap: 12 }}>
         <h2 className="heading">{t('account')}</h2>

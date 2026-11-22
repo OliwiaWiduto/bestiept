@@ -5,7 +5,7 @@ import type { LogEntry, Macros, PlanItem } from '../types'
 
 /** Family sharing (needs supabase/family.sql). Everything here is online-only and not stored on the phone. */
 
-export type Person = { id: string; username: string | null; name: string }
+export type Person = { id: string; username: string | null; name: string; avatar?: string }
 export type Link = { id: string; person: Person; status: 'pending' | 'accepted'; incoming: boolean }
 export type Share = { plan: boolean; list: boolean; macros: boolean; recipes: boolean }
 const NO_SHARE: Share = { plan: false, list: false, macros: false, recipes: true }
@@ -37,7 +37,11 @@ export async function loadFamily(uid: string) {
     return
   }
   const otherIds = (links.data ?? []).map((l) => (l.requester === uid ? l.addressee : l.requester))
-  const people = otherIds.length ? (await supabase.from('members').select('id, username, display_name').in('id', otherIds)).data ?? [] : []
+  // The avatar column comes from member-avatar.sql; until that's run, ask without it.
+  const ask = async (cols: string) => otherIds.length ? await supabase.from('members').select(cols).in('id', otherIds) : { data: [], error: null }
+  let res = await ask('id, username, display_name, avatar')
+  if (res.error) res = await ask('id, username, display_name')
+  const people = (res.data ?? []) as unknown as { id: string; username: string | null; display_name: string; avatar?: string | null }[]
   const byId = new Map(people.map((p) => [p.id, p]))
   const mine: Record<string, Share> = {}
   const theirs: Record<string, Share> = {}
@@ -54,7 +58,7 @@ export async function loadFamily(uid: string) {
     links: (links.data ?? []).map((l) => {
       const other = l.requester === uid ? l.addressee : l.requester
       const p = byId.get(other)
-      return { id: l.id, status: l.status, incoming: l.addressee === uid, person: { id: other, username: p?.username ?? null, name: nameOf(p) } }
+      return { id: l.id, status: l.status, incoming: l.addressee === uid, person: { id: other, username: p?.username ?? null, name: nameOf(p), avatar: p?.avatar ?? undefined } }
     }),
     mine,
     theirs,
@@ -153,4 +157,11 @@ export function useFamilyLists(start: string): { person: Person; plan: PlanItem[
     return () => { alive = false }
   }, [links, theirs, start])
   return out
+}
+
+/** Keep the picture my friends see in step with mine. Fails quietly until member-avatar.sql is run. */
+export async function syncAvatar(avatar: string | undefined) {
+  const { uid, me } = useFamily.getState()
+  if (!uid || !me || !avatar) return
+  await supabase.from('members').update({ avatar }).eq('id', uid)
 }
