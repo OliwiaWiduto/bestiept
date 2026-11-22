@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { useT } from '../i18n'
-import { BackButton, toast } from '../components/ui'
-import { acceptLink, addPerson, makeCode, removeLink, saveMe, setShare, shareOf, useFamily, type Share } from '../lib/family'
+import { BackButton, Icon, toast } from '../components/ui'
+import { acceptLink, addPerson, removeLink, saveMe, setShare, shareOf, useFamily, type Share } from '../lib/family'
 
 function Switch({ label, on, onChange }: { label: string; on: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -21,7 +21,7 @@ export default function Family() {
   const { me, links, mine, theirs, loaded, unavailable } = useFamily()
   const [username, setUsername] = useState('')
   const [who, setWho] = useState('')
-  const [code, setCode] = useState<string | null>(null)
+  const [editing, setEditing] = useState(false)
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
@@ -48,6 +48,7 @@ export default function Family() {
     setBusy(true)
     const r = await saveMe(username, profile?.name ?? username)
     setBusy(false)
+    if (r === 'ok') setEditing(false)
     toast(r === 'ok' ? t('saved') : r === 'taken' ? t('usernameTaken') : t('usernameRules'))
   }
   const add = async () => {
@@ -67,30 +68,34 @@ export default function Family() {
       <p className="muted" style={{ margin: 0 }}>{t('familyIntro')}</p>
 
       <section className="card stack" style={{ gap: 12 }}>
-        <h2 className="heading">{t('yourUsername')}</h2>
-        <label className="field"><span className="sr-only">{t('yourUsername')}</span>
-          <div className="row" style={{ gap: 8 }}>
-            <span className="muted" style={{ fontSize: 18 }}>@</span>
-            <input className="input grow" value={username} autoCapitalize="none" autoCorrect="off" spellCheck={false}
-              onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, '').slice(0, 20))} />
-          </div>
-        </label>
-        <span className="caption">{t('usernameRules')}</span>
-        <button className="btn secondary" disabled={busy || username.length < 3 || username === me?.username} onClick={saveName}>{t('save')}</button>
+        <div className="between">
+          <h2 className="heading">{t('yourUsername')}</h2>
+          {me?.username && !editing && <button className="pen" aria-label={t('editUsername')} onClick={() => setEditing(true)}><Icon name="edit" size={18} /></button>}
+        </div>
+        {me?.username && !editing
+          ? <span style={{ fontSize: 18, fontWeight: 600 }}>@{me.username}</span>
+          : <>
+              <label className="field"><span className="sr-only">{t('yourUsername')}</span>
+                <div className="row" style={{ gap: 8 }}>
+                  <span className="muted" style={{ fontSize: 18 }}>@</span>
+                  <input className="input grow" value={username} autoCapitalize="none" autoCorrect="off" spellCheck={false} autoFocus={editing}
+                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, '').slice(0, 20))}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && username.length >= 3) saveName() }} />
+                </div>
+              </label>
+              <span className="caption">{t('usernameRules')}</span>
+              <div className="row" style={{ gap: 8 }}>
+                {editing && <button className="btn ghost small" onClick={() => { setEditing(false); setUsername(me?.username ?? '') }}>{t('cancel')}</button>}
+                <button className={editing ? 'btn primary small' : 'btn secondary'} style={editing ? undefined : { flex: 1 }} disabled={busy || username.length < 3 || username === me?.username} onClick={saveName}>{t('save')}</button>
+              </div>
+            </>}
       </section>
 
       <section className="card stack" style={{ gap: 12 }}>
         <h2 className="heading">{t('addSomeone')}</h2>
-        <input className="input" placeholder={t('usernameOrCode')} value={who} autoCapitalize="none" autoCorrect="off" spellCheck={false}
+        <input className="input" placeholder={t('theirUsername')} value={who} autoCapitalize="none" autoCorrect="off" spellCheck={false}
           onChange={(e) => setWho(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') add() }} />
-        <button className="btn primary" disabled={busy || !who.trim()} onClick={add}>{t('add')}</button>
-        <div className="divider" />
-        {code
-          ? <div className="stack" style={{ gap: 4, alignItems: 'center' }}>
-              <span className="display" style={{ letterSpacing: 6, fontSize: 40 }}>{code}</span>
-              <span className="caption" style={{ textAlign: 'center' }}>{t('codeHelp')}</span>
-            </div>
-          : <button className="btn ghost" onClick={async () => { const c = await makeCode(); if (c) setCode(c); else toast(t('somethingWrong')) }}>{t('showMyCode')}</button>}
+        {who.trim() !== '' && <button className="btn primary" disabled={busy} onClick={add}>{t('add')}</button>}
       </section>
 
       {incoming.length > 0 && (
