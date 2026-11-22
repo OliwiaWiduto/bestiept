@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../store'
 import { useRecipes } from '../lib/recipeLang'
 import { useUI } from '../ui-state'
+import { useNavigate } from 'react-router-dom'
 import { useT } from '../i18n'
 import { fmt, today, weekDays, weekStart } from '../lib/dates'
 import { plBasic } from '../lib/plNames'
@@ -46,6 +47,7 @@ function flyToBasket(from: HTMLElement, label: string) {
 
 export default function Shopping() {
   const t = useT()
+  const nav = useNavigate()
   const { plan, shopping, setShopping } = useStore()
   const recipes = useRecipes()
   const planWeek = weekStart(today())
@@ -78,6 +80,11 @@ export default function Shopping() {
   const allKeys = items.map((i) => i.key)
   const done = allKeys.filter(isTicked).length
   const inBasket = items.filter((i) => isTicked(i.key))
+  // Which line to show above the list: no plan, nothing bought, some bought, or everything from the plan bought.
+  const fromPlan = items.filter((i) => !i.key.startsWith('extra:'))
+  const hint = allPlan.length === 0 ? 'listHintNoPlan'
+    : fromPlan.length > 0 && fromPlan.every((i) => isTicked(i.key)) ? 'listHintAllBought'
+    : inBasket.length > 0 ? 'listHintSomeBought' : 'listHint'
   const shoppingNow = !!shopping.shoppingMode
   const bought = new Set(inBasket.map((i) => i.text.toLowerCase()))
 
@@ -199,7 +206,8 @@ export default function Shopping() {
 
       {!shoppingNow && (
         <section className="stack" style={{ gap: 8 }}>
-          {allPlan.length > 0 && <span className="small muted">{t('listHint')}</span>}
+          <span className="small muted">{t(hint)}</span>
+          {hint === 'listHintNoPlan' && <button className="btn secondary small" style={{ alignSelf: 'flex-start' }} onClick={() => nav('/plan')}>{t('planMeals')}</button>}
           <LineEditor value={text} onChange={setText} onFocus={() => { editing.current = true }} onDone={commit}
             struck={(l) => bought.has(l)} placeholder={t('listPh')} label={t('shopping')} />
           {inBasket.length > 0 && (
@@ -216,7 +224,7 @@ export default function Shopping() {
         <div className="empty"><img src="/icons/cat-fruitveg.png" alt="" /><p style={{ margin: 0 }}>{t('allInBasket')}</p></div>
       )}
 
-      {items.length === 0 && probably.length === 0 && !shoppingNow && text.trim() === '' && (
+      {allPlan.length > 0 && items.length === 0 && probably.length === 0 && !shoppingNow && text.trim() === '' && (
         <div className="empty"><img src="/icons/cat-extras.png" alt="" /><p style={{ margin: 0 }}>{t('emptyList')}</p></div>
       )}
 
