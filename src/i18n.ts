@@ -90,6 +90,7 @@ const en = {
   recalcHint: 'Works out calories and macros again for all your recipes from their ingredients, using our food data first.', recalcAll: 'Recalculate all recipes', recalcProgress: 'Working it out… {n} of {t}', recalcDone: 'Updated {n} recipes',
   yourMonth: 'Your month', summaryFew: 'A good start. Log a few more days to see your pattern.', monthSummaryEmpty: 'Nothing logged this month yet. Start whenever you’re ready.',
   notHere: 'This isn’t here any more. It may have been deleted on another device.',
+  noRecipeMatch: 'No recipes match. Try another word, or tap All.',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -247,6 +248,7 @@ const pl: Dict = {
   recalcHint: 'Ponownie liczy kalorie i makro dla wszystkich Twoich przepisów ze składników, najpierw z naszej bazy.', recalcAll: 'Przelicz wszystkie przepisy', recalcProgress: 'Liczę… {n} z {t}', recalcDone: 'Zaktualizowano przepisy: {n}',
   yourMonth: 'Twój miesiąc', summaryFew: 'Dobry początek. Zapisz jeszcze kilka dni, żeby zobaczyć, jak Ci idzie.', monthSummaryEmpty: 'W tym miesiącu jeszcze nic. Zacznij, kiedy chcesz.',
   notHere: 'Tego już tu nie ma. Może zostało usunięte na innym urządzeniu.',
+  noRecipeMatch: 'Brak pasujących przepisów. Spróbuj innego słowa albo wybierz Wszystkie.',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 

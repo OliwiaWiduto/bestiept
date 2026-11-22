@@ -131,10 +131,27 @@ export function Sheet({ open, onClose, title, children, tall }: { open: boolean;
       window.scrollTo(0, y)
     }
   }, [open, onClose])
+  // The phone keyboard covers the bottom of the screen without moving fixed things, so lift the
+  // drawer above it (a single search result would otherwise sit behind the keyboard).
+  const [kb, setKb] = useState({ lift: 0, room: 0 })
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!open || !vv) return
+    const fit = () => {
+      const lift = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))
+      setKb(lift > 80 ? { lift, room: vv.height } : { lift: 0, room: 0 })
+    }
+    fit()
+    vv.addEventListener('resize', fit)
+    vv.addEventListener('scroll', fit)
+    return () => { vv.removeEventListener('resize', fit); vv.removeEventListener('scroll', fit) }
+  }, [open])
   if (!open) return null
+  const lifted = kb.lift > 0
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
-      <div className="sheet" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()} style={tall ? { height: '88dvh' } : undefined}>
+    <div className="sheet-backdrop" onClick={onClose} style={lifted ? { paddingBottom: kb.lift } : undefined}>
+      <div className="sheet" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}
+        style={{ ...(tall ? { height: '88dvh' } : {}), ...(lifted ? { maxHeight: kb.room - 12, ...(tall ? { height: kb.room - 12 } : {}), paddingBottom: 16 } : {}) }}>
         <div className="sheet-handle" />
         {title && <div className="between"><h2 className="heading">{title}</h2><button className="icon-btn" aria-label="Close" onClick={onClose}><Icon name="close" size={20} /></button></div>}
         {children}

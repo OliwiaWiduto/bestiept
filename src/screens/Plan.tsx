@@ -156,7 +156,7 @@ function RecipePicker({ open, meal, days, onClose, onPick }: { open: boolean; me
         {MEALS.map((m) => <button key={m} className="chip" aria-pressed={cat === m} onClick={() => setCat(m)}>{t(m)}</button>)}
       </div>
       {recipes.length === 0 && <p className="muted" style={{ margin: 0 }}>{t('emptyRecipes')}</p>}
-      {recipes.length > 0 && !recent.length && !rest.length && <p className="muted" style={{ margin: 0 }}>{t('noResults')}</p>}
+      {recipes.length > 0 && !recent.length && !rest.length && <p className="muted" style={{ margin: 0 }}>{t('noRecipeMatch')}</p>}
       {recent.length > 0 && <><span className="label">{t('pickedBefore')}</span>{recent.map(row)}</>}
       {rest.length > 0 && <><span className="label">{query ? t('results') : t('healthiestFirst')}</span>{rest.map(row)}</>}
     </Sheet>
