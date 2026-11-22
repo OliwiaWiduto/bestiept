@@ -23,6 +23,12 @@ export default function Plan() {
   const [planMeal, setPlanMeal] = useState<Meal | undefined>()
   const [recipe, setRecipe] = useState<Recipe | null>(null)
   const [planDate, setPlanDate] = useState<string | undefined>()
+  // Start at today; earlier days only show once you tap them in the calendar.
+  const [from, setFrom] = useState(today())
+  const jump = (d: string) => {
+    if (d < from) setFrom(d)
+    requestAnimationFrame(() => document.getElementById(`day-${d}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
 
   const thisWeek = weekStart(today())
   const days = weekDays(planWeek)
@@ -56,7 +62,7 @@ export default function Plan() {
           const isToday = d === today()
           const has = inWeek.some((p) => p.date === d)
           return (
-            <a key={d} href={`#day-${d}`} aria-label={fmt(d, t.lang, { weekday: 'long', day: 'numeric' })}
+            <a key={d} href={`#day-${d}`} onClick={(e) => { e.preventDefault(); jump(d) }} aria-label={fmt(d, t.lang, { weekday: 'long', day: 'numeric' })}
               style={{ height: 64, borderRadius: 999, background: isToday ? 'var(--green)' : 'var(--surface-raised)', color: isToday ? 'var(--on-green)' : 'var(--ink)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, textDecoration: 'none' }}>
               <span style={{ fontSize: 12, fontWeight: 500, color: isToday ? 'var(--on-green)' : 'var(--ink-muted)' }}>{fmt(d, t.lang, { weekday: 'narrow' })}</span>
               <span style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 700 }}>{fmt(d, t.lang, { day: 'numeric' })}</span>
@@ -76,7 +82,8 @@ export default function Plan() {
       {days.map((d) => {
         const items = inWeek.filter((p) => p.date === d).sort((a, b) => MEALS.indexOf(a.meal) - MEALS.indexOf(b.meal))
         const past = d < today()
-        if (past && items.length === 0) return null
+        if (d < from) return null
+        if (past && items.length === 0 && d !== from) return null
         return (
           <section key={d} id={`day-${d}`} className="stack" style={{ scrollMarginTop: 20 }}>
             <div className="between">
@@ -107,6 +114,7 @@ export default function Plan() {
                 )
               })
             })}
+            {past && items.length === 0 && <span className="small muted">{t('nothingPlanned')}</span>}
             {!past && !items.some((p) => p.meal === 'snack') && <button className="slot-snack" onClick={() => setPickFor({ date: d, meal: 'snack' })}><Icon name="plus" size={16} />{t('addSnack')}</button>}
           </section>
         )

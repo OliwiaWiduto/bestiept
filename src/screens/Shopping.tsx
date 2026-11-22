@@ -168,8 +168,8 @@ export default function Shopping() {
           <h1 className="display">{t('shopping')}</h1>
         </div>
       </div>
-      {!shoppingNow && (
-        <button className="btn primary block" disabled={text.trim() === ''} onClick={() => { commit(); setShopping({ shoppingMode: true }); window.scrollTo(0, 0) }}>
+      {!shoppingNow && text.trim() !== '' && (
+        <button className="btn primary block" onClick={() => { commit(); setShopping({ shoppingMode: true }); window.scrollTo(0, 0) }}>
           <Icon name="bag" size={20} />{t('startShopping')}
         </button>
       )}
@@ -199,7 +199,7 @@ export default function Shopping() {
 
       {!shoppingNow && (
         <section className="stack" style={{ gap: 8 }}>
-          <span className="small muted">{t('listHint')}</span>
+          {allPlan.length > 0 && <span className="small muted">{t('listHint')}</span>}
           <LineEditor value={text} onChange={setText} onFocus={() => { editing.current = true }} onDone={commit}
             struck={(l) => bought.has(l)} placeholder={t('listPh')} label={t('shopping')} />
           {inBasket.length > 0 && (
