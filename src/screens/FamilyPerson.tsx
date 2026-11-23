@@ -43,7 +43,6 @@ export default function FamilyPerson() {
   const name = link.person.name
   const totals = (day?.logs ?? []).reduce((acc, l) => add(acc, sumItems(l.items)), { ...ZERO })
   const tg = day?.targets
-  const recipesOnly = mine.recipes && !mine.plan && !mine.list && !mine.macros
   const theyShare = [theirs.recipes && t('recipesWord'), theirs.plan && t('mealPlan'), theirs.list && t('shoppingList'), theirs.macros && t('macros')].filter(Boolean) as string[]
   const togetherSwitch = async (v: boolean) => {
     if (!(await setHousehold(link.id, v))) { toast(t('planTogetherSetup')); return }
@@ -70,11 +69,7 @@ export default function FamilyPerson() {
       </section>
 
       <section className="card stack" style={{ gap: 10 }}>
-        <div className="between">
-          <h2 className="heading">{t('youShare', { name })}</h2>
-          {!recipesOnly && <button className="btn ghost small" style={{ border: 'none', padding: '0 4px' }}
-            onClick={() => setShare(id, { recipes: true, plan: false, list: false, macros: false })}>{t('recipesOnly')}</button>}
-        </div>
+        <h2 className="heading">{t('youShare', { name })}</h2>
         <Switch label={t('shareMyRecipes')} on={mine.recipes} onChange={(v) => sharing('recipes', v)} />
         {!link.household && <Switch label={t('shareMyPlan')} on={mine.plan} onChange={(v) => sharing('plan', v)} />}
         {!link.household && <Switch label={t('shareMyList')} on={mine.list} onChange={(v) => sharing('list', v)} />}
