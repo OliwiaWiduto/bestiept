@@ -73,6 +73,8 @@ export type PlanItem = {
   recipeId: string
   servings: number
   leftoverOf?: string
+  /** Set when the meal is in the plan of the person I plan and shop with (not stored) */
+  ownerId?: string
 }
 
 export type ShoppingExtra = { id: string; name: string; amount: string }

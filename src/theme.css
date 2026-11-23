@@ -323,3 +323,5 @@ input[type=number] { -moz-appearance: textfield; }
 .friend-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 8px; border: none; background: none; color: var(--ink); text-align: left; border-radius: var(--radius-md); }
 .friend-row + .friend-row { border-top: 1px solid var(--line); border-radius: 0; }
 .friend-row > svg { color: var(--ink-muted); }
+/* Planning together: who added this meal */
+.who-added { position: absolute; right: -6px; bottom: -6px; border-radius: 999px; box-shadow: 0 0 0 2px var(--card, #fffdf6); display: flex; }

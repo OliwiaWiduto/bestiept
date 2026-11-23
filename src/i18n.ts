@@ -91,6 +91,9 @@ const en = {
   notHere: 'This isn’t here any more. It may have been deleted on another device.',
   noRecipeMatch: 'No recipes match. Try another word, or tap All.',
   editUsername: 'Edit username', theirUsername: 'Their username',
+  addedBy: 'Added by {name}',
+  planTogether: 'Plan and shop together', planTogetherHint: 'One meal plan and one shopping list for you and {name}. You can both add, move and remove meals, and tick things off.', planTogetherOn: 'You and {name} share one meal plan and one shopping list. Your picture shows who added each meal.', planTogetherDone: 'You and {name} now plan and shop together', planTogetherOff: 'Your plan and list are your own again', planTogetherSetup: 'This needs one more setup step in Supabase (household.sql).',
+  moveMeal: 'Move', moveHere: 'Move here',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -249,6 +252,9 @@ const pl: Dict = {
   notHere: 'Tego już tu nie ma. Może zostało usunięte na innym urządzeniu.',
   noRecipeMatch: 'Brak pasujących przepisów. Spróbuj innego słowa albo wybierz Wszystkie.',
   editUsername: 'Zmień nazwę użytkownika', theirUsername: 'Nazwa użytkownika',
+  addedBy: 'Dodane przez: {name}',
+  planTogether: 'Planujcie i kupujcie razem', planTogetherHint: 'Jeden plan posiłków i jedna lista zakupów dla Ciebie i: {name}. Obie osoby mogą dodawać, przesuwać i usuwać posiłki oraz odhaczać zakupy.', planTogetherOn: 'Ty i {name} macie wspólny plan posiłków i wspólną listę zakupów. Zdjęcie pokazuje, kto dodał posiłek.', planTogetherDone: 'Ty i {name} planujecie teraz razem', planTogetherOff: 'Plan i lista są znowu tylko Twoje', planTogetherSetup: 'To wymaga jeszcze jednego kroku w Supabase (household.sql).',
+  moveMeal: 'Przenieś', moveHere: 'Przenieś tutaj',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 

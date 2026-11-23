@@ -4,21 +4,30 @@ import { useStore } from '../store'
 import { useRecipes } from '../lib/recipeLang'
 import { useUI } from '../ui-state'
 import { useT } from '../i18n'
-import type { Meal, Recipe } from '../types'
+import type { Meal, PlanItem, Recipe } from '../types'
 import { MEALS } from '../types'
 import { rankRecipes } from '../lib/pick'
 import { addDays, fmt, today, weekDays, weekStart } from '../lib/dates'
-import { Icon, Sheet, Stepper, Thumb } from '../components/ui'
+import { Avatar, Icon, Sheet, Stepper, Thumb } from '../components/ui'
+import { householdLink, useFamily } from '../lib/family'
 import AddToPlanSheet from '../components/AddToPlanSheet'
 
 export default function Plan() {
   const t = useT()
   const nav = useNavigate()
-  const { plan, removePlan, profile, updateProfile } = useStore()
+  const { plan, removePlan, updatePlan, profile, updateProfile } = useStore()
+  const [moving, setMoving] = useState<PlanItem | null>(null)
   const people = profile?.household ?? 1
   const [peopleOpen, setPeopleOpen] = useState(false)
   const recipes = useRecipes()
   const { planWeek, setPlanWeek } = useUI()
+  // Planning together: each meal shows the picture of whoever added it.
+  const partner = householdLink(useFamily((s) => s.links))
+  const whoAdded = (ownerId?: string) => {
+    if (!partner) return null
+    const p = ownerId ? useFamily.getState().links.find((l) => l.person.id === ownerId)?.person : null
+    return p ? { name: p.name, avatar: p.avatar } : { name: profile?.name ?? '', avatar: profile?.avatar }
+  }
   const [pickFor, setPickFor] = useState<{ date: string; meal: Meal } | null>(null)
   const [planMeal, setPlanMeal] = useState<Meal | undefined>()
   const [recipe, setRecipe] = useState<Recipe | null>(null)
@@ -102,13 +111,17 @@ export default function Plan() {
                 return (
                   <div key={p.id} className="meal-row">
                     <button onClick={() => nav(`/recipes/${r.id}?s=${p.leftoverOf ? r.servings : p.servings}`)} style={{ display: 'flex', gap: 12, alignItems: 'center', flex: 1, minWidth: 0, background: 'none', border: 'none', textAlign: 'left', padding: 0 }}>
-                      <Thumb photo={r.photo} cat={r.category} name={r.title} />
+                      <span style={{ position: 'relative', flex: 'none' }}>
+                        <Thumb photo={r.photo} cat={r.category} name={r.title} />
+                        {(() => { const w = whoAdded(p.ownerId); return w && <span className="who-added" title={t('addedBy', { name: w.name })}><Avatar name={w.name} avatar={w.avatar} size={22} /></span> })()}
+                      </span>
                       <span className="grow stack" style={{ gap: 2 }}>
                         <span className="row caption" style={{ gap: 6, whiteSpace: 'nowrap' }}>{t(p.meal)}{p.leftoverOf && <span className="tag" style={{ whiteSpace: 'nowrap' }}>{t('leftovers')}</span>}</span>
                         <span style={{ fontSize: 15, lineHeight: '20px', fontWeight: 600 }}>{r.title}</span>
                       </span>
                       <span className="small muted" style={{ whiteSpace: 'nowrap' }}>{p.leftoverOf ? t(p.servings === 1 ? 'servingN' : 'servingsN', { n: p.servings }) : t('cookN', { n: p.servings })}</span>
                     </button>
+                    <button className="icon-btn" style={{ width: 32, height: 32, background: 'transparent', color: 'var(--ink-muted)' }} aria-label={`${t('moveMeal')} ${r.title}`} onClick={() => setMoving(p)}><Icon name="calendar" size={16} /></button>
                     <button className="icon-btn" style={{ width: 32, height: 32, background: 'transparent', color: 'var(--ink-muted)' }} aria-label={`${t('remove')} ${r.title}`} onClick={() => removePlan(p.id)}><Icon name="close" size={16} /></button>
                   </div>
                 )
@@ -123,8 +136,35 @@ export default function Plan() {
 
       <RecipePicker open={!!pickFor} meal={pickFor?.meal} days={days} onClose={() => setPickFor(null)}
         onPick={(r) => { setPlanDate(pickFor?.date); setPlanMeal(pickFor?.meal); setPickFor(null); setRecipe(r) }} />
+      <MoveSheet item={moving} onClose={() => setMoving(null)} onMove={(date, meal) => { if (moving) updatePlan(moving.id, { date, meal }); setMoving(null) }} />
       <AddToPlanSheet recipe={recipe} open={!!recipe} initialDate={planDate} initialMeal={planMeal} onClose={() => setRecipe(null)} />
     </main>
+  )
+}
+
+/** Move a planned meal to another day or meal. */
+function MoveSheet({ item, onClose, onMove }: { item: PlanItem | null; onClose: () => void; onMove: (date: string, meal: Meal) => void }) {
+  const t = useT()
+  const [date, setDate] = useState('')
+  const [meal, setMeal] = useState<Meal>('dinner')
+  const [for_, setFor] = useState<string | null>(null)
+  if (item && for_ !== item.id) { setFor(item.id); setDate(item.date); setMeal(item.meal) }
+  const days = [...weekDays(weekStart(today())), ...weekDays(addDays(weekStart(today()), 7))].filter((d) => d >= today())
+  return (
+    <Sheet open={!!item} onClose={() => { setFor(null); onClose() }} title={t('moveMeal')}>
+      <span className="label">{t('whichDay')}</span>
+      <div className="chips scroll">
+        {days.map((d) => (
+          <button key={d} className="chip" aria-pressed={date === d} onClick={() => setDate(d)} style={{ height: 52, flexDirection: 'column', justifyContent: 'center', lineHeight: '16px' }}>
+            <span style={{ fontSize: 11, fontWeight: 500 }}>{fmt(d, t.lang, { weekday: 'short' })}</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>{fmt(d, t.lang, { day: 'numeric' })}</span>
+          </button>
+        ))}
+      </div>
+      <span className="label">{t('whichMeal')}</span>
+      <div className="chips">{MEALS.map((m) => <button key={m} className="chip" aria-pressed={meal === m} onClick={() => setMeal(m)}>{t(m)}</button>)}</div>
+      <button className="btn primary block" disabled={!item || (date === item.date && meal === item.meal)} onClick={() => onMove(date, meal)}>{t('moveHere')}</button>
+    </Sheet>
   )
 }
 

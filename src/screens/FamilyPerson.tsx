@@ -4,7 +4,8 @@ import { useRecipes } from '../lib/recipeLang'
 import { useT } from '../i18n'
 import { Avatar, BackButton, Icon, MacroBar, toast } from '../components/ui'
 import { useNavigate } from 'react-router-dom'
-import { fetchTheirDay, fetchTheirPlan, removeLink, setShare, shareOf, useFamily, type Share } from '../lib/family'
+import { fetchTheirDay, fetchTheirPlan, removeLink, setHousehold, setShare, shareOf, useFamily, type Share } from '../lib/family'
+import { syncNow } from '../lib/sync'
 import { add } from '../lib/nutrition'
 import { sumItems } from '../lib/nutrition'
 import { addDays, fmt, today, weekDays, weekStart } from '../lib/dates'
@@ -44,6 +45,12 @@ export default function FamilyPerson() {
   const tg = day?.targets
   const recipesOnly = mine.recipes && !mine.plan && !mine.list && !mine.macros
   const theyShare = [theirs.recipes && t('recipesWord'), theirs.plan && t('mealPlan'), theirs.list && t('shoppingList'), theirs.macros && t('macros')].filter(Boolean) as string[]
+  const togetherSwitch = async (v: boolean) => {
+    if (!(await setHousehold(link.id, v))) { toast(t('planTogetherSetup')); return }
+    const uid = useFamily.getState().uid
+    if (uid) await syncNow(uid).catch(console.error)
+    toast(t(v ? 'planTogetherDone' : 'planTogetherOff', { name }))
+  }
   const sharing = async (key: keyof Share, v: boolean) => { if (!(await setShare(id, { [key]: v })) && key === 'recipes') toast(t('recipeShareSetup')) }
 
   return (
@@ -57,6 +64,11 @@ export default function FamilyPerson() {
         </div>
       </div>
 
+      <section className="card stack" style={{ gap: 8 }}>
+        <Switch label={t('planTogether')} on={!!link.household} onChange={togetherSwitch} />
+        <span className="caption">{t(link.household ? 'planTogetherOn' : 'planTogetherHint', { name })}</span>
+      </section>
+
       <section className="card stack" style={{ gap: 10 }}>
         <div className="between">
           <h2 className="heading">{t('youShare', { name })}</h2>
@@ -64,8 +76,8 @@ export default function FamilyPerson() {
             onClick={() => setShare(id, { recipes: true, plan: false, list: false, macros: false })}>{t('recipesOnly')}</button>}
         </div>
         <Switch label={t('shareMyRecipes')} on={mine.recipes} onChange={(v) => sharing('recipes', v)} />
-        <Switch label={t('shareMyPlan')} on={mine.plan} onChange={(v) => sharing('plan', v)} />
-        <Switch label={t('shareMyList')} on={mine.list} onChange={(v) => sharing('list', v)} />
+        {!link.household && <Switch label={t('shareMyPlan')} on={mine.plan} onChange={(v) => sharing('plan', v)} />}
+        {!link.household && <Switch label={t('shareMyList')} on={mine.list} onChange={(v) => sharing('list', v)} />}
         <Switch label={t('shareMyMacros')} on={mine.macros} onChange={(v) => sharing('macros', v)} />
         <span className="caption">{t('weightNeverShared')}</span>
       </section>
@@ -97,7 +109,7 @@ export default function FamilyPerson() {
         </>
       )}
 
-      {theirs.plan && (
+      {theirs.plan && !link.household && (
         <section className="card stack" style={{ gap: 10 }}>
           <h2 className="heading">{t('theirWeek', { name })}</h2>
           {!plan ? <span className="muted">{t('loading')}</span> : week.map((d) => {

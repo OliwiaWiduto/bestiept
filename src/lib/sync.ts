@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { useStore, type SyncMeta } from '../store'
-import type { LogEntry, PlanItem, Recipe, WeightEntry } from '../types'
+import type { LogEntry, PlanItem, Recipe, ShoppingState, WeightEntry } from '../types'
 
 /**
  * Local-first sync. The phone keeps a full copy (works offline); changes are pushed to
@@ -27,6 +27,19 @@ const profileDoc = (s: Pick<Local, 'profile' | 'targets' | 'lang' | 'units' | 's
 const items = (s: Local, c: Coll): { id: string }[] =>
   c === 'weights' ? s.weights.map((w) => ({ ...w, id: w.date })) : (s[c] as { id: string }[])
 
+// Planning and shopping together (household.sql): their meals join my plan and we keep one list.
+type Household = { linkId: string; partners: string[]; list: SharedList | null }
+type SharedList = Omit<ShoppingState, 'shoppingMode'>
+let household: Household | null = null
+export const inHousehold = () => !!household
+const sharedList = (s: ShoppingState): SharedList => { const { shoppingMode: _m, ...rest } = s; return rest } // eslint-disable-line @typescript-eslint/no-unused-vars
+
+async function findHousehold(uid: string): Promise<Omit<Household, 'list'> | null> {
+  const { data, error } = await supabase.from('links').select('id, requester, addressee').eq('status', 'accepted').eq('household', true)
+  if (error || !data?.length) return null // not set up, or not planning with anyone
+  return { linkId: data[0].id, partners: data.map((l) => (l.requester === uid ? l.addressee : l.requester)) }
+}
+
 type Remote = {
   profile: ReturnType<typeof profileDoc> | null
   recipes: Recipe[]
@@ -36,14 +49,17 @@ type Remote = {
 }
 
 async function pull(uid: string): Promise<Remote> {
-  const [p, r, l, pl, w] = await Promise.all([
+  const hh = await findHousehold(uid)
+  const [p, r, l, pl, w, hl] = await Promise.all([
     supabase.from('profiles').select('data').eq('id', uid).maybeSingle(),
     // Includes recipes of linked family members (see family.sql)
     supabase.from('recipes').select('data, user_id'),
     supabase.from('log_entries').select('data').eq('user_id', uid),
-    supabase.from('plan_items').select('data').eq('user_id', uid),
+    supabase.from('plan_items').select('data, user_id').in('user_id', [uid, ...(hh?.partners ?? [])]),
     supabase.from('weights').select('date, kg').eq('user_id', uid).order('date'),
+    hh ? supabase.from('household_lists').select('data').eq('link_id', hh.linkId).maybeSingle() : Promise.resolve({ data: null, error: null }),
   ])
+  household = hh ? { ...hh, list: (hl.data?.data as SharedList | undefined) ?? null } : null
   const err = p.error || r.error || l.error || pl.error || w.error
   if (err) throw err
   return {
@@ -53,7 +69,10 @@ async function pull(uid: string): Promise<Remote> {
       return x.user_id === uid ? rec : { ...rec, ownerId: x.user_id as string }
     }),
     logs: (l.data ?? []).map((x) => x.data as LogEntry),
-    plan: (pl.data ?? []).map((x) => x.data as PlanItem),
+    plan: (pl.data ?? []).map((x) => {
+      const { ownerId: _drop, ...item } = x.data as PlanItem // eslint-disable-line @typescript-eslint/no-unused-vars
+      return x.user_id === uid ? item : { ...item, ownerId: x.user_id as string }
+    }),
     weights: (w.data ?? []).map((x) => ({ date: x.date as string, kg: Number(x.kg) })),
   }
 }
@@ -65,6 +84,7 @@ function snapshotOf(r: Remote): SyncMeta['snap'] {
   for (const x of r.plan) snap.plan[x.id] = h(x)
   for (const x of r.weights) snap.weights[x.date] = h({ ...x, id: x.date })
   if (r.profile) snap.profile.me = h(r.profile)
+  if (household?.list) snap.profile.list = h(household.list)
   return snap
 }
 
@@ -73,7 +93,7 @@ function applyRemote(r: Remote) {
   s.loadRemote({
     profile: r.profile?.profile ?? null,
     targets: r.profile?.targets ?? null,
-    shopping: r.profile?.shopping ?? s.shopping,
+    shopping: household?.list ? { ...household.list, shoppingMode: s.shopping.shoppingMode } : r.profile?.shopping ?? s.shopping,
     lang: r.profile?.lang ?? s.lang,
     units: r.profile?.units ?? s.units,
     pwaDismissedAt: r.profile?.pwaDismissedAt ?? s.pwaDismissedAt,
@@ -121,6 +141,14 @@ export async function syncNow(uid: string): Promise<void> {
       plan: mergeColl(s.plan, remote.plan, snap.plan ?? {}),
       weights: mergeColl(s.weights.map((w) => ({ ...w, id: w.date })), remote.weights.map((w) => ({ ...w, id: w.date })), snap.weights ?? {})
         .map(({ date, kg }) => ({ date, kg })).sort((a, b) => a.date.localeCompare(b.date)),
+    }
+    if (household) {
+      const mine = sharedList(s.shopping)
+      const theirs = household.list
+      const firstTime = !snap.profile?.list
+      // Edited here since the last sync: keep ours. Joining a list for the first time: add our own extras and staples to it.
+      if (theirs && firstTime) household.list = { ...theirs, extras: [...theirs.extras, ...mine.extras.filter((e) => !theirs.extras.some((x) => x.name.toLowerCase() === e.name.toLowerCase()))], staples: [...new Set([...theirs.staples, ...mine.staples])] }
+      else if (!theirs || h(mine) !== snap.profile?.list) household.list = mine
     }
     if (merged.profile?.profile || remote.profile) applyRemote(merged)
     useStore.getState().setSync({ ownerId: uid, snap: { ...snapshotOf(remote), photos: snap.photos ?? {} } })
@@ -201,6 +229,15 @@ async function pushOnce(uid: string) {
     }
   }
 
+  if (household) {
+    const list = sharedList(useStore.getState().shopping)
+    const lh = h(list)
+    if ((snap.profile ??= {}).list !== lh) {
+      const { error } = await supabase.from('household_lists').upsert({ link_id: household.linkId, data: list, updated_at: now })
+      if (error) throw error
+      snap.profile.list = lh
+    }
+  }
   const doc = profileDoc(s)
   const ph = h(doc)
   if (s.profile && (snap.profile ??= {}).me !== ph) {
@@ -229,7 +266,9 @@ export function startAutoSync(uid: string): () => void {
   }
   document.addEventListener('visibilitychange', onVis)
   window.addEventListener('online', onVis)
-  return () => { unsub(); window.clearTimeout(timer); document.removeEventListener('visibilitychange', onVis); window.removeEventListener('online', onVis) }
+  // Planning together: pick up the other person's changes every 20 seconds while the app is open.
+  const poll = window.setInterval(() => { if (household && document.visibilityState === 'visible') syncNow(uid).catch(console.error) }, 20_000)
+  return () => { unsub(); window.clearTimeout(timer); window.clearInterval(poll); document.removeEventListener('visibilitychange', onVis); window.removeEventListener('online', onVis) }
 }
 
 /** Sign out: send anything unsaved, then clear this phone. */

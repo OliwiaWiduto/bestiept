@@ -6,7 +6,7 @@ import type { LogEntry, Macros, PlanItem } from '../types'
 /** Family sharing (needs supabase/family.sql). Everything here is online-only and not stored on the phone. */
 
 export type Person = { id: string; username: string | null; name: string; avatar?: string }
-export type Link = { id: string; person: Person; status: 'pending' | 'accepted'; incoming: boolean }
+export type Link = { id: string; person: Person; status: 'pending' | 'accepted'; incoming: boolean; household?: boolean }
 export type Share = { plan: boolean; list: boolean; macros: boolean; recipes: boolean }
 const NO_SHARE: Share = { plan: false, list: false, macros: false, recipes: true }
 
@@ -28,7 +28,8 @@ const nameOf = (m?: { display_name?: string; username?: string | null }) => m?.d
 export async function loadFamily(uid: string) {
   const [me, links, shares] = await Promise.all([
     supabase.from('members').select('id, username, display_name').eq('id', uid).maybeSingle(),
-    supabase.from('links').select('id, requester, addressee, status'),
+    // household comes from household.sql; until that's run, ask without it.
+    supabase.from('links').select('id, requester, addressee, status, household').then((r) => (r.error ? supabase.from('links').select('id, requester, addressee, status') : r)),
     supabase.from('shares').select('*'),
   ])
   if (me.error || links.error || shares.error) {
@@ -58,7 +59,7 @@ export async function loadFamily(uid: string) {
     links: (links.data ?? []).map((l) => {
       const other = l.requester === uid ? l.addressee : l.requester
       const p = byId.get(other)
-      return { id: l.id, status: l.status, incoming: l.addressee === uid, person: { id: other, username: p?.username ?? null, name: nameOf(p), avatar: p?.avatar ?? undefined } }
+      return { id: l.id, status: l.status, incoming: l.addressee === uid, household: !!(l as { household?: boolean }).household, person: { id: other, username: p?.username ?? null, name: nameOf(p), avatar: p?.avatar ?? undefined } }
     }),
     mine,
     theirs,
@@ -148,7 +149,8 @@ export function useFamilyLists(start: string): { person: Person; plan: PlanItem[
   const theirs = useFamily((s) => s.theirs)
   const [out, setOut] = useState<{ person: Person; plan: PlanItem[] }[]>([])
   useEffect(() => {
-    const people = links.filter((l) => l.status === 'accepted' && shareOf(theirs, l.person.id).list).map((l) => l.person)
+    // People I plan and shop with are already part of my own plan and list.
+    const people = links.filter((l) => l.status === 'accepted' && !l.household && shareOf(theirs, l.person.id).list).map((l) => l.person)
     if (!people.length) { setOut([]); return }
     let alive = true
     const end = new Date(start + 'T12:00:00'); end.setDate(end.getDate() + 6)
@@ -165,3 +167,14 @@ export async function syncAvatar(avatar: string | undefined) {
   if (!uid || !me || !avatar) return
   await supabase.from('members').update({ avatar }).eq('id', uid)
 }
+
+/** Plan and shop together with this person (household.sql). Returns false if that isn't set up yet. */
+export async function setHousehold(linkId: string, on: boolean): Promise<boolean> {
+  const { error, data } = await supabase.rpc('set_household', { link_id: linkId, turn_on: on })
+  const uid = useFamily.getState().uid
+  if (uid) await loadFamily(uid)
+  return !error && data === true
+}
+
+/** The person I plan and shop with, if any. */
+export const householdLink = (links: Link[]) => links.find((l) => l.status === 'accepted' && l.household)
