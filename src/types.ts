@@ -90,6 +90,8 @@ export type ShoppingState = {
   hidden?: string[]
   /** True while she's in the shop working through the list */
   shoppingMode?: boolean
+  /** Only shop for these planned meals (plan item ids); not set = every meal. Kept on this phone only. */
+  onlyFor?: string[]
 }
 
 export type WeightEntry = { date: string; kg: number }

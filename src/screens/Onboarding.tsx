@@ -25,16 +25,20 @@ export default function Onboarding() {
   const [step, setStep] = useState(0)
   const [where] = useState(() => (isInstalled() ? 'desktop' : whereOpen()))
   const showHome = where !== 'desktop'
-  const last = showHome ? 6 : 5
+  const last = showHome ? 7 : 6
+  // Pantry staples: nothing picked to start with, so she has to choose (or say she keeps none of them).
+  const [staples, setStaples] = useState<string[]>([])
+  const [noStaples, setNoStaples] = useState(false)
+  const stapleOptions = lang === 'pl' ? DEFAULT_STAPLES_PL : DEFAULT_STAPLES
   const [, rerender] = useState(0)
   const [p, setP] = useState<Profile>({ name: '', sex: 'female', age: 28, heightCm: 165, weightKg: 65, activity: 'light', goal: 'maintain', household: 1 })
   const auto = useMemo(() => calcTargets(p), [p])
   const targets = auto
   const set = <K extends keyof Profile>(k: K, v: Profile[K]) => setP({ ...p, [k]: v })
 
-  const valid = [true, p.name.trim().length > 0, p.age >= 13 && p.age <= 100 && p.heightCm >= 120 && p.heightCm <= 230 && p.weightKg >= 30 && p.weightKg <= 300, true, true, true, true][step]
+  const valid = [true, p.name.trim().length > 0, p.age >= 13 && p.age <= 100 && p.heightCm >= 120 && p.heightCm <= 230 && p.weightKg >= 30 && p.weightKg <= 300, true, true, true, staples.length > 0 || noStaples, true][step]
   const finish = () => {
-    completeOnboarding({ ...p, name: p.name.trim() }, sampleRecipes(lang), lang === 'pl' ? DEFAULT_STAPLES_PL : DEFAULT_STAPLES)
+    completeOnboarding({ ...p, name: p.name.trim() }, sampleRecipes(lang), staples)
   }
 
   const option = (selected: boolean, label: string, onClick: () => void) => (
@@ -140,7 +144,26 @@ export default function Onboarding() {
         </div>
       )}
 
-      {step === 6 && (() => {
+      {step === 6 && (
+        <div className="stack" style={{ gap: 12 }}>
+          <h1 className="title">{t('staplesTitle')}</h1>
+          <p className="muted" style={{ margin: 0, fontSize: 15 }}>{t('obStaplesHint')}</p>
+          <div className="chips" style={{ gap: 8 }}>
+            {stapleOptions.map((s) => (
+              <button key={s} className="chip" style={{ height: 44, fontSize: 15, background: staples.includes(s) ? undefined : 'var(--surface-raised)' }} aria-pressed={staples.includes(s)}
+                onClick={() => { setNoStaples(false); setStaples(staples.includes(s) ? staples.filter((x) => x !== s) : [...staples, s]) }}>{s}</button>
+            ))}
+          </div>
+          <div className="row" style={{ gap: 16 }}>
+            <button className="link-btn" onClick={() => setStaples(staples.length === stapleOptions.length ? [] : stapleOptions)}>{t(staples.length === stapleOptions.length ? 'clearAll' : 'selectAll')}</button>
+            <button className="link-btn" aria-pressed={noStaples} onClick={() => { setStaples([]); setNoStaples(true) }}>{t('noneOfThese')}</button>
+          </div>
+          {noStaples && <span className="caption">{t('noStaplesNote')}</span>}
+          <span className="caption" style={{ paddingBottom: 96 }}>{t('staplesLater')}</span>
+        </div>
+      )}
+
+      {step === 7 && (() => {
         const [before, after] = t('homeStep1').split('{share}')
         const steps = where === 'android'
           ? [t('homeAndroid1'), t('homeAndroid2')]
@@ -173,7 +196,7 @@ export default function Onboarding() {
 
       <div className="bottom-bar">
         <button className="btn primary block" disabled={!valid} onClick={() => (step === last ? finish() : setStep(step + 1))}>
-          {step === 0 ? t('obStart') : step === last ? (step === 6 ? t('homeDone') : t('obGo')) : t('continue')}
+          {step === 0 ? t('obStart') : step === last ? (step === 7 ? t('homeDone') : t('obGo')) : t('continue')}
         </button>
       </div>
     </main>

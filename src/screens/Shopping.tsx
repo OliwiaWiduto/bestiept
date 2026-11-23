@@ -6,11 +6,12 @@ import { useNavigate } from 'react-router-dom'
 import { useT } from '../i18n'
 import { fmt, today, weekDays, weekStart } from '../lib/dates'
 import { plBasic } from '../lib/plNames'
-import { buildList, categorise, CATEGORIES, CATEGORY_ICON, DEFAULT_STAPLES, DEFAULT_STAPLES_PL, displayAmount, staplesIn, type ShoppingLine } from '../lib/shopping'
+import { buildList, categorise, CATEGORIES, CATEGORY_ICON, displayAmount, type ShoppingLine } from '../lib/shopping'
 import { formatAmount, parseIngredient, uid } from '../lib/util'
-import { Icon, Sheet, toast } from '../components/ui'
+import { Icon, Sheet, Thumb, toast } from '../components/ui'
 import { LineEditor } from '../components/LineEditor'
 import { useFamilyLists } from '../lib/family'
+import { MEALS } from '../types'
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 const lineText = (amount: string, name: string) => [amount, cap(name)].filter(Boolean).join(' ')
@@ -56,7 +57,13 @@ export default function Shopping() {
   const family = useFamilyLists(planWeek)
   const [skip, setSkip] = useState<Record<string, boolean>>({})
   const allPlan = useMemo(() => [...weekPlan, ...family.flatMap((f) => (skip[f.person.id] ? [] : f.plan))], [weekPlan, family, skip])
-  const { need, probably } = useMemo(() => buildList(allPlan, recipes, shopping, today()), [allPlan, recipes, shopping])
+  // Shopping for just a few of the week's meals?
+  const cookable = allPlan.filter((p) => !p.leftoverOf && recipes.some((r) => r.id === p.recipeId)).sort((a, b) => a.date.localeCompare(b.date) || MEALS.indexOf(a.meal) - MEALS.indexOf(b.meal))
+  const chosen = (shopping.onlyFor ?? []).filter((id) => cookable.some((p) => p.id === id))
+  const someMeals = !!shopping.onlyFor && chosen.length > 0
+  const [choosing, setChoosing] = useState(false)
+  const listPlan = useMemo(() => (someMeals ? allPlan.filter((p) => chosen.includes(p.id)) : allPlan), [allPlan, someMeals, chosen.join()]) // eslint-disable-line react-hooks/exhaustive-deps
+  const { need, probably } = useMemo(() => buildList(listPlan, recipes, shopping, today()), [listPlan, recipes, shopping])
   const range = `${fmt(days[0], t.lang, { day: 'numeric' })} – ${fmt(days[6], t.lang, { day: 'numeric', month: 'long' })}`
 
   const tk = (key: string) => `${planWeek}:${key}`
@@ -135,8 +142,6 @@ export default function Shopping() {
   const setBasketCount = useUI((u) => u.setBasketCount)
   useEffect(() => { setBasketCount(done) }, [done, setBasketCount])
 
-  const [staplePick, setStaplePick] = useState<string[]>(() => staplesIn(shopping.staples, t.lang))
-  const stapleOptions = Array.from(new Set([...(t.lang === 'pl' ? DEFAULT_STAPLES_PL : DEFAULT_STAPLES), ...staplesIn(shopping.staples, t.lang)]))
 
   const row = (key: string, name: string, amount: string, caption: string, last: boolean) => {
     const on = isTicked(key)
@@ -177,10 +182,41 @@ export default function Shopping() {
         {shoppingNow && <button className="btn ghost small" style={{ border: 'none', padding: '0 4px', marginBottom: 6 }} onClick={() => setShopping({ shoppingMode: false })}><Icon name="edit" size={16} />{t('editList')}</button>}
       </div>
       {!shoppingNow && text.trim() !== '' && (
-        <button className="btn primary block" onClick={() => { commit(); setShopping({ shoppingMode: true }); window.scrollTo(0, 0) }}>
+        <button className="btn primary block sticky-start" onClick={() => { commit(); setShopping({ shoppingMode: true }); window.scrollTo(0, 0) }}>
           <Icon name="bag" size={20} />{t('startShopping')}
         </button>
       )}
+      {cookable.length > 1 && (
+        <div className="chips" role="group" aria-label={t('shopFor')}>
+          <button className="chip" aria-pressed={!someMeals} onClick={() => setShopping({ onlyFor: undefined })}>{t('allMeals')}</button>
+          <button className="chip" aria-pressed={someMeals} onClick={() => setChoosing(true)}>
+            {someMeals ? t(chosen.length === 1 ? 'mealN' : 'mealsN', { n: chosen.length }) : t('chooseMeals')}<Icon name="forward" size={14} />
+          </button>
+        </div>
+      )}
+      <Sheet open={choosing} onClose={() => setChoosing(false)} title={t('chooseMealsTitle')}>
+        <span className="small muted">{t('chooseMealsHint')}</span>
+        <div className="card" style={{ padding: '4px 12px' }}>
+          {cookable.map((p, i) => {
+            const r = recipes.find((x) => x.id === p.recipeId)!
+            const on = chosen.includes(p.id)
+            return (
+              <button key={p.id} className="check-row" aria-pressed={on} style={{ borderTop: i ? '1px solid var(--line)' : 'none' }}
+                onClick={() => setShopping({ onlyFor: on ? chosen.filter((x) => x !== p.id) : [...chosen, p.id] })}>
+                <span className={`check ${on ? 'on' : ''}`}>{on && <Icon name="check" size={14} sw={2.5} />}</span>
+                <Thumb photo={r.photo} size={40} cat={r.category} name={r.title} />
+                <span className="stack grow" style={{ gap: 0, minWidth: 0, textAlign: 'left' }}>
+                  <span style={{ fontWeight: 600 }}>{r.title}</span>
+                  <span className="caption">{fmt(p.date, t.lang, { weekday: 'short', day: 'numeric' })} · {t(p.meal)}</span>
+                </span>
+              </button>
+            )
+          })}
+        </div>
+        <button className="btn primary block" onClick={() => { if (!chosen.length) setShopping({ onlyFor: undefined }); setChoosing(false) }}>
+          {chosen.length ? t('showIngredientsFor', { n: chosen.length }) : t('allMeals')}
+        </button>
+      </Sheet>
       {family.length > 0 && (
         <div className="chips" role="group" aria-label={t('includeFamily')}>
           {family.map((f) => (
@@ -189,20 +225,6 @@ export default function Shopping() {
             </button>
           ))}
         </div>
-      )}
-
-      {!shoppingNow && !shopping.staplesAsked && need.length + probably.length > 0 && (
-        <section className="card stack" style={{ gap: 12, background: 'var(--peach-soft)' }}>
-          <h2 className="heading" style={{ fontSize: 18 }}>{t('staplesTitle')}</h2>
-          <span className="small">{t('staplesHint')}</span>
-          <div className="chips">
-            {stapleOptions.map((s) => (
-              <button key={s} className="chip" style={{ background: staplePick.includes(s) ? undefined : 'var(--surface-raised)' }} aria-pressed={staplePick.includes(s)}
-                onClick={() => setStaplePick(staplePick.includes(s) ? staplePick.filter((x) => x !== s) : [...staplePick, s])}>{s}</button>
-            ))}
-          </div>
-          <button className="btn green" onClick={() => setShopping({ staples: staplePick, staplesAsked: true })}>{t('save')}</button>
-        </section>
       )}
 
       {!shoppingNow && (

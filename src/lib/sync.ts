@@ -29,10 +29,10 @@ const items = (s: Local, c: Coll): { id: string }[] =>
 
 // Planning and shopping together (household.sql): their meals join my plan and we keep one list.
 type Household = { linkId: string; partners: string[]; list: SharedList | null }
-type SharedList = Omit<ShoppingState, 'shoppingMode'>
+type SharedList = Omit<ShoppingState, 'shoppingMode' | 'onlyFor'>
 let household: Household | null = null
 export const inHousehold = () => !!household
-const sharedList = (s: ShoppingState): SharedList => { const { shoppingMode: _m, ...rest } = s; return rest } // eslint-disable-line @typescript-eslint/no-unused-vars
+const sharedList = (s: ShoppingState): SharedList => { const { shoppingMode: _m, onlyFor: _o, ...rest } = s; return rest } // eslint-disable-line @typescript-eslint/no-unused-vars
 
 async function findHousehold(uid: string): Promise<Omit<Household, 'list'> | null> {
   const { data, error } = await supabase.from('links').select('id, requester, addressee').eq('status', 'accepted').eq('household', true)
@@ -93,7 +93,7 @@ function applyRemote(r: Remote) {
   s.loadRemote({
     profile: r.profile?.profile ?? null,
     targets: r.profile?.targets ?? null,
-    shopping: household?.list ? { ...household.list, shoppingMode: s.shopping.shoppingMode } : r.profile?.shopping ?? s.shopping,
+    shopping: household?.list ? { ...household.list, shoppingMode: s.shopping.shoppingMode, onlyFor: s.shopping.onlyFor } : r.profile?.shopping ?? s.shopping,
     lang: r.profile?.lang ?? s.lang,
     units: r.profile?.units ?? s.units,
     pwaDismissedAt: r.profile?.pwaDismissedAt ?? s.pwaDismissedAt,

@@ -325,3 +325,7 @@ input[type=number] { -moz-appearance: textfield; }
 .friend-row > svg { color: var(--ink-muted); }
 /* Planning together: who added this meal */
 .who-added { position: absolute; right: -6px; bottom: -6px; border-radius: 999px; box-shadow: 0 0 0 2px var(--card, #fffdf6); display: flex; }
+/* Shopping: Start shopping stays in view at the top once the list scrolls past it */
+.sticky-start { position: sticky; top: calc(env(safe-area-inset-top) + 10px); z-index: 6; box-shadow: 0 6px 18px rgba(60, 20, 30, .18); }
+/* A tappable row with a checkbox (choose meals) */
+.check-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 2px; border: none; background: none; color: var(--ink); }
