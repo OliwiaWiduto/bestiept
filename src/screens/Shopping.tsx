@@ -12,6 +12,7 @@ import { Icon, Sheet, Thumb, toast } from '../components/ui'
 import { LineEditor } from '../components/LineEditor'
 import { useFamilyLists } from '../lib/family'
 import { translateRecipe } from '../lib/ai'
+import { dictTranslate } from '../lib/groceryDict'
 import type { ShoppingExtra } from '../types'
 import { MEALS } from '../types'
 
@@ -107,7 +108,7 @@ export default function Shopping() {
   const asText = () => items.map((i) => i.text).join('\n')
   const [text, setText] = useState(asText)
   const editing = useRef(false)
-  const listKey = items.map((i) => i.key + i.amount).join('|')
+  const listKey = items.map((i) => i.key + i.amount + i.name).join('|')
   useEffect(() => { if (!editing.current) setText(asText()) }, [listKey]) // eslint-disable-line react-hooks/exhaustive-deps
   const commit = () => {
     editing.current = false
@@ -330,10 +331,21 @@ function useTranslatedExtras(extras: ShoppingExtra[], lang: 'en' | 'pl', setShop
   useEffect(() => {
     if (!missing.length) return
     for (const e of missing) asked.add(`${lang}:${e.id}`)
-    translateRecipe({ title: 'Shopping list', ingredients: missing.map((e) => e.name), steps: [], equipment: [] }, lang).then(({ data }) => {
+    // Everyday things come from our dictionary; only the rest go to the AI (which uses a daily credit).
+    // Anything with Polish letters is already Polish; plain letters with no Polish word we know, already English.
+    const polishLetters = /[ąćęłńóśźż]/i
+    const sameLang = (n: string) => (lang === 'pl' ? polishLetters.test(n) : !polishLetters.test(n))
+    const known = new Map(missing.flatMap((e) => { const d = dictTranslate(e.name, lang) ?? (sameLang(e.name) ? e.name : undefined); return d ? [[e.id, d] as const] : [] }))
+    const unknown = missing.filter((e) => !known.has(e.id))
+    if (known.size) {
+      const now = useStore.getState().shopping.extras
+      setShopping({ extras: now.map((e) => (known.has(e.id) ? { ...e, tr: { ...e.tr, [lang]: known.get(e.id)! } } : e)) })
+    }
+    if (!unknown.length) return
+    translateRecipe({ title: 'Shopping list', ingredients: unknown.map((e) => e.name), steps: [], equipment: [] }, lang).then(({ data }) => {
       const out = data?.translation?.ingredients
-      if (!out || out.length !== missing.length) return
-      const byId = new Map(missing.map((e, i) => [e.id, out[i].trim()]))
+      if (!out || out.length !== unknown.length) return
+      const byId = new Map(unknown.map((e, i) => [e.id, out[i].trim()]))
       const now = useStore.getState().shopping.extras
       setShopping({ extras: now.map((e) => (byId.get(e.id) ? { ...e, tr: { ...e.tr, [lang]: lang === 'pl' ? plBasic(byId.get(e.id)!.toLowerCase()) : byId.get(e.id)! } } : e)) })
     })

@@ -45,3 +45,10 @@ import { ingredientKey } from '../src/lib/shopping'
 const same: [string, string][] = [['olive oil', 'extra-virgin olive oil, for frying'], ['olive oil', 'a drizzle of good-quality olive oil'], ['oliwa', 'oliwy z oliwek'], ['garlic', '2 cloves garlic'.slice(2)], ['czosnek', 'ząbki czosnku'], ['potatoes', 'potato'], ['basil', 'fresh basil leaves']]
 const diff = same.filter(([a, b]) => ingredientKey(a) !== ingredientKey(b))
 if (diff.length) { console.log('FAILED shopping matches', diff); process.exit(1) } else console.log('ok', same.length, 'shopping matches')
+
+// Everyday shopping words translate without the AI.
+import { dictTranslate } from '../src/lib/groceryDict'
+const words: [string, 'en' | 'pl', string][] = [['milk', 'pl', 'mleko'], ['Sparkling water', 'pl', 'woda gazowana'], ['avocados', 'pl', 'awokado'], ['toilet roll', 'pl', 'papier toaletowy'],
+  ['mleko', 'en', 'milk'], ['jablka', 'en', 'apples'], ['maslo', 'en', 'butter'], ['jajka', 'en', 'eggs'], ['mleko', 'pl', 'mleko'], ['milk', 'en', 'milk'], ['chleb', 'en', 'bread'], ['eggs', 'pl', 'jajka']]
+const wrong = words.filter(([w, l, want]) => dictTranslate(w, l) !== want).map(([w, l, want]) => `${w}→${l}: ${dictTranslate(w, l)} (want ${want})`)
+if (wrong.length) { console.log('FAILED dictionary', wrong); process.exit(1) } else console.log('ok', words.length, 'dictionary words')
