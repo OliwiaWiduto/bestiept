@@ -181,7 +181,7 @@ export default function Shopping() {
       <div className="between" style={{ paddingTop: 8, alignItems: 'flex-end' }}>
         <div className="stack" style={{ gap: 2 }}>
           {shoppingNow
-            ? <button className="text-back" onClick={() => setShopping({ shoppingMode: false })}><Icon name="back" size={16} />{t('editList')}</button>
+            ? <button className="text-back" style={{ color: 'var(--cherry)', gap: 6 }} onClick={() => setShopping({ shoppingMode: false })}><Icon name="arrow-left" size={18} />{t('editList')}</button>
             : <button className="text-back" onClick={() => (window.history.state?.idx > 0 ? nav(-1) : nav('/plan'))}><Icon name="back" size={16} />{t('back')}</button>}
           <h1 className="display">{t('shopping')}</h1>
         </div>

@@ -10,6 +10,7 @@ import { useUI } from '../ui-state'
 
 const PATHS = {
   back: 'M15 18l-6-6 6-6',
+  'arrow-left': 'M19 12H5|M11 6l-6 6 6 6',
   forward: 'M9 18l6-6-6-6',
   plus: 'M12 5v14M5 12h14',
   minus: 'M5 12h14',
