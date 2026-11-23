@@ -11,6 +11,8 @@ import { formatAmount, parseIngredient, uid } from '../lib/util'
 import { Icon, Sheet, Thumb, toast } from '../components/ui'
 import { LineEditor } from '../components/LineEditor'
 import { useFamilyLists } from '../lib/family'
+import { translateRecipe } from '../lib/ai'
+import type { ShoppingExtra } from '../types'
 import { MEALS } from '../types'
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
@@ -60,6 +62,9 @@ export default function Shopping() {
   // Shopping for just a few of the week's meals?
   const cookable = allPlan.filter((p) => !p.leftoverOf && recipes.some((r) => r.id === p.recipeId)).sort((a, b) => a.date.localeCompare(b.date) || MEALS.indexOf(a.meal) - MEALS.indexOf(b.meal))
   const chosen = (shopping.onlyFor ?? []).filter((id) => cookable.some((p) => p.id === id))
+  // Things typed onto the list show in the reader's language ("milk" typed in English reads "Mleko" in Polish).
+  const exName = (e: ShoppingExtra) => e.tr?.[t.lang] ?? e.name
+  useTranslatedExtras(shopping.extras, t.lang, setShopping)
   // 'extras' in the choice = the things she typed in herself
   const extrasPicked = !!shopping.onlyFor?.includes('extras')
   const someMeals = !!shopping.onlyFor && (chosen.length > 0 || extrasPicked)
@@ -85,7 +90,7 @@ export default function Shopping() {
   type Item = { key: string; name: string; amount: string; category: ShoppingLine['category']; text: string }
   const items: Item[] = [
     ...visible.map((l) => ({ key: l.key, name: l.name, amount: displayAmount(l, t.lang), category: l.category, text: plannedText(displayAmount(l, t.lang), l.name, t.lang) })),
-    ...(showExtras ? shopping.extras : []).map((e) => ({ key: `extra:${e.id}`, name: e.name, amount: e.amount, category: categorise(e.name), text: lineText(e.amount, e.name) })),
+    ...(showExtras ? shopping.extras : []).map((e) => ({ key: `extra:${e.id}`, name: exName(e), amount: e.amount, category: categorise(e.tr?.en ?? e.name), text: lineText(e.amount, exName(e)) })),
   ]
   const allKeys = items.map((i) => i.key)
   const done = allKeys.filter(isTicked).length
@@ -113,7 +118,12 @@ export default function Shopping() {
     for (const [txt, key] of planned) {
       if (wanted.has(txt)) { nextHidden.delete(`${planWeek}:${key}`); wanted.delete(txt) } else nextHidden.add(`${planWeek}:${key}`)
     }
-    const keep = shopping.extras.filter((e) => { const k = lineText(e.amount, e.name).toLowerCase(); if (wanted.has(k)) { wanted.delete(k); return true } return false })
+    // Matches the item in any of its languages, in case its translation arrived while she was typing.
+    const keep = shopping.extras.filter((e) => {
+      const k = [exName(e), e.name, ...Object.values(e.tr ?? {})].map((n) => lineText(e.amount, n ?? '').toLowerCase()).find((x) => wanted.has(x))
+      if (k) { wanted.delete(k); return true }
+      return false
+    })
     const added = [...wanted.values()].map((l) => {
       const ing = parseIngredient(l)
       const amount = ing.amount === null ? '' : [formatAmount(ing.amount), ing.unit].filter(Boolean).join(['g', 'kg', 'ml', 'l'].includes(ing.unit) ? '' : ' ')
@@ -209,7 +219,7 @@ export default function Shopping() {
               <span style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--peach-soft)', display: 'grid', placeItems: 'center', flex: 'none' }}><Icon name="edit" size={18} /></span>
               <span className="stack grow" style={{ gap: 0, minWidth: 0, textAlign: 'left' }}>
                 <span style={{ fontWeight: 600 }}>{t('yourItemsLong')}</span>
-                <span className="caption">{shopping.extras.slice(0, 3).map((e) => e.name).join(', ')}{shopping.extras.length > 3 ? ` +${shopping.extras.length - 3}` : ''}</span>
+                <span className="caption">{shopping.extras.slice(0, 3).map(exName).join(', ')}{shopping.extras.length > 3 ? ` +${shopping.extras.length - 3}` : ''}</span>
               </span>
             </button>
           )}
@@ -309,4 +319,23 @@ export default function Shopping() {
       </Sheet>
     </main>
   )
+}
+
+// Names already sent for translation in this session (so a failure doesn't retry on every render).
+const asked = new Set<string>()
+/** Fill in the reader's language for things typed onto the list, a batch at a time. */
+function useTranslatedExtras(extras: ShoppingExtra[], lang: 'en' | 'pl', setShopping: (p: { extras: ShoppingExtra[] }) => void) {
+  const missing = extras.filter((e) => !e.tr?.[lang] && !asked.has(`${lang}:${e.id}`))
+  const key = missing.map((e) => e.id).join()
+  useEffect(() => {
+    if (!missing.length) return
+    for (const e of missing) asked.add(`${lang}:${e.id}`)
+    translateRecipe({ title: 'Shopping list', ingredients: missing.map((e) => e.name), steps: [], equipment: [] }, lang).then(({ data }) => {
+      const out = data?.translation?.ingredients
+      if (!out || out.length !== missing.length) return
+      const byId = new Map(missing.map((e, i) => [e.id, out[i].trim()]))
+      const now = useStore.getState().shopping.extras
+      setShopping({ extras: now.map((e) => (byId.get(e.id) ? { ...e, tr: { ...e.tr, [lang]: lang === 'pl' ? plBasic(byId.get(e.id)!.toLowerCase()) : byId.get(e.id)! } } : e)) })
+    })
+  }, [key, lang]) // eslint-disable-line react-hooks/exhaustive-deps
 }

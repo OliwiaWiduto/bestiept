@@ -77,7 +77,8 @@ export type PlanItem = {
   ownerId?: string
 }
 
-export type ShoppingExtra = { id: string; name: string; amount: string }
+/** Something typed onto the list by hand. tr: the name in each app language, filled in for whoever reads it. */
+export type ShoppingExtra = { id: string; name: string; amount: string; tr?: Partial<Record<'en' | 'pl', string>> }
 
 export type ShoppingState = {
   ticked: Record<string, boolean>
