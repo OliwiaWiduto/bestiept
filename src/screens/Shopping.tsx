@@ -60,7 +60,11 @@ export default function Shopping() {
   // Shopping for just a few of the week's meals?
   const cookable = allPlan.filter((p) => !p.leftoverOf && recipes.some((r) => r.id === p.recipeId)).sort((a, b) => a.date.localeCompare(b.date) || MEALS.indexOf(a.meal) - MEALS.indexOf(b.meal))
   const chosen = (shopping.onlyFor ?? []).filter((id) => cookable.some((p) => p.id === id))
-  const someMeals = !!shopping.onlyFor && chosen.length > 0
+  // 'extras' in the choice = the things she typed in herself
+  const extrasPicked = !!shopping.onlyFor?.includes('extras')
+  const someMeals = !!shopping.onlyFor && (chosen.length > 0 || extrasPicked)
+  const showExtras = !someMeals || extrasPicked
+  const pickedIds = [...chosen, ...(extrasPicked ? ['extras'] : [])]
   const [choosing, setChoosing] = useState(false)
   const listPlan = useMemo(() => (someMeals ? allPlan.filter((p) => chosen.includes(p.id)) : allPlan), [allPlan, someMeals, chosen.join()]) // eslint-disable-line react-hooks/exhaustive-deps
   const { need, probably } = useMemo(() => buildList(listPlan, recipes, shopping, today()), [listPlan, recipes, shopping])
@@ -82,7 +86,7 @@ export default function Shopping() {
   type Item = { key: string; name: string; amount: string; category: ShoppingLine['category']; text: string }
   const items: Item[] = [
     ...visible.map((l) => ({ key: l.key, name: l.name, amount: displayAmount(l, t.lang), category: l.category, text: plannedText(displayAmount(l, t.lang), l.name, t.lang) })),
-    ...shopping.extras.map((e) => ({ key: `extra:${e.id}`, name: e.name, amount: e.amount, category: categorise(e.name), text: lineText(e.amount, e.name) })),
+    ...(showExtras ? shopping.extras : []).map((e) => ({ key: `extra:${e.id}`, name: e.name, amount: e.amount, category: categorise(e.name), text: lineText(e.amount, e.name) })),
   ]
   const allKeys = items.map((i) => i.key)
   const done = allKeys.filter(isTicked).length
@@ -116,7 +120,8 @@ export default function Shopping() {
       const amount = ing.amount === null ? '' : [formatAmount(ing.amount), ing.unit].filter(Boolean).join(['g', 'kg', 'ml', 'l'].includes(ing.unit) ? '' : ' ')
       return { id: uid(), name: ing.name || l, amount }
     })
-    setShopping({ hidden: [...nextHidden], extras: [...keep, ...added] })
+    // Her own items aren't in the text while she's only looking at some meals, so they stay as they are.
+    setShopping({ hidden: [...nextHidden], extras: [...(showExtras ? [] : shopping.extras), ...keep, ...added] })
   }
   // Take everything in the basket off the list (planned items are hidden for this week, added ones deleted), with Undo.
   const [finishOpen, setFinishOpen] = useState(false)
@@ -186,11 +191,11 @@ export default function Shopping() {
           <Icon name="bag" size={20} />{t('startShopping')}
         </button>
       )}
-      {cookable.length > 1 && (
+      {cookable.length + (shopping.extras.length ? 1 : 0) > 1 && (
         <div className="chips" role="group" aria-label={t('shopFor')}>
           <button className="chip" aria-pressed={!someMeals} onClick={() => setShopping({ onlyFor: undefined })}>{t('allMeals')}</button>
           <button className="chip" aria-pressed={someMeals} onClick={() => setChoosing(true)}>
-            {someMeals ? t(chosen.length === 1 ? 'mealN' : 'mealsN', { n: chosen.length }) : t('chooseMeals')}<Icon name="forward" size={14} />
+            {!someMeals ? t('chooseMeals') : [chosen.length ? t(chosen.length === 1 ? 'mealN' : 'mealsN', { n: chosen.length }) : '', extrasPicked ? t('yourItems') : ''].filter(Boolean).join(' + ').replace(/^./, (c) => c.toUpperCase())}<Icon name="forward" size={14} />
           </button>
         </div>
       )}
@@ -202,7 +207,7 @@ export default function Shopping() {
             const on = chosen.includes(p.id)
             return (
               <button key={p.id} className="check-row" aria-pressed={on} style={{ borderTop: i ? '1px solid var(--line)' : 'none' }}
-                onClick={() => setShopping({ onlyFor: on ? chosen.filter((x) => x !== p.id) : [...chosen, p.id] })}>
+                onClick={() => setShopping({ onlyFor: on ? pickedIds.filter((x) => x !== p.id) : [...pickedIds, p.id] })}>
                 <span className={`check ${on ? 'on' : ''}`}>{on && <Icon name="check" size={14} sw={2.5} />}</span>
                 <Thumb photo={r.photo} size={40} cat={r.category} name={r.title} />
                 <span className="stack grow" style={{ gap: 0, minWidth: 0, textAlign: 'left' }}>
@@ -212,9 +217,20 @@ export default function Shopping() {
               </button>
             )
           })}
+          {shopping.extras.length > 0 && (
+            <button className="check-row" aria-pressed={extrasPicked} style={{ borderTop: '1px solid var(--line)' }}
+              onClick={() => setShopping({ onlyFor: extrasPicked ? pickedIds.filter((x) => x !== 'extras') : [...pickedIds, 'extras'] })}>
+              <span className={`check ${extrasPicked ? 'on' : ''}`}>{extrasPicked && <Icon name="check" size={14} sw={2.5} />}</span>
+              <span style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--peach-soft)', display: 'grid', placeItems: 'center', flex: 'none' }}><Icon name="edit" size={18} /></span>
+              <span className="stack grow" style={{ gap: 0, minWidth: 0, textAlign: 'left' }}>
+                <span style={{ fontWeight: 600 }}>{t('yourItemsLong')}</span>
+                <span className="caption">{shopping.extras.slice(0, 3).map((e) => e.name).join(', ')}{shopping.extras.length > 3 ? ` +${shopping.extras.length - 3}` : ''}</span>
+              </span>
+            </button>
+          )}
         </div>
-        <button className="btn primary block" onClick={() => { if (!chosen.length) setShopping({ onlyFor: undefined }); setChoosing(false) }}>
-          {chosen.length ? t('showIngredientsFor', { n: chosen.length }) : t('allMeals')}
+        <button className="btn primary block" onClick={() => { if (!pickedIds.length) setShopping({ onlyFor: undefined }); setChoosing(false) }}>
+          {pickedIds.length ? t('showPicked') : t('allMeals')}
         </button>
       </Sheet>
       {family.length > 0 && (

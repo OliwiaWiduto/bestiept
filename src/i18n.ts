@@ -96,7 +96,7 @@ const en = {
   moveMeal: 'Move', moveHere: 'Move here',
   plannedFor: 'Planned for {when}', moved: 'Moved',
   obStaplesHint: 'Tap what you always keep at home. We’ll leave these off your shopping list, and show them separately so you can check.', selectAll: 'Select all', clearAll: 'Clear all', noneOfThese: 'I don’t keep any of these', noStaplesNote: 'No problem. Everything will go on your list.', staplesLater: 'You can change these any time in Settings.',
-  shopFor: 'Shop for', allMeals: 'All meals', chooseMeals: 'Choose meals', chooseMealsTitle: 'Which meals are you shopping for?', chooseMealsHint: 'Your list will only show the ingredients for these. Things you added yourself stay on.', showIngredientsFor: 'Show ingredients for {n}',
+  shopFor: 'Shop for', allMeals: 'All meals', chooseMeals: 'Choose meals', chooseMealsTitle: 'Which meals are you shopping for?', chooseMealsHint: 'Your list will only show what you tick here.', showPicked: 'Show these', yourItems: 'your items', yourItemsLong: 'Things you added yourself',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -260,7 +260,7 @@ const pl: Dict = {
   moveMeal: 'Przenieś', moveHere: 'Przenieś tutaj',
   plannedFor: 'W planie: {when}', moved: 'Przeniesione',
   obStaplesHint: 'Zaznacz, co zawsze masz w domu. Nie dodamy tego do listy zakupów, tylko pokażemy osobno, żebyś mogła sprawdzić.', selectAll: 'Zaznacz wszystko', clearAll: 'Odznacz wszystko', noneOfThese: 'Nie mam żadnej z tych rzeczy', noStaplesNote: 'Nie ma sprawy. Wszystko trafi na listę.', staplesLater: 'Możesz to zmienić w każdej chwili w Ustawieniach.',
-  shopFor: 'Zakupy na', allMeals: 'Wszystkie posiłki', chooseMeals: 'Wybierz posiłki', chooseMealsTitle: 'Na które posiłki robisz zakupy?', chooseMealsHint: 'Na liście zostaną tylko składniki do nich. To, co dopisałaś sama, zostaje.', showIngredientsFor: 'Pokaż składniki ({n})',
+  shopFor: 'Zakupy na', allMeals: 'Wszystkie posiłki', chooseMeals: 'Wybierz posiłki', chooseMealsTitle: 'Na które posiłki robisz zakupy?', chooseMealsHint: 'Na liście zostanie tylko to, co tu zaznaczysz.', showPicked: 'Pokaż zaznaczone', yourItems: 'Twoje rzeczy', yourItemsLong: 'Rzeczy dopisane przez Ciebie',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 
