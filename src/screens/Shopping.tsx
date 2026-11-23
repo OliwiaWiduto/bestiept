@@ -68,7 +68,6 @@ export default function Shopping() {
   const [choosing, setChoosing] = useState(false)
   const listPlan = useMemo(() => (someMeals ? allPlan.filter((p) => chosen.includes(p.id)) : allPlan), [allPlan, someMeals, chosen.join()]) // eslint-disable-line react-hooks/exhaustive-deps
   const { need, probably } = useMemo(() => buildList(listPlan, recipes, shopping, today()), [listPlan, recipes, shopping])
-  const range = `${fmt(days[0], t.lang, { day: 'numeric' })} – ${fmt(days[6], t.lang, { day: 'numeric', month: 'long' })}`
 
   const tk = (key: string) => `${planWeek}:${key}`
   const isTicked = (key: string) => !!shopping.ticked[tk(key)]
@@ -181,7 +180,7 @@ export default function Shopping() {
     <main className="screen">
       <div className="between" style={{ paddingTop: 8, alignItems: 'flex-end' }}>
         <div className="stack" style={{ gap: 2 }}>
-          <span className="eyebrow">{t('forWeek', { range })}</span>
+          <button className="text-back" onClick={() => (window.history.state?.idx > 0 ? nav(-1) : nav('/plan'))}><Icon name="back" size={16} />{t('back')}</button>
           <h1 className="display">{t('shopping')}</h1>
         </div>
         {shoppingNow && <button className="btn ghost small" style={{ border: 'none', padding: '0 4px', marginBottom: 6 }} onClick={() => setShopping({ shoppingMode: false })}><Icon name="edit" size={16} />{t('editList')}</button>}

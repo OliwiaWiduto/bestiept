@@ -329,3 +329,5 @@ input[type=number] { -moz-appearance: textfield; }
 .sticky-start { position: sticky; top: calc(env(safe-area-inset-top) + 10px); z-index: 6; box-shadow: 0 6px 18px rgba(60, 20, 30, .18); }
 /* A tappable row with a checkbox (choose meals) */
 .check-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 2px; border: none; background: none; color: var(--ink); }
+/* A small text back link above a page title */
+.text-back { display: inline-flex; align-items: center; gap: 2px; align-self: flex-start; margin-left: -4px; padding: 6px 4px; border: none; background: none; color: var(--ink-muted); font-size: 15px; font-weight: 600; }
