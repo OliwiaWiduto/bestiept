@@ -174,6 +174,7 @@ export default function Shopping() {
           <span className="eyebrow">{t('forWeek', { range })}</span>
           <h1 className="display">{t('shopping')}</h1>
         </div>
+        {shoppingNow && <button className="btn ghost small" style={{ border: 'none', padding: '0 4px', marginBottom: 6 }} onClick={() => setShopping({ shoppingMode: false })}><Icon name="edit" size={16} />{t('editList')}</button>}
       </div>
       {!shoppingNow && text.trim() !== '' && (
         <button className="btn primary block" onClick={() => { commit(); setShopping({ shoppingMode: true }); window.scrollTo(0, 0) }}>
@@ -221,7 +222,8 @@ export default function Shopping() {
 
 
       {shoppingNow && allKeys.length > 0 && done === allKeys.length && (
-        <div className="empty"><img src="/icons/cat-fruitveg.png" alt="" /><p style={{ margin: 0 }}>{t('allInBasket')}</p></div>
+        <div className="empty"><img src="/icons/cat-fruitveg.png" alt="" /><p style={{ margin: 0 }}>{t('allInBasket')}</p>
+          <button className="btn primary" onClick={() => setFinishOpen(true)}>{t('clearBasket')}</button></div>
       )}
 
       {allPlan.length > 0 && items.length === 0 && probably.length === 0 && !shoppingNow && text.trim() === '' && (
@@ -251,12 +253,6 @@ export default function Shopping() {
         </section>
       )}
 
-      {shoppingNow && (
-        <div className="row" style={{ justifyContent: 'center', gap: 8 }}>
-          <button className="btn ghost small" style={{ border: 'none' }} onClick={() => setShopping({ shoppingMode: false })}><Icon name="edit" size={16} />{t('editList')}</button>
-          <button className="btn secondary small" onClick={() => (done ? setFinishOpen(true) : setShopping({ shoppingMode: false }))}>{t('clearBasket')}</button>
-        </div>
-      )}
       <Sheet open={finishOpen} onClose={() => setFinishOpen(false)} title={t('doneShoppingQ')}>
         <p style={{ margin: 0 }}>{t('finishBody', { n: done })} {allKeys.length - done > 0 && t('stillToGet', { n: allKeys.length - done })}</p>
         <button className="btn primary block" onClick={() => clearBought(true)}>{t('clearAndFinish')}</button>
@@ -269,6 +265,7 @@ export default function Shopping() {
             <div className="card" style={{ padding: '4px 16px' }}>
               {inBasket.map((l, i) => row(l.key, l.name, l.amount, '', i === inBasket.length - 1))}
             </div>
+            <button className="btn primary block" onClick={() => { setBasketOpen(false); setFinishOpen(true) }}>{t('clearBasket')}</button>
           </>
         )}
       </Sheet>

@@ -39,3 +39,9 @@ for (const [l, lo, hi] of grams) { const g = ingredientGrams(parseIngredient(l))
 console.log(badG ? 'FAILED ' + badG : 'ok', 'of', grams.length, 'amounts'); if (badG) process.exit(1)
 // An old recipe line saved before the unit was known
 if (ingredientGrams({ id: 'x', amount: 2, unit: '', name: 'tablespoons olive oil' }) !== 30) { console.log('FAILED old unit line'); process.exit(1) }
+
+// The shopping list treats differently worded copies of an ingredient as one thing.
+import { ingredientKey } from '../src/lib/shopping'
+const same: [string, string][] = [['olive oil', 'extra-virgin olive oil, for frying'], ['olive oil', 'a drizzle of good-quality olive oil'], ['oliwa', 'oliwy z oliwek'], ['garlic', '2 cloves garlic'.slice(2)], ['czosnek', 'ząbki czosnku'], ['potatoes', 'potato'], ['basil', 'fresh basil leaves']]
+const diff = same.filter(([a, b]) => ingredientKey(a) !== ingredientKey(b))
+if (diff.length) { console.log('FAILED shopping matches', diff); process.exit(1) } else console.log('ok', same.length, 'shopping matches')

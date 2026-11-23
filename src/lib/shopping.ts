@@ -1,5 +1,6 @@
 import type { PlanItem, Recipe, ShoppingState } from '../types'
 import { daysBetween } from './dates'
+import { plBasic } from './plNames'
 
 export type Category = 'fruitveg' | 'meatfish' | 'dairy' | 'bakery' | 'cupboard' | 'frozen' | 'drinks' | 'household' | 'other'
 export const CATEGORIES: Category[] = ['fruitveg', 'meatfish', 'dairy', 'bakery', 'cupboard', 'frozen', 'drinks', 'household', 'other']
@@ -80,7 +81,36 @@ function baseUnit(amount: number | null, unit: string): [number | null, string] 
   if (amount === null) return [null, unit]
   if (unit === 'kg') return [amount * 1000, 'g']
   if (unit === 'l') return [amount * 1000, 'ml']
+  if (unit === 'łyżka' || unit === 'łyżki') return [amount, 'tbsp']
+  if (unit === 'łyżeczka' || unit === 'łyżeczki') return [amount, 'tsp']
   return [amount, unit]
+}
+
+// Words that describe how an ingredient is bought or used, not what it is.
+const NOT_THE_THING = new Set(['fresh', 'freshly', 'large', 'small', 'medium', 'big', 'ripe', 'extra', 'virgin', 'extra-virgin', 'good', 'quality', 'good-quality', 'light', 'mild', 'plain',
+  'boneless', 'skinless', 'finely', 'roughly', 'thinly', 'chopped', 'grated', 'sliced', 'diced', 'crushed', 'minced', 'peeled', 'cooked', 'raw', 'organic', 'free-range', 'a', 'of', 'some', 'little', 'drizzle', 'splash', 'glug', 'handful', 'clove', 'cloves', 'tin', 'tins', 'can', 'cans', 'tinned', 'canned', 'leaf', 'leaves', 'sprig', 'sprigs', 'bunch',
+  'świeży', 'świeża', 'świeże', 'świeżo', 'duży', 'duża', 'duże', 'mały', 'mała', 'małe', 'średni', 'średnia', 'średnie', 'drobno', 'grubo', 'posiekany', 'posiekana', 'posiekane', 'starty', 'starta', 'starte', 'pokrojony', 'pokrojona', 'pokrojone', 'ząbki', 'ząbek', 'ząbków', 'z', 'puszki', 'puszka', 'odrobina', 'garść', 'oliwek', 'listki', 'listków', 'pęczek', 'gałązka'])
+/** One key for every way a recipe can name the same thing ("extra virgin olive oil, for frying" = "olive oil"). */
+export function ingredientKey(name: string): string {
+  const words = name.toLowerCase().replace(/\(.*?\)/g, '').split(/,|;| for | to | do | na /)[0]
+    .replace(/[^a-ząęółśżźćń\s-]/g, ' ').split(/\s+/).filter((w) => w && !NOT_THE_THING.has(w))
+  return plBasic(words.join(' ')).split(' ')
+    .map((w) => (w.length > 4 && /[^s]s$/.test(w) ? w.replace(/(oes|ies|s)$/, (m) => (m === 'ies' ? 'y' : m === 'oes' ? 'o' : '')) : w)).join(' ').trim()
+}
+
+// Spoons and cups add up with ml; everything is kept in the smallest unit it came in.
+const ML: Record<string, number> = { tsp: 5, tbsp: 15, cup: 240, cups: 240, ml: 1 }
+function addAmounts(a: { amount: number | null; unit: string }, amt: number | null, unit: string): boolean {
+  if (amt === null) return true // "a drizzle of olive oil" just joins the line
+  if (a.unit === unit) { a.amount = (a.amount ?? 0) + amt; return true }
+  if (ML[a.unit] && ML[unit]) {
+    const total = (a.amount ?? 0) * ML[a.unit] + amt * ML[unit]
+    const into = ML[a.unit] <= ML[unit] ? a.unit : unit
+    a.amount = total / ML[into]; a.unit = into
+    if (a.unit === 'tsp' && a.amount >= 3) { a.amount /= 3; a.unit = 'tbsp' }
+    return true
+  }
+  return false
 }
 
 /** Combine every planned (non-leftover) meal's ingredients into one list. */
@@ -93,15 +123,20 @@ export function buildList(plan: PlanItem[], recipes: Recipe[], shop: ShoppingSta
     const factor = p.servings / (r.servings || 1)
     for (const ing of r.ingredients) {
       const name = norm(ing.name)
-      if (!name) continue
+      const k = ingredientKey(ing.name)
+      if (!name || !k) continue
       const [amt, unit] = baseUnit(ing.amount === null ? null : ing.amount * factor, ing.unit)
-      const key = `${name}|${unit}`
-      const cur = map.get(key)
-      if (cur) {
-        cur.amount = cur.amount === null || amt === null ? cur.amount ?? amt : cur.amount + amt
-        if (!cur.recipes.includes(r.title)) cur.recipes.push(r.title)
-      } else {
-        map.set(key, { key, name, amount: amt, unit, category: categorise(name), recipes: [r.title] })
+      // Same thing in units that add up (tsp + tbsp, ml + tbsp) goes on one line; otherwise a second line.
+      let key = k
+      for (let n = 2; ; n++) {
+        const cur = map.get(key)
+        if (!cur) { map.set(key, { key, name, amount: amt, unit, category: categorise(name), recipes: [r.title] }); break }
+        if (addAmounts(cur, amt, unit)) {
+          if (name.length < cur.name.length) cur.name = name // show the plainest wording
+          if (!cur.recipes.includes(r.title)) cur.recipes.push(r.title)
+          break
+        }
+        key = `${k}|${n}`
       }
     }
   }
