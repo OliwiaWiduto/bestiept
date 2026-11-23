@@ -201,11 +201,22 @@ export default function Shopping() {
       <Sheet open={choosing} onClose={() => setChoosing(false)} title={t('chooseMealsTitle')}>
         <span className="small muted">{t('chooseMealsHint')}</span>
         <div className="card" style={{ padding: '4px 12px' }}>
+          {shopping.extras.length > 0 && (
+            <button className="check-row" aria-pressed={extrasPicked} 
+              onClick={() => setShopping({ onlyFor: extrasPicked ? pickedIds.filter((x) => x !== 'extras') : [...pickedIds, 'extras'] })}>
+              <span className={`check ${extrasPicked ? 'on' : ''}`}>{extrasPicked && <Icon name="check" size={14} sw={2.5} />}</span>
+              <span style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--peach-soft)', display: 'grid', placeItems: 'center', flex: 'none' }}><Icon name="edit" size={18} /></span>
+              <span className="stack grow" style={{ gap: 0, minWidth: 0, textAlign: 'left' }}>
+                <span style={{ fontWeight: 600 }}>{t('yourItemsLong')}</span>
+                <span className="caption">{shopping.extras.slice(0, 3).map((e) => e.name).join(', ')}{shopping.extras.length > 3 ? ` +${shopping.extras.length - 3}` : ''}</span>
+              </span>
+            </button>
+          )}
           {cookable.map((p, i) => {
             const r = recipes.find((x) => x.id === p.recipeId)!
             const on = chosen.includes(p.id)
             return (
-              <button key={p.id} className="check-row" aria-pressed={on} style={{ borderTop: i ? '1px solid var(--line)' : 'none' }}
+              <button key={p.id} className="check-row" aria-pressed={on} style={{ borderTop: i || shopping.extras.length ? '1px solid var(--line)' : 'none' }}
                 onClick={() => setShopping({ onlyFor: on ? pickedIds.filter((x) => x !== p.id) : [...pickedIds, p.id] })}>
                 <span className={`check ${on ? 'on' : ''}`}>{on && <Icon name="check" size={14} sw={2.5} />}</span>
                 <Thumb photo={r.photo} size={40} cat={r.category} name={r.title} />
@@ -216,17 +227,6 @@ export default function Shopping() {
               </button>
             )
           })}
-          {shopping.extras.length > 0 && (
-            <button className="check-row" aria-pressed={extrasPicked} style={{ borderTop: '1px solid var(--line)' }}
-              onClick={() => setShopping({ onlyFor: extrasPicked ? pickedIds.filter((x) => x !== 'extras') : [...pickedIds, 'extras'] })}>
-              <span className={`check ${extrasPicked ? 'on' : ''}`}>{extrasPicked && <Icon name="check" size={14} sw={2.5} />}</span>
-              <span style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--peach-soft)', display: 'grid', placeItems: 'center', flex: 'none' }}><Icon name="edit" size={18} /></span>
-              <span className="stack grow" style={{ gap: 0, minWidth: 0, textAlign: 'left' }}>
-                <span style={{ fontWeight: 600 }}>{t('yourItemsLong')}</span>
-                <span className="caption">{shopping.extras.slice(0, 3).map((e) => e.name).join(', ')}{shopping.extras.length > 3 ? ` +${shopping.extras.length - 3}` : ''}</span>
-              </span>
-            </button>
-          )}
         </div>
         <button className="btn primary block" onClick={() => { if (!pickedIds.length) setShopping({ onlyFor: undefined }); setChoosing(false) }}>
           {pickedIds.length ? t('showPicked') : t('allMeals')}
