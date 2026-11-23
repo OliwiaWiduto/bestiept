@@ -9,12 +9,14 @@ import { Icon, MacroGrid, PhotoButton, Stepper, toast } from '../components/ui'
 import { foodArt } from '../lib/art'
 import { equipmentIcon } from '../lib/equipment'
 import AddToPlanSheet from '../components/AddToPlanSheet'
+import MoveSheet from '../components/MoveSheet'
+import { fmt } from '../lib/dates'
 
 export default function RecipeDetail() {
   const t = useT()
   const nav = useNavigate()
   const { id } = useParams()
-  const { recipes: originals, toggleFavourite, deleteRecipe, saveRecipe } = useStore()
+  const { recipes: originals, toggleFavourite, deleteRecipe, saveRecipe, plan, updatePlan } = useStore()
   const recipes = useRecipes()
   const r = recipes.find((x) => x.id === id)
   const original = originals.find((x) => x.id === id)
@@ -22,6 +24,8 @@ export default function RecipeDetail() {
   const [params] = useSearchParams()
   const [servings, setServings] = useState(Number(params.get('s')) || r?.servings || 2)
   const [planOpen, setPlanOpen] = useState(false)
+  const planned = plan.find((p) => p.id === params.get('plan'))
+  const [moving, setMoving] = useState(false)
   const photo = usePhoto(r?.photo)
   if (!r) return <main className="screen"><p className="muted">{t('notHere')}</p><button className="btn secondary" onClick={() => nav('/recipes')}>{t('back')}</button></main>
   const factor = servings / (r.servings || 1)
@@ -52,6 +56,13 @@ export default function RecipeDetail() {
           <Icon name="clock" size={16} />
           <span>{[r.minutes ? t('minutes', { n: r.minutes }) : null, t('stepsN', { n: r.steps.length })].filter(Boolean).join(' · ')}</span>
         </div>
+        {planned && (
+          <div className="row small" style={{ gap: 6 }}>
+            <Icon name="calendar" size={16} />
+            <span className="muted">{t('plannedFor', { when: `${fmt(planned.date, t.lang, { weekday: 'long', day: 'numeric' })}, ${t(planned.meal).toLowerCase()}` })}</span>
+            <button className="link-btn" onClick={() => setMoving(true)}>{t('moveMeal')}</button>
+          </div>
+        )}
       </div>
 
       <section className="card stack" style={{ gap: 16 }}>
@@ -111,6 +122,7 @@ export default function RecipeDetail() {
         <button className="btn secondary" style={{ flex: 1 }} onClick={() => setPlanOpen(true)}>{t('addToPlan')}</button>
         <button className="btn primary" style={{ flex: 1.4 }} disabled={r.steps.length === 0} onClick={() => nav(`/cook/${r.id}?s=${servings}`)}>{t('startCooking')}</button>
       </div>
+      <MoveSheet item={moving ? planned ?? null : null} onClose={() => setMoving(false)} onMove={(date, meal) => { if (planned) updatePlan(planned.id, { date, meal }); setMoving(false); toast(t('moved')) }} />
       <AddToPlanSheet recipe={r} open={planOpen} onClose={() => setPlanOpen(false)} />
     </main>
   )
