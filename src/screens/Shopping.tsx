@@ -180,10 +180,11 @@ export default function Shopping() {
     <main className="screen">
       <div className="between" style={{ paddingTop: 8, alignItems: 'flex-end' }}>
         <div className="stack" style={{ gap: 2 }}>
-          <button className="text-back" onClick={() => (window.history.state?.idx > 0 ? nav(-1) : nav('/plan'))}><Icon name="back" size={16} />{t('back')}</button>
+          {shoppingNow
+            ? <button className="text-back" onClick={() => setShopping({ shoppingMode: false })}><Icon name="back" size={16} />{t('editList')}</button>
+            : <button className="text-back" onClick={() => (window.history.state?.idx > 0 ? nav(-1) : nav('/plan'))}><Icon name="back" size={16} />{t('back')}</button>}
           <h1 className="display">{t('shopping')}</h1>
         </div>
-        {shoppingNow && <button className="btn ghost small" style={{ border: 'none', padding: '0 4px', marginBottom: 6 }} onClick={() => setShopping({ shoppingMode: false })}><Icon name="edit" size={16} />{t('editList')}</button>}
       </div>
       {!shoppingNow && text.trim() !== '' && (
         <button className="btn primary block sticky-start" onClick={() => { commit(); setShopping({ shoppingMode: true }); window.scrollTo(0, 0) }}>
