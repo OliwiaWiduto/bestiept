@@ -27,7 +27,19 @@ export function LineEditor({ value, onChange, onFocus, onDone, struck, placehold
 
   const set = (next: string[]) => {
     while (next.length > 1 && next[next.length - 1].trim() === '' && next[next.length - 2].trim() === '') next.pop()
-    onChange(next.join('\n').replace(/\n+$/, ''))
+    const v = next.join('\n').replace(/\n+$/, '')
+    // Nothing changed (Enter on the empty last line): don't leave a pending jump that would
+    // fire after the next letter and split the word across two lines.
+    if (v === value) {
+      // Same text (Enter at the end of the last line, whose empty line below already exists): move now,
+      // rather than after the next letter, which would split the word.
+      const f = focusNext.current
+      focusNext.current = null
+      const el = f ? refs.current[f.i] : null
+      if (el) { el.focus(); const pos = f!.at === 'end' ? el.value.length : 0; el.setSelectionRange(pos, pos) }
+      return
+    }
+    onChange(v)
   }
 
   return (
