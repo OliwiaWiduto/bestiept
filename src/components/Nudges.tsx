@@ -123,7 +123,7 @@ export function HabitCard({ h }: { h: Habit }) {
   const targets = useStore((s) => s.targets)
   const n = h.low.filter(Boolean).length
   const of = h.low.length
-  const title = h.kind === 'protein' ? t(h.meal) : h.kind === 'snack' ? t('hcHabitSnack', { name: h.name, kcal: h.kcal, n, of }) : h.kind === 'fibre' ? t('hcHabitFibre', { g: targets?.fibre ?? 25, n, of }) : t('hcHabitOver', { n, of })
+  const title = h.kind === 'protein' ? t('hcHabitProteinShort', { meal: t(h.meal) }) : h.kind === 'snack' ? t('hcHabitSnack', { name: h.name, kcal: h.kcal, n, of }) : h.kind === 'fibre' ? t('hcHabitFibre', { g: targets?.fibre ?? 25, n, of }) : t('hcHabitOver', { n, of })
   const swaps = h.kind === 'protein' || h.kind === 'snack' ? h.swaps : []
   const heading = { margin: 0, fontSize: 15, lineHeight: '20px', fontWeight: 600 } as const
   return (
