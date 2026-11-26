@@ -111,7 +111,7 @@ function HabitBars({ h }: { h: Habit }) {
           ? <rect key={i} x={i * (bw + gap)} y={H - 4} width={bw} height={4} rx={2} fill="var(--track)" />
           : <rect key={i} x={i * (bw + gap)} y={H - Math.max((v / max) * H, 3)} width={bw} height={Math.max((v / max) * H, 3)} rx={Math.min(bw / 2, 6)} fill="var(--green)" />)}
         <line x1={0} x2={W} y1={ly} y2={ly} stroke="var(--green)" strokeWidth={1.5} strokeDasharray="4 4" opacity={0.6} />
-        <text x={W} y={ly - 6} textAnchor="end" fontSize="11" fontWeight={600} fill="var(--green)" fontFamily="Inter">{aim}</text>
+        <text x={0} y={ly - 6} textAnchor="start" fontSize="11" fontWeight={600} fill="var(--green)" fontFamily="Inter">{aim}</text>
         {n <= 10 && h.days.map((d, i) => <text key={d} x={i * (bw + gap) + bw / 2} y={H + 14} textAnchor="middle" fontSize="11" fill="var(--ink-muted)" fontFamily="Inter">{fmt(d, t.lang, { weekday: 'narrow' })}</text>)}
       </svg>
     </div>
