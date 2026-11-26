@@ -337,3 +337,6 @@ input[type=number] { -moz-appearance: textfield; }
 /* Today: calories and macros on one dark green card */
 :root { --lime-bright: #D8F37A; --on-green-muted: #D7DCC2; }
 .summary-card { background: var(--green); color: #FFFCF6; }
+
+/* Healthy choices: a meal and its tip, one card outlined in pink */
+.tip-group { background: var(--surface-raised); border: 1.5px solid #EFA3B8; border-radius: var(--radius-md); overflow: hidden; display: flex; flex-direction: column; }

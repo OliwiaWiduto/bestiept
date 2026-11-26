@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { useT } from '../i18n'
 import type { Meal } from '../types'
@@ -49,12 +49,12 @@ export function MealTipCard({ tip }: { tip: MealTip }) {
   const title = tip.swap[lang].title
   const tomorrow = addDays(today(), 1)
   return (
-    <div style={{ background: 'var(--surface-raised)', border: '1.5px solid var(--cherry-soft)', borderRadius: '10px 10px 22px 22px', padding: 14, marginTop: -4, display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ borderTop: '1px solid var(--cherry-soft)', padding: '14px 14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div className="row" style={{ gap: 10, alignItems: 'flex-start' }}>
         {sparkle('var(--cherry-soft)', 'var(--cherry)')}
         <p style={{ margin: 0, fontSize: 14, lineHeight: '20px' }}>
           {t('hcTipStart', { n: tip.protein })}
-          <button className="link-btn" style={{ fontSize: 14, padding: 0, display: 'inline' }} onClick={() => nav(`/recipes/${tip.swap.id}?swapP=${tip.protein}&swapK=${tip.kcal}`)}>{title.toLowerCase()}</button>
+          <Link to={`/recipes/${tip.swap.id}?swapP=${tip.protein}&swapK=${tip.kcal}`} style={{ color: 'var(--green)', fontWeight: 600 }}>{title.toLowerCase()}</Link>
           {t('hcTipEnd', { p: tip.swap.nutrition.protein })}
         </p>
       </div>
