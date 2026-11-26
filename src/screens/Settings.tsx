@@ -10,7 +10,7 @@ import { formatWeight } from '../lib/units'
 import { addDays, fmt, today } from '../lib/dates'
 import { AVATARS, Avatar, BackButton, Icon, NumberField, toast } from '../components/ui'
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { signOutEverywhere } from '../lib/sync'
 import { HeightField, UnitsToggle, WeightField } from '../components/BodyFields'
@@ -19,6 +19,8 @@ export default function Settings() {
   const t = useT()
   const installed = window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true
   const nav = useNavigate()
+  const loc = useLocation()
+  const [generalOpen, setGeneralOpen] = useState(false)
   const { lang, setLang, profile, targets, updateProfile, setTargets, shopping, setShopping, resetAll } = useStore()
   const [p, setP] = useState<Profile | null>(profile)
   const [tg, setTg] = useState<Macros | null>(targets)
@@ -50,42 +52,31 @@ export default function Settings() {
     </label>
   )
 
-  return (
+  const saveBar = (
+    <>
+      {dirty && (
+        <div className="bottom-bar" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 8, bottom: 'calc(var(--nav-h) + env(safe-area-inset-bottom))', paddingBottom: 16, zIndex: 31, borderRadius: '24px 24px 0 0', boxShadow: '0 -8px 24px rgba(27, 33, 28, .1)' }}>
+          {detailsDirty && <span className="small muted" style={{ textAlign: 'center' }}>{t('detailsChangedHint')}</span>}
+          {detailsDirty && <button className="btn primary block" onClick={() => saveAll(true)}>{t('saveUpdateTargets')}</button>}
+          <div className="row" style={{ gap: 10 }}>
+            <button className="btn ghost grow" onClick={discard}>{t('discard')}</button>
+            <button className={`btn grow ${detailsDirty ? 'secondary' : 'primary'}`} onClick={() => saveAll(false)}>{detailsDirty ? t('saveOnly') : t('saveChanges')}</button>
+          </div>
+        </div>
+      )}
+    </>
+  )
+  const goalsPage = loc.pathname === '/settings/goals'
+  const goalLabel = t(({ lose: 'goalLose', maintain: 'goalMaintain', gain: 'goalGain', build: 'goalBuild' } as const)[profile.goal])
+  const goalSummary = [goalLabel, (profile.goal === 'lose' || profile.goal === 'gain') ? t(profile.pace === 'faster' ? 'paceFaster' : 'paceSlower') : null, `${targets.kcal} ${t('kcal')}`].filter(Boolean).join(' · ')
+
+  if (goalsPage) return (
     <main className="screen" style={dirty ? { paddingBottom: 'calc(var(--nav-h) + 260px + env(safe-area-inset-bottom))' } : undefined}>
-      <div className="row"><BackButton to="/" /></div>
-      <h1 className="display">{t('settings')}</h1>
-
-      <section className="card stack" style={{ gap: 12 }}>
-        <h2 className="heading">{t('yourPicture')}</h2>
-        <div className="row" style={{ gap: 12 }} role="radiogroup" aria-label={t('yourPicture')}>
-          {AVATARS.map((a) => {
-            const on = profile.avatar === a.id
-            return (
-              <button key={a.id} role="radio" aria-checked={on} aria-label={t(`av_${a.id}` as TKey)} onClick={() => { updateProfile({ ...profile, avatar: a.id }, false); setP({ ...p, avatar: a.id }); syncAvatar(a.id) }}
-                style={{ padding: 3, border: `3px solid ${on ? 'var(--cherry)' : 'transparent'}`, borderRadius: 999, background: 'none' }}>
-                <Avatar name={p.name} avatar={a.id} size={56} />
-              </button>
-            )
-          })}
-        </div>
-      </section>
-
-      <section className="card stack" style={{ gap: 12 }}>
-        <h2 className="heading">{t('language')}</h2>
-        <div className="chips" role="group" aria-label={t('language')}>
-          <button className="chip" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>{t('english')}</button>
-          <button className="chip" aria-pressed={lang === 'pl'} onClick={() => setLang('pl')}>{t('polish')}</button>
-        </div>
-      </section>
-
-      <button className="card stack" style={{ gap: 8, border: 'none', textAlign: 'left' }} onClick={() => nav('/family')}>
-        <span className="between"><h2 className="heading">{t('family')}</h2><Icon name="forward" /></span>
-        <span className="small muted">{t('familySummary')}</span>
-      </button>
+      <div className="row"><BackButton to="/settings" /></div>
+      <h1 className="display">{t('goalsTargets')}</h1>
 
       <section className="card stack" style={{ gap: 12 }}>
         <h2 className="heading">{t('yourDetails')}</h2>
-        <label className="field"><span>{t('obNamePh')}</span><input className="input" value={p.name} onChange={(e) => setP({ ...p, name: e.target.value })} /></label>
         {select<Sex>(t('sex'), p.sex, [['female', t('female')], ['male', t('male')]], (v) => setP({ ...p, sex: v }))}
         <NumberField label={t('age')} value={p.age} onChange={(v) => setP({ ...p, age: v })} />
         <div className="stack"><span className="label">{t('units')}</span><UnitsToggle /></div>
@@ -121,6 +112,57 @@ export default function Settings() {
           </label>
         ))}
       </section>
+{saveBar}
+    </main>
+  )
+
+  return (
+    <main className="screen" style={dirty ? { paddingBottom: 'calc(var(--nav-h) + 260px + env(safe-area-inset-bottom))' } : undefined}>
+      <div className="row"><BackButton to="/" /></div>
+      <h1 className="display">{t('settings')}</h1>
+
+      <section className="card stack" style={{ gap: generalOpen ? 16 : 0 }}>
+        <button className="between" aria-expanded={generalOpen} onClick={() => setGeneralOpen(!generalOpen)} style={{ border: 'none', background: 'none', padding: 0, width: '100%', textAlign: 'left' }}>
+          <span className="row" style={{ gap: 12, minWidth: 0 }}>
+            <Avatar name={profile.name} avatar={profile.avatar} size={44} />
+            <span className="stack" style={{ gap: 0, minWidth: 0 }}><h2 className="heading">{t('general')}</h2><span className="caption">{profile.name} · {lang === 'pl' ? t('polish') : t('english')}</span></span>
+          </span>
+          <span style={{ transform: generalOpen ? 'rotate(90deg)' : 'none', transition: 'transform .2s', display: 'flex' }}><Icon name="forward" /></span>
+        </button>
+        {generalOpen && (
+          <>
+            <label className="field"><span>{t('obNamePh')}</span><input className="input" value={p.name} onChange={(e) => setP({ ...p, name: e.target.value })}
+              onBlur={() => { const name = p.name.trim(); if (name && name !== profile.name) { updateProfile({ ...profile, name }, false); setP({ ...p, name }) } }} /></label>
+            <span className="label">{t('yourPicture')}</span>
+        <div className="row" style={{ gap: 12 }} role="radiogroup" aria-label={t('yourPicture')}>
+          {AVATARS.map((a) => {
+            const on = profile.avatar === a.id
+            return (
+              <button key={a.id} role="radio" aria-checked={on} aria-label={t(`av_${a.id}` as TKey)} onClick={() => { updateProfile({ ...profile, avatar: a.id }, false); setP({ ...p, avatar: a.id }); syncAvatar(a.id) }}
+                style={{ padding: 3, border: `3px solid ${on ? 'var(--cherry)' : 'transparent'}`, borderRadius: 999, background: 'none' }}>
+                <Avatar name={p.name} avatar={a.id} size={56} />
+              </button>
+            )
+          })}
+        </div>
+            <span className="label">{t('language')}</span>
+        <div className="chips" role="group" aria-label={t('language')}>
+          <button className="chip" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>{t('english')}</button>
+          <button className="chip" aria-pressed={lang === 'pl'} onClick={() => setLang('pl')}>{t('polish')}</button>
+        </div>
+          </>
+        )}
+      </section>
+
+      <button className="card stack" style={{ gap: 4, border: 'none', textAlign: 'left' }} onClick={() => nav('/settings/goals')}>
+        <span className="between"><h2 className="heading">{t('goalsTargets')}</h2><Icon name="forward" /></span>
+        <span className="small muted">{goalSummary}</span>
+      </button>
+
+      <button className="card stack" style={{ gap: 8, border: 'none', textAlign: 'left' }} onClick={() => nav('/family')}>
+        <span className="between"><h2 className="heading">{t('family')}</h2><Icon name="forward" /></span>
+        <span className="small muted">{t('familySummary')}</span>
+      </button>
 
       <section className="card stack" style={{ gap: 12 }}>
         <h2 className="heading">{t('staples')}</h2>
@@ -145,16 +187,7 @@ export default function Settings() {
         <Icon name="trash" size={18} />{t('resetData')}
       </button>
 
-      {dirty && (
-        <div className="bottom-bar" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 8, bottom: 'calc(var(--nav-h) + env(safe-area-inset-bottom))', paddingBottom: 16, zIndex: 31, borderRadius: '24px 24px 0 0', boxShadow: '0 -8px 24px rgba(27, 33, 28, .1)' }}>
-          {detailsDirty && <span className="small muted" style={{ textAlign: 'center' }}>{t('detailsChangedHint')}</span>}
-          {detailsDirty && <button className="btn primary block" onClick={() => saveAll(true)}>{t('saveUpdateTargets')}</button>}
-          <div className="row" style={{ gap: 10 }}>
-            <button className="btn ghost grow" onClick={discard}>{t('discard')}</button>
-            <button className={`btn grow ${detailsDirty ? 'secondary' : 'primary'}`} onClick={() => saveAll(false)}>{detailsDirty ? t('saveOnly') : t('saveChanges')}</button>
-          </div>
-        </div>
-      )}
+{saveBar}
     </main>
   )
 }

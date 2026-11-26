@@ -26,7 +26,7 @@ import Settings from './screens/Settings'
 import Family from './screens/Family'
 import FamilyPerson from './screens/FamilyPerson'
 
-const NAV_SCREENS = ['/', '/recipes', '/plan', '/shopping', '/trends', '/settings']
+const NAV_SCREENS = ['/', '/recipes', '/plan', '/shopping', '/trends', '/settings', '/settings/goals']
 
 export default function App() {
   const hydrated = useHydrated()
@@ -86,6 +86,7 @@ export default function App() {
         <Route path="/meal/:id" element={<MealEdit />} />
         <Route path="/trends" element={<Trends />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/settings/goals" element={<Settings />} />
         <Route path="/family" element={<Family />} />
         <Route path="/family/:id" element={<FamilyPerson />} />
         <Route path="*" element={<Navigate to="/" replace />} />
