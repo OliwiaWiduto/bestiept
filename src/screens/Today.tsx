@@ -87,14 +87,12 @@ export default function Today() {
                 </span>
               </button>
             )
-          // A meal with a tip: its rows and the tip sit together in one pink-outlined card.
-          const grouped = tip?.meal === meal
-          const rows = entries.map((e, i) => {
+          return entries.map((e) => {
             const m = sumItems(e.items)
-            return (
-              <div key={e.id} className="stack" style={{ gap: 8 }}>
-              <button className="meal-row" onClick={() => nav(`/meal/${e.id}`)}
-                style={grouped ? { borderRadius: 0, background: 'transparent', borderTop: i ? '1px solid var(--line)' : 'none' } : undefined}>
+            // The tip belongs to one logged item (the croissant, not the coffee): that row and the tip share one pink-outlined card.
+            const hasTip = tip?.targetId === e.id
+            const row = (
+              <button className="meal-row" onClick={() => nav(`/meal/${e.id}`)} style={hasTip ? { borderRadius: 0, background: 'transparent' } : undefined}>
                 <Thumb photo={e.photo} cat={e.meal} name={e.name} />
                 <span className="grow stack" style={{ gap: 2, minWidth: 0 }}>
                   {/* The meal's own numbers, written the same way as each ingredient's */}
@@ -102,17 +100,15 @@ export default function Today() {
                   <span style={{ fontSize: 15, lineHeight: '20px', fontWeight: 600 }}>{e.name}</span>
                 </span>
               </button>
-              {win?.afterId === e.id && <WinLine meal={win.meal} protein={win.protein} />}
+            )
+            if (hasTip && tip) return <div key={e.id} className="tip-group">{row}<MealTipCard tip={tip} /></div>
+            return (
+              <div key={e.id} className="stack" style={{ gap: 8 }}>
+                {row}
+                {win?.afterId === e.id && <WinLine meal={win.meal} protein={win.protein} />}
               </div>
             )
           })
-          if (!grouped || !tip) return rows
-          return (
-            <div key={meal} className="tip-group">
-              {rows}
-              <MealTipCard tip={tip} />
-            </div>
-          )
         })}
       </div>
 

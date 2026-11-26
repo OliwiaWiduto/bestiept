@@ -359,6 +359,21 @@ export const LIBRARY: LibRecipe[] = [
     },
   },
   {
+    id: 'bp-nutella-cakes', category: 'snack', servings: 1, minutes: 3, handsOn: 3, feel: 'sweet', nutrition: n(170, 3, 28, 5, 3, 13),
+    en: {
+      title: 'Chocolate hazelnut rice cakes with berries',
+      ingredients: ['2 rice cakes', '15g chocolate hazelnut spread', '60g strawberries', '20g blueberries'],
+      steps: ['Spread the chocolate hazelnut spread over the rice cakes.', 'Top with sliced strawberries and blueberries. All the chocolate, a fraction of a brownie.'],
+      equipment: ['Knife'],
+    },
+    pl: {
+      title: 'Wafle ryżowe z kremem czekoladowo-orzechowym i owocami',
+      ingredients: ['2 wafle ryżowe', '15g kremu czekoladowo-orzechowego', '60g truskawek', '20g borówek'],
+      steps: ['Posmaruj wafle kremem czekoladowo-orzechowym.', 'Dodaj pokrojone truskawki i borówki. Cała czekoladowa przyjemność, a dużo lżej niż brownie.'],
+      equipment: ['Nóż'],
+    },
+  },
+  {
     id: 'bp-pb-dip', category: 'snack', servings: 1, minutes: 3, handsOn: 3, feel: 'sweet', nutrition: n(275, 20, 30, 9, 3, 29),
     en: {
       title: 'Peanut butter yoghurt dip with apple',
@@ -406,6 +421,10 @@ export const LIBRARY: LibRecipe[] = [
 ]
 
 export const libById = (id: string | undefined) => LIBRARY.find((r) => r.id === id)
+
+/** Each Bestie pick has its own illustration of the finished dish, found by its title in either language. */
+const BY_TITLE = new Map(LIBRARY.flatMap((l) => [[l.en.title.toLowerCase(), l.id], [l.pl.title.toLowerCase(), l.id]]))
+export const libArt = (title?: string) => { const id = title && BY_TITLE.get(title.trim().toLowerCase()); return id ? `/icons/bp/${id}.webp` : null }
 
 const asText = (t: Text, orig: Text): RecipeText => ({
   title: t.title,

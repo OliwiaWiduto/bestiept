@@ -8,7 +8,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: false,
-      workbox: { globPatterns: ['**/*.{js,css,html,png,svg,json,wasm}'], maximumFileSizeToCacheInBytes: 3 * 1024 * 1024 },
+      workbox: { globPatterns: ['**/*.{js,css,html,png,webp,svg,json,wasm}'], maximumFileSizeToCacheInBytes: 3 * 1024 * 1024 },
       includeAssets: ['favicon.png', 'apple-touch-icon.png', 'icons/*.png'],
       manifest: {
         name: 'BestiePT',

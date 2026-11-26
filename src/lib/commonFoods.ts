@@ -20,6 +20,7 @@ export const COMMON: Common[] = [
   [/light coconut milk|reduced fat coconut|lighter coconut|mleczk\w* kokosow\w* light|light.* mleczk/, 'Coconut milk, reduced fat, retail'],
   [/coconut milk|mleko kokosowe|mleczk\w* kokosow/, 'Coconut milk, retail'],
   [/coconut cream|śmietank.* kokos|krem kokosowy/, [330, 3.3, 6, 34, 2, 3]],
+  [/hazelnut spread|nutella|krem\S* czekoladow\S*.orzechow|krem\S* orzechow\S*.kakaow/, [540, 6, 57, 31, 3.5, 56]],
   [/milk chocolate|dark chocolate|white chocolate|chocolate chip|chocolate|czekolad/, [535, 7.6, 59, 30, 3.4, 52]],
   [/sweet chil+i sauce|słodki\w* sos\w* chili/, [210, 0.5, 50, 0.4, 1, 45]],
   [/ketchup/, [110, 1.2, 25, 0.1, 0.8, 22]],

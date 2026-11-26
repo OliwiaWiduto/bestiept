@@ -1,3 +1,4 @@
+import { libArt } from './library'
 // Picks one of our hand-drawn food pictures for anything without a photo:
 // by dish type from the name (English or Polish), otherwise by meal type, rotating so lists don't repeat.
 const DISH: [RegExp, string][] = [
@@ -29,6 +30,8 @@ const POOL: Record<string, string[]> = {
 const hash = (s: string) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h) }
 
 export function foodArt(name?: string, cat?: string): string {
+  const own = libArt(name)
+  if (own) return own
   const n = (name ?? '').toLowerCase()
   const hit = n && DISH.find(([re]) => re.test(n))
   if (hit) return `/icons/${hit[1]}.png`

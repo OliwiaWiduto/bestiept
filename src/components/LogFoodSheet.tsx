@@ -20,7 +20,7 @@ import { Icon, PhotoButton, Sheet, Stepper, Thumb, toast, type IconName } from '
 type Mode = 'menu' | 'recipe' | 'search' | 'quick' | 'barcode' | 'scan' | 'voice' | 'type' | 'again'
 type Picked = { name: string; per: Macros; portion: number; source?: string }
 
-import { MAIN, isLow, nudgesOf, swapsFor } from '../lib/nudges'
+import { MAIN, nudgesOf, swapsFor, worthSwapping } from '../lib/nudges'
 import { ownCopy } from '../lib/library'
 import { foodArt } from '../lib/art'
 
@@ -213,7 +213,7 @@ export default function LogFoodSheet() {
   const better = useMemo(() => {
     const nd = nudgesOf(profile)
     const usual = recent[0]
-    if (nd.off || !targets || !MAIN.includes(meal) || !usual || usual.meal !== meal || !isLow(sumItems(usual.items).protein, targets)) return null
+    if (nd.off || !targets || !MAIN.includes(meal) || !usual || usual.meal !== meal || !worthSwapping(sumItems(usual.items))) return null
     const pick = swapsFor(meal, [usual], { dismissed: nd.dismissed, today: viewDate })[0]
     if (!pick || plannedNow.some((p) => recipes.find((x) => x.id === p.recipeId)?.libId === pick.id)) return null
     return { pick, instead: usual.name }

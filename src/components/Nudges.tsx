@@ -87,7 +87,7 @@ export function PickCard({ l, width }: { l: LibRecipe; width?: number }) {
   const lang = useStore((s) => s.lang)
   return (
     <button onClick={() => nav(`/recipes/${l.id}`)} style={{ width, flex: width ? 'none' : undefined, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6, background: 'none', border: 'none', padding: 0, textAlign: 'left', font: 'inherit', color: 'inherit' }}>
-      <span className="thumb" style={{ width: '100%', height: width ? width * 0.8 : 84, borderRadius: 18 }}><img src={foodArt(l.en.title, l.category)} alt="" style={{ width: '70%', maxWidth: 110, height: 'auto' }} /></span>
+      <span className="thumb" style={{ width: '100%', height: width ? width * 0.8 : 84, borderRadius: 18 }}><img src={foodArt(l.en.title, l.category)} alt="" style={{ width: '82%', maxWidth: 120, height: 'auto' }} /></span>
       <span style={{ fontSize: 13, lineHeight: '17px', fontWeight: 600 }}>{l[lang].title}</span>
       <span className="caption">{t('proteinShort', { n: l.nutrition.protein })} · {t('minutes', { n: l.handsOn })}</span>
     </button>
@@ -99,7 +99,7 @@ export function HabitCard({ h }: { h: Habit }) {
   const t = useT()
   const targets = useStore((s) => s.targets)
   const n = h.low.filter(Boolean).length
-  const title = h.kind === 'protein' ? t('hcHabitProtein', { meal: t(h.meal), n }) : h.kind === 'fibre' ? t('hcHabitFibre', { g: targets?.fibre ?? 25, n }) : t('hcHabitOver', { n })
+  const title = h.kind === 'protein' ? t('hcHabitProtein', { meal: t(h.meal), n }) : h.kind === 'snack' ? t('hcHabitSnack', { name: h.name, kcal: h.kcal, n }) : h.kind === 'fibre' ? t('hcHabitFibre', { g: targets?.fibre ?? 25, n }) : t('hcHabitOver', { n })
   return (
     <section className="card stack" style={{ gap: 12 }}>
       <span style={{ fontSize: 15, lineHeight: '20px', fontWeight: 600 }}>{title}</span>
@@ -108,9 +108,10 @@ export function HabitCard({ h }: { h: Habit }) {
       </div>
       {h.kind === 'fibre' && <span className="small muted">{t('hcHabitFibreTip')}</span>}
       {h.kind === 'over' && <span className="small muted">{t('hcHabitOverTip')}</span>}
-      {h.kind === 'protein' && h.swaps.length > 0 && (
+      {h.kind === 'snack' && <span className="small muted">{t('hcHabitSnackTip')}</span>}
+      {(h.kind === 'protein' || h.kind === 'snack') && h.swaps.length > 0 && (
         <>
-          <span className="caption">{t('hcHabitSwaps')}</span>
+          <span className="caption">{h.kind === 'snack' ? t('hcHabitSnackSwaps') : t('hcHabitSwaps')}</span>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>{h.swaps.map((l) => <PickCard key={l.id} l={l} />)}</div>
           <button className="btn primary block" onClick={() => {
             // The next few days that don't have this meal planned yet.
