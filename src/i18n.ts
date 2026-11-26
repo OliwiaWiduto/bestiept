@@ -112,6 +112,7 @@ const en = {
   buildExpectNoTraining: 'Muscle is built by strength training, so pairing this with 2–3 sessions a week is what makes it work. We’ll keep your protein high either way.',
   buildScale: 'Your weight may not change much, because you lose fat while you build muscle. Watch how your clothes fit and how strong you feel.',
   general: 'General', goalsTargets: 'Goals & targets',
+  detailsWhy: 'We use these to work out how many calories your body uses, and from that your daily targets below.',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -291,6 +292,7 @@ const pl: Dict = {
   buildExpectNoTraining: 'Mięśnie buduje trening siłowy, więc 2–3 treningi w tygodniu to podstawa. Białko i tak ustawimy wysoko.',
   buildScale: 'Waga może się niewiele zmieniać, bo tracisz tłuszcz i budujesz mięśnie jednocześnie. Patrz, jak leżą ubrania i jak rośnie Twoja siła.',
   general: 'Ogólne', goalsTargets: 'Cele i normy',
+  detailsWhy: 'Na ich podstawie liczymy, ile kalorii zużywa Twoje ciało, a z tego Twoje dzienne normy poniżej.',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 
