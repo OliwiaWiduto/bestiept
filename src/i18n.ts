@@ -141,6 +141,10 @@ const en = {
   hcHabitOver: 'Over your zone on {n} of the last {of} days', hcHabitOverTip: 'Honestly fine, we go again. A protein-rich breakfast keeps you fuller for longer.',
   hcPlanThese: 'Add to plan', hcPlannedDays: 'Added to {days}', hcNoHabits: 'No habits to flag. You’re doing great.',
   hcTipsSetting: 'Healthy choices tips', hcTipsSettingSub: 'A friendly tip when a meal is light on protein, with swap ideas', shoppingListBtn: 'Shopping list', seeInsights: 'See insights',
+  inviteTitle: 'Invite a bestie', inviteSub: 'Don’t know their username? Send them an invite card on any messaging app.', sendInvite: 'Send invite',
+  inviteBeMyBestie: 'Be my bestie?', inviteFourTaps: 'Add me on BestiePT in four taps:', inviteStep1: 'Open **BestiePT**', inviteStep2: 'Tap **your picture,** top right',
+  inviteStep3: 'Tap', inviteStep4: 'Under **{addSomeone}**, type my name, then press **{add}**', inviteFooter: 'I’ll accept, and we’re linked.',
+  inviteShareText: 'Be my bestie on BestiePT? My username is @{username} · https://bestiept.vercel.app', inviteSaved: 'Invite card saved. Send it to your bestie!', inviteMaking: 'Making your card…',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -349,6 +353,10 @@ const pl: Dict = {
   hcHabitOver: 'Powyżej strefy przez {n} z ostatnich {of} dni', hcHabitOverTip: 'Spokojnie, działamy dalej. Śniadanie z dużą ilością białka daje sytość na dłużej.',
   hcPlanThese: 'Dodaj do planu', hcPlannedDays: 'Dodano: {days}', hcNoHabits: 'Żadnych nawyków do poprawy. Świetnie Ci idzie.',
   hcTipsSetting: 'Wskazówki o zdrowych wyborach', hcTipsSettingSub: 'Przyjazna wskazówka, gdy posiłek ma mało białka, i pomysły na zamienniki', shoppingListBtn: 'Lista zakupów', seeInsights: 'Zobacz podsumowanie',
+  inviteTitle: 'Zaproś bestie', inviteSub: 'Nie znasz nazwy użytkownika? Wyślij kartę z zaproszeniem w dowolnym komunikatorze.', sendInvite: 'Wyślij zaproszenie',
+  inviteBeMyBestie: 'Zostaniesz moją bestie?', inviteFourTaps: 'Dodaj mnie w BestiePT w czterech krokach:', inviteStep1: 'Otwórz **BestiePT**', inviteStep2: 'Dotknij **swojego zdjęcia** w prawym górnym rogu',
+  inviteStep3: 'Dotknij', inviteStep4: 'W sekcji **{addSomeone}** wpisz moją nazwę, a potem naciśnij **{add}**', inviteFooter: 'Zaakceptuję i od razu się połączymy.',
+  inviteShareText: 'Zostaniesz moją bestie w BestiePT? Moja nazwa użytkownika to @{username} · https://bestiept.vercel.app', inviteSaved: 'Karta zapisana. Wyślij ją swojej bestie!', inviteMaking: 'Robię Twoją kartę…',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 

@@ -4,6 +4,7 @@ import { useStore } from '../store'
 import { useT } from '../i18n'
 import { Avatar, BackButton, Icon, toast } from '../components/ui'
 import { acceptLink, addPerson, removeLink, saveMe, useFamily } from '../lib/family'
+import { makeInviteCard, shareInviteCard } from '../lib/inviteCard'
 
 export default function Family() {
   const t = useT()
@@ -14,6 +15,17 @@ export default function Family() {
   const [who, setWho] = useState('')
   const [editing, setEditing] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [invite, setInvite] = useState<File | null>(null)
+
+  // Draw the invite card ahead of time: phones only open the share sheet straight after a tap.
+  useEffect(() => {
+    if (!me?.username) { setInvite(null); return }
+    let live = true
+    makeInviteCard({ name: profile?.name ?? me.username, username: me.username, avatar: profile?.avatar, t })
+      .then((f) => { if (live) setInvite(f) })
+      .catch(() => { if (live) setInvite(null) })
+    return () => { live = false }
+  }, [me?.username, profile?.name, profile?.avatar, t.lang])
 
   useEffect(() => {
     if (me?.username) setUsername(me.username)
@@ -41,6 +53,11 @@ export default function Family() {
     setBusy(false)
     if (r === 'ok') setEditing(false)
     toast(r === 'ok' ? t('saved') : r === 'taken' ? t('usernameTaken') : t('usernameRules'))
+  }
+  const sendInvite = async () => {
+    if (!invite || !me?.username) { toast(t('inviteMaking')); return }
+    const r = await shareInviteCard(invite, t('inviteShareText', { username: me.username }))
+    if (r === 'downloaded') toast(t('inviteSaved'))
   }
   const add = async () => {
     if (!who.trim()) return
@@ -87,6 +104,16 @@ export default function Family() {
           onChange={(e) => setWho(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') add() }} />
         {who.trim() !== '' && <button className="btn primary" disabled={busy} onClick={add}>{t('add')}</button>}
       </section>
+
+      {me?.username && (
+        <section className="card stack" style={{ gap: 12 }}>
+          <div className="stack" style={{ gap: 2 }}>
+            <h2 className="heading">{t('inviteTitle')}</h2>
+            <span className="small muted">{t('inviteSub')}</span>
+          </div>
+          <button className="btn primary" onClick={sendInvite}>{t('sendInvite')}</button>
+        </section>
+      )}
 
       {incoming.length > 0 && (
         <section className="card stack" style={{ gap: 12 }}>
