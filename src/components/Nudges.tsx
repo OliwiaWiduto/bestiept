@@ -100,7 +100,7 @@ function HabitBars({ h }: { h: Habit }) {
   const n = h.values.length
   const W = 300, H = 84, gap = n > 10 ? 2 : 8
   const bw = (W - gap * (n - 1)) / n
-  const max = Math.max(h.line * 1.3, ...h.values.map((v) => v ?? 0)) || 1
+  const max = Math.max(h.line * 1.05, ...h.values.map((v) => v ?? 0)) || 1
   const ly = H - (h.line / max) * H
   const unit = h.kind === 'over' || h.kind === 'snack' ? t('kcal') : 'g'
   const aim = h.kind === 'snack' ? t('hcHeavySnackLine', { n: h.line }) : h.kind === 'over' ? t('hcZoneTop', { n: h.line }) : t('hcAimFor', { n: h.line, u: unit })
