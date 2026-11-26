@@ -41,13 +41,13 @@ export function HeightField({ cm, onChange }: { cm: number; onChange: (cm: numbe
 }
 
 /** Weight in kg or st/lb; always stored in kg. */
-export function WeightField({ kg, onChange, big }: { kg: number; onChange: (kg: number) => void; big?: boolean }) {
+export function WeightField({ kg, onChange, big, label }: { kg: number; onChange: (kg: number) => void; big?: boolean; label?: string }) {
   const t = useT()
   const units = useStore((s) => s.units)
   const { st, lb } = kgToStLb(Number.isFinite(kg) ? kg : 0)
   const style = big ? { fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, color: 'var(--green)' } : undefined
   return (
-    <div className="field"><span>{t('weight')}</span>
+    <div className="field"><span>{label ?? t('weight')}</span>
       <div style={style}>
         {units === 'metric'
           ? <div className="row"><Num label={t('weight')} value={kg} step={0.1} onChange={onChange} suffix="kg" /></div>

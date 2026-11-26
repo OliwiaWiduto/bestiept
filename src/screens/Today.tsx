@@ -3,8 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { useUI } from '../ui-state'
 import { useT } from '../i18n'
-import { MEALS, ZERO, type Goal, type Macros } from '../types'
-import { add, sumItems } from '../lib/nutrition'
+import { MEALS, ZERO, type Goal, type Macros, type Pace } from '../types'
+import { add, calorieZone, sumItems } from '../lib/nutrition'
 import { addDays, fmt, today } from '../lib/dates'
 import { Avatar, Icon, Sheet, Thumb, toast } from '../components/ui'
 import { WeightField } from '../components/BodyFields'
@@ -63,7 +63,7 @@ export default function Today() {
         <button className="icon-btn" style={{ background: 'transparent' }} aria-label={t('nextDay')} disabled={isToday} onClick={() => setViewDate(addDays(viewDate, 1))}><Icon name="forward" /></button>
       </div>
 
-      <SummaryCard totals={totals} targets={targets} goal={profile.goal} />
+      <SummaryCard totals={totals} targets={targets} goal={profile.goal} pace={profile.pace} />
 
 
       <h2 className="heading" style={{ paddingTop: 8 }}>{t('yourMeals')}</h2>
@@ -134,10 +134,9 @@ function WeightSheet({ open, onClose, last, onSave }: { open: boolean; onClose: 
 }
 
 /** Calories against a zone (the bar runs past it, so eating over still fits) and the macros, on one dark green card. */
-function SummaryCard({ totals, targets, goal }: { totals: Macros; targets: Macros; goal: Goal }) {
+function SummaryCard({ totals, targets, goal, pace }: { totals: Macros; targets: Macros; goal: Goal; pace?: Pace }) {
   const t = useT()
-  // Weight loss: up to 250 kcal under the target is the zone; maintain: 100 either side; gain: up to 250 over.
-  const [min, max] = goal === 'lose' ? [targets.kcal - 250, targets.kcal] : goal === 'gain' ? [targets.kcal, targets.kcal + 250] : [targets.kcal - 100, targets.kcal + 100]
+  const [min, max] = calorieZone(targets.kcal, goal, pace)
   const full = Math.ceil((max * 1.16) / 100) * 100
   const pct = (n: number) => Math.max(0, Math.min(100, (n / full) * 100))
   const eaten = Math.round(totals.kcal)

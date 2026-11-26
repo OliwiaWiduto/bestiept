@@ -23,7 +23,12 @@ export type Profile = {
   avatar?: string
   /** How many people she usually cooks for (plans and leftovers use it) */
   household?: number
+  /** The weight she's aiming for (lose or gain goals) */
+  goalWeightKg?: number
+  /** How fast: slower (300 kcal under maintenance, or 5% over) or faster (500 under, or 10% over) */
+  pace?: Pace
 }
+export type Pace = 'slower' | 'faster'
 
 export type Ingredient = { id: string; amount: number | null; unit: string; name: string }
 

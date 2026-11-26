@@ -4,7 +4,10 @@ import { useStore } from '../store'
 import { useT, type TKey } from '../i18n'
 import { staplesIn } from '../lib/shopping'
 import InstallNudge from '../components/InstallNudge'
-import type { Activity, Goal, Macros, Profile, Sex } from '../types'
+import type { Activity, Goal, Macros, Pace, Profile, Sex } from '../types'
+import { maintenance, suggestedGoalWeight, weeksToGoal } from '../lib/nutrition'
+import { formatWeight } from '../lib/units'
+import { addDays, fmt, today } from '../lib/dates'
 import { AVATARS, Avatar, BackButton, Icon, NumberField, toast } from '../components/ui'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -40,6 +43,7 @@ export default function Settings() {
     toast(t('saved'))
   }
 
+  const units = useStore((st) => st.units)
   const select = <T extends string>(label: string, value: T, options: [T, string][], on: (v: T) => void) => (
     <label className="field"><span>{label}</span>
       <select className="input" value={value} onChange={(e) => on(e.target.value as T)}>{options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
@@ -89,6 +93,17 @@ export default function Settings() {
         <WeightField kg={p.weightKg} onChange={(v) => setP({ ...p, weightKg: v })} />
         {select<Activity>(t('obActivity'), p.activity, [['low', t('actLow')], ['light', t('actLight')], ['moderate', t('actModerate')], ['high', t('actHigh')]], (v) => setP({ ...p, activity: v }))}
         {select<Goal>(t('obGoal'), p.goal, [['lose', t('goalLose')], ['maintain', t('goalMaintain')], ['gain', t('goalGain')]], (v) => setP({ ...p, goal: v }))}
+        {p.goal !== 'maintain' && (
+          <>
+            <WeightField label={t('goalWeight')} kg={p.goalWeightKg ?? suggestedGoalWeight(p)} onChange={(v) => setP({ ...p, goalWeightKg: v })} />
+            {select<Pace>(t('howFast'), p.pace ?? 'slower', [['slower', t('paceSlower')], ['faster', t('paceFaster')]], (v) => setP({ ...p, pace: v }))}
+            {(() => { const w = weeksToGoal({ ...p, goalWeightKg: p.goalWeightKg ?? suggestedGoalWeight(p) }); return w ? <span className="caption">{t('goalBy', { kg: formatWeight(p.goalWeightKg ?? suggestedGoalWeight(p), units), date: fmt(addDays(today(), w * 7), t.lang, { day: 'numeric', month: 'long', year: 'numeric' }) })}</span> : null })()}
+          </>
+        )}
+        <div className="between" style={{ alignItems: 'flex-start', gap: 12 }}>
+          <span className="stack" style={{ gap: 2 }}><span className="label">{t('maintenanceKcal')}</span><span className="caption">{t('maintenanceHint')}</span></span>
+          <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{Number.isFinite(p.weightKg) && Number.isFinite(p.heightCm) && Number.isFinite(p.age) ? maintenance(p) : '—'} {t('kcal')}</span>
+        </div>
       </section>
 
       <section className="card stack" style={{ gap: 12 }}>

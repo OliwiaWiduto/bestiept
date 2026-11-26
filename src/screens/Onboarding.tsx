@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../store'
 import { useT } from '../i18n'
-import type { Activity, Goal, Profile, Sex } from '../types'
-import { calcTargets } from '../lib/nutrition'
+import type { Activity, Goal, Pace, Profile, Sex } from '../types'
+import { calcTargets, lowestHealthy, suggestedGoalWeight, weeksToGoal } from '../lib/nutrition'
+import { formatWeight } from '../lib/units'
+import { addDays, fmt, today } from '../lib/dates'
 import { sampleRecipes } from '../lib/samples'
 import { DEFAULT_STAPLES, DEFAULT_STAPLES_PL } from '../lib/shopping'
 import { canPromptInstall, isInstalled, isIos, openInBrowserUrl, promptInstall, whereOpen } from '../lib/install'
@@ -25,7 +27,10 @@ export default function Onboarding() {
   const [step, setStep] = useState(0)
   const [where] = useState(() => (isInstalled() ? 'desktop' : whereOpen()))
   const showHome = where !== 'desktop'
-  const last = showHome ? 7 : 6
+  const last = showHome ? 8 : 7
+  // The goal weight and pace step only applies to losing or gaining.
+  const next = () => setStep(step === 4 && p.goal === 'maintain' ? 6 : step + 1)
+  const prev = () => setStep(step === 6 && p.goal === 'maintain' ? 4 : step - 1)
   // Pantry staples: nothing picked to start with, so she has to choose (or say she keeps none of them).
   const [staples, setStaples] = useState<string[]>([])
   const [noStaples, setNoStaples] = useState(false)
@@ -34,11 +39,16 @@ export default function Onboarding() {
   const [p, setP] = useState<Profile>({ name: '', sex: 'female', age: 28, heightCm: 165, weightKg: 65, activity: 'light', goal: 'maintain', household: 1 })
   const auto = useMemo(() => calcTargets(p), [p])
   const targets = auto
+  const units = useStore((s) => s.units)
   const set = <K extends keyof Profile>(k: K, v: Profile[K]) => setP({ ...p, [k]: v })
+  // Goal weight: suggested when she reaches that step; losing can't go below a healthy weight for her height.
+  const goalKg = p.goalWeightKg ?? suggestedGoalWeight(p)
+  const goalOk = p.goal === 'maintain' || (p.goal === 'lose' ? goalKg < p.weightKg && goalKg >= lowestHealthy(p) : goalKg > p.weightKg)
+  const weeks = weeksToGoal({ ...p, goalWeightKg: goalKg })
 
-  const valid = [true, p.name.trim().length > 0, p.age >= 13 && p.age <= 100 && p.heightCm >= 120 && p.heightCm <= 230 && p.weightKg >= 30 && p.weightKg <= 300, true, true, true, staples.length > 0 || noStaples, true][step]
+  const valid = [true, p.name.trim().length > 0, p.age >= 13 && p.age <= 100 && p.heightCm >= 120 && p.heightCm <= 230 && p.weightKg >= 30 && p.weightKg <= 300, true, true, goalOk, true, staples.length > 0 || noStaples, true][step]
   const finish = () => {
-    completeOnboarding({ ...p, name: p.name.trim() }, sampleRecipes(lang), staples)
+    completeOnboarding({ ...p, name: p.name.trim(), ...(p.goal === 'maintain' ? { goalWeightKg: undefined, pace: undefined } : { goalWeightKg: goalKg, pace: p.pace ?? 'slower' }) }, sampleRecipes(lang), staples)
   }
 
   const option = (selected: boolean, label: string, onClick: () => void) => (
@@ -53,7 +63,7 @@ export default function Onboarding() {
     <main className="screen no-nav" style={{ minHeight: '100dvh' }}>
       {step > 0 && (
         <div className="between">
-          <button className="icon-btn" aria-label={t('back')} onClick={() => setStep(step - 1)}><Icon name="back" /></button>
+          <button className="icon-btn" aria-label={t('back')} onClick={prev}><Icon name="back" /></button>
           <div style={{ display: 'flex', gap: 6 }} aria-hidden="true">
             {Array.from({ length: last }, (_, n) => n + 1).map((i) => <span key={i} style={{ width: 22, height: 6, borderRadius: 999, background: i <= step ? 'var(--green)' : 'var(--line)' }} />)}
           </div>
@@ -126,6 +136,37 @@ export default function Onboarding() {
       )}
 
       {step === 5 && (
+        <div className="stack" style={{ gap: 14 }}>
+          <h1 className="title">{t(p.goal === 'lose' ? 'obGoalWeightLose' : 'obGoalWeightGain')}</h1>
+          <p className="muted" style={{ margin: 0, fontSize: 15 }}>{t('obGoalWeightHint')}</p>
+          <WeightField label={t('goalWeight')} kg={goalKg} onChange={(v) => set('goalWeightKg', v)} />
+          {p.goal === 'lose' && goalKg < lowestHealthy(p) && <span className="caption" style={{ color: 'var(--cherry)' }}>{t('goalTooLow', { kg: formatWeight(lowestHealthy(p), units) })}</span>}
+          <span className="label" style={{ marginTop: 6 }}>{t('howFast')}</span>
+          {(['slower', 'faster'] as Pace[]).map((pc) => {
+            const w = weeksToGoal({ ...p, pace: pc, goalWeightKg: goalKg })
+            const on = (p.pace ?? 'slower') === pc
+            return (
+              <button key={pc} className="meal-row" aria-pressed={on} onClick={() => set('pace', pc)}
+                style={{ border: `2px solid ${on ? 'var(--green)' : 'transparent'}`, minHeight: 72, padding: '14px 18px', alignItems: 'center' }}>
+                <span className={`check ${on ? 'on' : ''}`} style={{ borderRadius: 999 }}>{on && <Icon name="check" size={16} sw={2.5} />}</span>
+                <span className="stack grow" style={{ gap: 2, textAlign: 'left' }}>
+                  <span style={{ fontWeight: 700, fontSize: 16 }}>{t(pc === 'slower' ? 'paceSlower' : 'paceFaster')}</span>
+                  <span className="caption">{t(p.goal === 'lose' ? (pc === 'slower' ? 'paceSlowerLose' : 'paceFasterLose') : (pc === 'slower' ? 'paceSlowerGain' : 'paceFasterGain'))}</span>
+                </span>
+                {goalOk && w && <span style={{ flex: 'none', fontWeight: 700, color: 'var(--green)', textAlign: 'right' }}>{t('weeksN', { n: w })}</span>}
+              </button>
+            )
+          })}
+          {goalOk && weeks && (
+            <div className="card" style={{ background: 'var(--green)', color: '#FFFCF6', border: 'none', padding: '18px 20px' }}>
+              <span style={{ fontSize: 15, lineHeight: '22px' }}>{t('goalBy', { kg: formatWeight(goalKg, units), date: fmt(addDays(today(), weeks * 7), lang, { day: 'numeric', month: 'long', year: 'numeric' }) })}</span>
+            </div>
+          )}
+          <span className="caption" style={{ paddingBottom: 96 }}>{t('goalEstimate')}</span>
+        </div>
+      )}
+
+      {step === 6 && (
         <div className="stack" style={{ gap: 12 }}>
           <h1 className="title">{t('obTargets')}</h1>
           <p className="muted" style={{ margin: 0, fontSize: 15 }}>{t('tgIntro')}</p>
@@ -144,7 +185,7 @@ export default function Onboarding() {
         </div>
       )}
 
-      {step === 6 && (
+      {step === 7 && (
         <div className="stack" style={{ gap: 12 }}>
           <h1 className="title">{t('staplesTitle')}</h1>
           <p className="muted" style={{ margin: 0, fontSize: 15 }}>{t('obStaplesHint')}</p>
@@ -163,7 +204,7 @@ export default function Onboarding() {
         </div>
       )}
 
-      {step === 7 && (() => {
+      {step === 8 && (() => {
         const [before, after] = t('homeStep1').split('{share}')
         const steps = where === 'android'
           ? [t('homeAndroid1'), t('homeAndroid2')]
@@ -195,8 +236,8 @@ export default function Onboarding() {
       })()}
 
       <div className="bottom-bar">
-        <button className="btn primary block" disabled={!valid} onClick={() => (step === last ? finish() : setStep(step + 1))}>
-          {step === 0 ? t('obStart') : step === last ? (step === 7 ? t('homeDone') : t('obGo')) : t('continue')}
+        <button className="btn primary block" disabled={!valid} onClick={() => (step === last ? finish() : next())}>
+          {step === 0 ? t('obStart') : step === last ? (step === 8 ? t('homeDone') : t('obGo')) : t('continue')}
         </button>
       </div>
     </main>
