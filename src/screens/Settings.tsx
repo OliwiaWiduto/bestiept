@@ -77,6 +77,7 @@ export default function Settings() {
 
       <section className="card stack" style={{ gap: 12 }}>
         <h2 className="heading">{t('yourDetails')}</h2>
+        <span className="small muted">{t('detailsWhy')}</span>
         {select<Sex>(t('sex'), p.sex, [['female', t('female')], ['male', t('male')]], (v) => setP({ ...p, sex: v }))}
         <NumberField label={t('age')} value={p.age} onChange={(v) => setP({ ...p, age: v })} />
         <div className="stack"><span className="label">{t('units')}</span><UnitsToggle /></div>

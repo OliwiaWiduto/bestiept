@@ -120,6 +120,7 @@ const en = {
   tgMaintain: 'Eating about what your body uses keeps your weight steady.', tgBuild: 'To build muscle you eat about what your body uses, with extra protein.',
   tgFloor: 'We never set calories below {n} a day, so your pace will be a little gentler.', tgInside: 'What those calories are made of',
   tgClose: 'You don’t need to hit these exactly. Getting close on most days is what counts.', householdSolo: 'Just you? Leave it at 1.',
+  detailsWhy: 'We use these to work out how many calories your body uses, and from that your daily targets below.',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -307,6 +308,7 @@ const pl: Dict = {
   tgMaintain: 'Jedząc mniej więcej tyle, ile zużywa Twoje ciało, utrzymasz wagę.', tgBuild: 'Aby budować mięśnie, jesz mniej więcej tyle, ile zużywa Twoje ciało, ale z większą ilością białka.',
   tgFloor: 'Nigdy nie ustawiamy mniej niż {n} kcal dziennie, więc tempo będzie trochę łagodniejsze.', tgInside: 'Z czego składają się te kalorie',
   tgClose: 'Nie musisz trafiać idealnie. Liczy się to, żeby być blisko przez większość dni.', householdSolo: 'Gotujesz tylko dla siebie? Zostaw 1.',
+  detailsWhy: 'Na ich podstawie liczymy, ile kalorii zużywa Twoje ciało, a z tego Twoje dzienne normy poniżej.',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 
