@@ -2,7 +2,7 @@ import { useMemo, useState, type CSSProperties } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { useUI } from '../ui-state'
-import { useT, type TKey } from '../i18n'
+import { useT } from '../i18n'
 import { MEALS, ZERO, type Goal, type Macros } from '../types'
 import { add, sumItems } from '../lib/nutrition'
 import { addDays, fmt, today } from '../lib/dates'
@@ -28,15 +28,6 @@ export default function Today() {
   const hour = new Date().getHours()
   const greeting = t(hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening', { name: profile.name })
 
-  // One nudge, most useful first. Never judgy.
-  let nudge: TKey | null = null
-  const proteinLeft = Math.round(targets.protein - totals.protein)
-  if (dayLogs.length === 0) nudge = null // no empty-state nagging; the + button tip handles first use
-  else if (totals.kcal > targets.kcal * 1.05) nudge = 'nKcalOver'
-  else if (proteinLeft <= 0) nudge = 'nProteinDone'
-  else if (proteinLeft <= 30) nudge = 'nProteinToGo'
-  else if (hour >= 18 && totals.fibre < targets.fibre * 0.5) nudge = 'nFibre'
-  else if (totals.kcal > targets.kcal * 0.4) nudge = 'nOnTrack'
 
   const latest = weights[weights.length - 1]
   const weekAgo = [...weights].reverse().find((w) => w.date <= addDays(today(), -7))
@@ -74,7 +65,6 @@ export default function Today() {
 
       <SummaryCard totals={totals} targets={targets} goal={profile.goal} />
 
-      {nudge && <div className="tip"><Icon name="heart" size={24} /><span>{t(nudge, { n: proteinLeft })}</span></div>}
 
       <h2 className="heading" style={{ paddingTop: 8 }}>{t('yourMeals')}</h2>
       <div className="stack">
