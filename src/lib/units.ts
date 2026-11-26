@@ -5,10 +5,12 @@ export const kgToLb = (kg: number) => kg * LB_PER_KG
 export const lbToKg = (lb: number) => lb / LB_PER_KG
 
 export function kgToStLb(kg: number): { st: number; lb: number } {
-  const total = Math.round(kgToLb(kg))
-  return { st: Math.floor(total / 14), lb: total % 14 }
+  // Pounds keep one decimal (9 st 3.5 lb)
+  const total = Math.round(kgToLb(kg) * 10) / 10
+  const st = Math.floor(total / 14)
+  return { st, lb: Math.round((total - st * 14) * 10) / 10 }
 }
-export const stLbToKg = (st: number, lb: number) => Math.round(lbToKg(st * 14 + lb) * 10) / 10
+export const stLbToKg = (st: number, lb: number) => Math.round(lbToKg(st * 14 + lb) * 100) / 100
 
 export function cmToFtIn(cm: number): { ft: number; inch: number } {
   const total = Math.round(cm / 2.54)

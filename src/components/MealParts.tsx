@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useT } from '../i18n'
 import type { FoodItem, Macros } from '../types'
 import { itemMacros } from '../lib/nutrition'
+import { toNum } from '../lib/util'
 import { rememberFood } from '../lib/foodDb'
 import { usePhoto } from '../lib/sync'
 import { Icon, Stepper } from './ui'
@@ -71,16 +72,16 @@ export function IngredientForm({ item, onSave, onDelete, onCancel }: { item: Foo
 
   const changeAmount = (next: string) => {
     setAmount(next)
-    const now = Number(next)
+    const now = toNum(next)
     if (now > 0) setVals({ kcal: show(unitVals.kcal * now), protein: show(unitVals.protein * now), carbs: show(unitVals.carbs * now), fat: show(unitVals.fat * now) })
   }
   const changeVal = (k: keyof Vals, v: string) => {
     setVals({ ...vals, [k]: v })
-    const now = Number(amount)
-    if (now > 0) setUnitVals({ ...unitVals, [k]: (Number(v) || 0) / now })
+    const now = toNum(amount)
+    if (now > 0) setUnitVals({ ...unitVals, [k]: (toNum(v) || 0) / now })
   }
 
-  const amt = Number(amount)
+  const amt = toNum(amount)
   const ok = name.trim() && amt > 0
   const save = () => {
     const m = isG ? 100 : 1

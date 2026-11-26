@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { fileToDataUrl } from '../lib/util'
+import { useEffect, useRef, useState, type InputHTMLAttributes, type ReactNode } from 'react'
+import { fileToDataUrl, toNum } from '../lib/util'
 import { usePhoto } from '../lib/sync'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useT } from '../i18n'
@@ -238,11 +238,19 @@ export function ToastHost() {
   )
 }
 
-export function NumberField({ label, value, onChange, step = 1 }: { label: string; value: number; onChange: (n: number) => void; step?: number }) {
+/** A number box that keeps what's being typed ("62." or "62,5") instead of snapping it to a number mid-way. */
+export function NumInput({ value, onChange, ...rest }: { value: number; onChange: (n: number) => void } & Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'>) {
+  const [text, setText] = useState(Number.isFinite(value) ? String(value) : '')
+  // Follow changes from outside (e.g. switching units), but not the echo of what's being typed.
+  if ((Number.isFinite(value) ? value : NaN) !== toNum(text) && !(Number.isNaN(value) && Number.isNaN(toNum(text)))) setText(Number.isFinite(value) ? String(Math.round(value * 100) / 100) : '')
+  return <input type="text" inputMode="decimal" {...rest} value={text} onChange={(e) => { const v = e.target.value.replace(/[^\d.,]/g, ''); setText(v); onChange(toNum(v)) }} />
+}
+
+export function NumberField({ label, value, onChange }: { label: string; value: number; onChange: (n: number) => void; step?: number }) {
   return (
     <label className="field">
       <span>{label}</span>
-      <input className="input" type="text" inputMode="decimal" step={step} value={Number.isFinite(value) ? value : ''} onChange={(e) => onChange(e.target.value === '' ? NaN : Number(e.target.value))} />
+      <NumInput className="input" value={value} onChange={onChange} />
     </label>
   )
 }

@@ -1,13 +1,13 @@
 import { useStore } from '../store'
 import { useT } from '../i18n'
+import { NumInput } from './ui'
 import { cmToFtIn, ftInToCm, kgToStLb, stLbToKg, type Units } from '../lib/units'
 
-function Num({ label, value, onChange, suffix, step = 1 }: { label: string; value: number; onChange: (n: number) => void; suffix: string; step?: number }) {
+function Num({ label, value, onChange, suffix }: { label: string; value: number; onChange: (n: number) => void; suffix: string; step?: number }) {
   return (
     <label className="grams" style={{ height: 52, flex: 1, minWidth: 0, borderRadius: 'var(--radius-md)', background: 'var(--surface-raised)' }}>
       <span className="sr-only">{label}</span>
-      <input type="text" inputMode="decimal" step={step} value={Number.isFinite(value) ? value : ''} style={{ flex: 1, minWidth: 0, width: 'auto', textAlign: 'left', fontSize: 16 }}
-        onChange={(e) => onChange(e.target.value === '' ? NaN : Number(e.target.value))} />
+      <NumInput value={value} style={{ flex: 1, minWidth: 0, width: 'auto', textAlign: 'left', fontSize: 16 }} onChange={onChange} />
       <span className="muted">{suffix}</span>
     </label>
   )

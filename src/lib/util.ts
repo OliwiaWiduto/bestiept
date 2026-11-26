@@ -120,3 +120,6 @@ export function siteName(source: string): { label: string; href?: string } {
   } catch { /* not a link */ }
   return { label: source }
 }
+
+/** A typed number: accepts a comma as the decimal point (Polish keyboards), '' → NaN. */
+export const toNum = (s: string) => (s.trim() === '' ? NaN : Number(s.trim().replace(',', '.')))

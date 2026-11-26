@@ -5,7 +5,7 @@ import { defaultMeal, useUI } from '../ui-state'
 import { useT } from '../i18n'
 import { MEALS, type FoodItem, type LogEntry, type Macros, type Meal } from '../types'
 import { useFoodSearch } from '../lib/foodSearch'
-import { uid } from '../lib/util'
+import { toNum, uid } from '../lib/util'
 import { BarcodeScanner } from './BarcodeScanner'
 import { scanMeal, scanMealText, type ScannedItem } from '../lib/ai'
 import { checkAgainstFoodData, recipeItems } from '../lib/matchFood'
@@ -124,13 +124,13 @@ export default function LogFoodSheet() {
           <label className="grams" style={{ height: 44, flex: 'none' }}><span className="sr-only">{t('howMuch')}</span>
             <input autoFocus type="text" inputMode="decimal" value={grams} onChange={(e) => setGrams(e.target.value)} /><span className="muted">g</span></label>
         </div>
-        {(() => { const m = itemMacros({ id: 'x', name: '', amount: Number(grams) || 0, unit: 'g', per: picked.per }); return (
+        {(() => { const m = itemMacros({ id: 'x', name: '', amount: toNum(grams) || 0, unit: 'g', per: picked.per }); return (
           <span className="caption">{Math.round(m.kcal)} {t('kcal')} · P {Math.round(m.protein)} · C {Math.round(m.carbs)} · F {Math.round(m.fat)}</span>) })()}
         <span className="caption">{picked.source ?? t('approx')} · {Math.round(picked.per.kcal)} {t('kcal')} {t('per100')}</span>
       </div>
       {destination}
-      <button className="btn primary block" disabled={!(Number(grams) > 0)}
-        onClick={() => saveItem(picked.name, { id: uid(), name: picked.name, amount: Number(grams), unit: 'g', per: picked.per })}>
+      <button className="btn primary block" disabled={!(toNum(grams) > 0)}
+        onClick={() => saveItem(picked.name, { id: uid(), name: picked.name, amount: toNum(grams), unit: 'g', per: picked.per })}>
         {addLabel}
       </button>
     </div>
@@ -389,8 +389,8 @@ export default function LogFoodSheet() {
             ))}
           </div>
           {destination}
-          <button className="btn primary block" disabled={!quick.name.trim() || !(Number(quick.kcal) >= 0) || quick.kcal === ''}
-            onClick={() => saveItem(quick.name.trim(), { id: uid(), name: quick.name.trim(), amount: 1, unit: 'serving', per: { kcal: +quick.kcal || 0, protein: +quick.protein || 0, carbs: +quick.carbs || 0, fat: +quick.fat || 0, fibre: 0, sugar: 0 } })}>
+          <button className="btn primary block" disabled={!quick.name.trim() || !(toNum(quick.kcal) >= 0) || quick.kcal === ''}
+            onClick={() => saveItem(quick.name.trim(), { id: uid(), name: quick.name.trim(), amount: 1, unit: 'serving', per: { kcal: toNum(quick.kcal) || 0, protein: toNum(quick.protein) || 0, carbs: toNum(quick.carbs) || 0, fat: toNum(quick.fat) || 0, fibre: 0, sugar: 0 } })}>
             {addLabel}
           </button>
         </div>

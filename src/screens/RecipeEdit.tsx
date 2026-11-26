@@ -9,7 +9,7 @@ import { recipeLang } from '../lib/recipeLang'
 import { recipeNutrition } from '../lib/matchFood'
 import { usePhoto } from '../lib/sync'
 import { importRecipe } from '../lib/ai'
-import { BackButton, Icon, MacroGrid, PhotoButton, Sheet, Stepper, toast } from '../components/ui'
+import { BackButton, Icon, MacroGrid, NumInput, PhotoButton, Sheet, Stepper, toast } from '../components/ui'
 import { MealHeader } from '../components/MealParts'
 import { SortableList } from '../components/SortableList'
 
@@ -224,7 +224,7 @@ export default function RecipeEdit() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
             {(['kcal', 'protein', 'carbs', 'fat', 'fibre'] as (keyof Macros)[]).map((k) => (
               <label key={k} className="field"><span>{k === 'kcal' ? t('calories') : `${t(k)} (g)`}</span>
-                <input className="input" type="text" inputMode="decimal" value={nutrition[k] || ''} onChange={(e) => setNutrition({ ...nutrition, [k]: Number(e.target.value) || 0 })} /></label>
+                <NumInput className="input" value={nutrition[k] || NaN} onChange={(v) => setNutrition({ ...nutrition, [k]: v || 0 })} /></label>
             ))}
           </div>
           <button className="btn primary block" onClick={() => setOpen(null)}>{t('done')}</button>

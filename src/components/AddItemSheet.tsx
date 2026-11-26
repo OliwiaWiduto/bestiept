@@ -5,7 +5,7 @@ import { useFoodSearch } from '../lib/foodSearch'
 import { lookupBarcode } from '../lib/barcode'
 import { scanMeal, scanMealText, type ScannedItem } from '../lib/ai'
 import { checkAgainstFoodData } from '../lib/matchFood'
-import { uid } from '../lib/util'
+import { toNum, uid } from '../lib/util'
 import { BarcodeScanner } from './BarcodeScanner'
 import { VoiceLog } from './VoiceLog'
 import { Icon, PhotoButton, Sheet, toast, type IconName } from './ui'
@@ -110,7 +110,7 @@ export function AddItemSheet({ open, onClose, onAdd }: { open: boolean; onClose:
           </div>
           <button className="btn primary block" disabled={!custom.name.trim() || custom.kcal === ''}
             onClick={() => {
-              const per: Macros = { kcal: +custom.kcal || 0, protein: +custom.protein || 0, carbs: +custom.carbs || 0, fat: +custom.fat || 0, fibre: 0, sugar: 0 }
+              const per: Macros = { kcal: toNum(custom.kcal) || 0, protein: toNum(custom.protein) || 0, carbs: toNum(custom.carbs) || 0, fat: toNum(custom.fat) || 0, fibre: 0, sugar: 0 }
               done([{ id: uid(), name: custom.name.trim(), amount: 1, unit: 'serving', per }])
               setCustom({ name: '', kcal: '', protein: '', carbs: '', fat: '' })
             }}>{t('add')}</button>
