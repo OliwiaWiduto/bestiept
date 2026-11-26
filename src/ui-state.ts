@@ -37,6 +37,7 @@ export function defaultMeal(): Meal {
   const h = new Date().getHours()
   if (h < 11) return 'breakfast'
   if (h < 15) return 'lunch'
+  if (h < 17) return 'snack'
   if (h < 21) return 'dinner'
   return 'snack'
 }

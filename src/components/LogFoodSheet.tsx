@@ -6,6 +6,7 @@ import { useT } from '../i18n'
 import { MEALS, type FoodItem, type LogEntry, type Macros, type Meal } from '../types'
 import { useFoodSearch } from '../lib/foodSearch'
 import { toNum, uid } from '../lib/util'
+import { daysBetween } from '../lib/dates'
 import { BarcodeScanner } from './BarcodeScanner'
 import { scanMeal, scanMealText, type ScannedItem } from '../lib/ai'
 import { checkAgainstFoodData, recipeItems } from '../lib/matchFood'
@@ -22,7 +23,7 @@ type Picked = { name: string; per: Macros; portion: number; source?: string }
 export default function LogFoodSheet() {
   const t = useT()
   const { logOpen, logMeal, closeLog, viewDate } = useUI()
-  const { saveLog, logs, seeTip } = useStore()
+  const { saveLog, logs, seeTip, plan } = useStore()
   const recipes = useRecipes()
   const tips = useStore((st) => st.profile?.tips)
   const [mode, setMode] = useState<Mode>('menu')
@@ -177,18 +178,30 @@ export default function LogFoodSheet() {
 
   const r = recipes.find((x) => x.id === recipeId)
 
-  /** Up to 30 different things logged before, newest first. */
+  /** What's planned for this meal today and not logged yet: shown first, one tap to log a serving. */
+  const plannedNow = useMemo(() => plan.filter((p) => p.date === viewDate && p.meal === meal && recipes.some((x) => x.id === p.recipeId)
+    && !logs.some((l) => l.date === viewDate && l.meal === meal && l.recipeId === p.recipeId)), [plan, viewDate, meal, recipes, logs])
+
+  /** Things logged before: first what she usually has at this meal (often and lately), then the rest newest first. */
   const recent = useMemo(() => {
-    const seen = new Set<string>()
-    const out: LogEntry[] = []
-    for (const l of [...logs].sort((a, b) => b.createdAt - a.createdAt)) {
-      const k = l.name.trim().toLowerCase()
-      if (!k || seen.has(k)) continue
-      seen.add(k); out.push(l)
-      if (out.length >= 30) break
+    const key = (l: LogEntry) => l.name.trim().toLowerCase()
+    const loggedNow = new Set(logs.filter((l) => l.date === viewDate && l.meal === meal).map(key))
+    const planned = new Set(plannedNow.map((p) => p.recipeId))
+    // Each time she had it at this meal in the last 30 days counts; yesterday counts fully, a week ago half.
+    const habit = new Map<string, number>()
+    for (const l of logs) {
+      if (l.meal !== meal) continue
+      const ago = daysBetween(l.date, viewDate)
+      if (ago < 0 || ago > 30) continue
+      habit.set(key(l), (habit.get(key(l)) ?? 0) + Math.pow(0.5, ago / 7))
     }
-    return out
-  }, [logs])
+    const newest = new Map<string, LogEntry>()
+    for (const l of [...logs].sort((a, b) => b.createdAt - a.createdAt)) if (key(l) && !newest.has(key(l))) newest.set(key(l), l)
+    const usual = [...habit.entries()].filter(([k]) => !loggedNow.has(k) && !planned.has(newest.get(k)?.recipeId ?? '-'))
+      .sort((a, b) => b[1] - a[1]).slice(0, 5).map(([k]) => newest.get(k)!)
+    const rest = [...newest.values()].filter((l) => !usual.includes(l) && !planned.has(l.recipeId ?? '-'))
+    return [...usual, ...rest].slice(0, 30)
+  }, [logs, meal, viewDate, plannedNow])
   const logAgain = (l: LogEntry) => {
     const rec = l.recipeId ? recipes.find((x) => x.id === l.recipeId) : undefined
     const only = l.items.length === 1 ? l.items[0] : null
@@ -255,10 +268,21 @@ export default function LogFoodSheet() {
               {tab === 'recipe' && (recipeList.length === 0 ? <p className="muted" style={{ margin: 0 }}>{t('noResults')}</p> : recipeList.map(recipeRow))}
             </>
           )}
-          {!searching && recent.length > 0 && (
+          {!searching && recent.length + plannedNow.length > 0 && (
             <>
               <span className="label">{t('recentlyLogged')}</span>
               <div className="card tight">
+                {plannedNow.map((p) => { const x = recipes.find((y) => y.id === p.recipeId)!; return (
+                  <button key={p.id} className="list-row" style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--line)', textAlign: 'left' }}
+                    onClick={() => { setRecipeId(x.id); setServings(1); setMode('recipe') }}>
+                    <Thumb photo={x.photo} cat={x.category} name={x.title} size={40} />
+                    <span className="grow stack" style={{ gap: 0, minWidth: 0 }}>
+                      <span style={{ fontWeight: 600, fontSize: 15 }}>{x.title}</span>
+                      <span className="caption">{x.nutrition ? `${Math.round(x.nutrition.kcal)} ${t('kcal')} · ` : ''}{t('oneServing')}</span>
+                    </span>
+                    <span className="planned-tag">{t('plannedTag')}</span>
+                  </button>
+                ) })}
                 {recent.map((l) => (
                   <button key={l.id} className="list-row" style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--line)', textAlign: 'left' }} onClick={() => logAgain(l)}>
                     <Thumb cat={l.meal} name={l.name} photo={l.photo} size={40} />

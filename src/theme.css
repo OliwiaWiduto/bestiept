@@ -331,3 +331,5 @@ input[type=number] { -moz-appearance: textfield; }
 .check-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 2px; border: none; background: none; color: var(--ink); }
 /* A small text back link above a page title */
 .text-back { display: inline-flex; align-items: center; gap: 2px; align-self: flex-start; margin-left: -4px; padding: 6px 4px; border: none; background: none; color: var(--ink-muted); font-size: 15px; font-weight: 600; }
+/* Log food: the meal planned for now */
+.planned-tag { flex: none; padding: 3px 10px; border-radius: 999px; background: var(--green); color: var(--lime, #d8f37a); font-size: 12px; font-weight: 700; }
