@@ -100,9 +100,9 @@ export default function Settings() {
             {(() => { const w = weeksToGoal(p); return w && p.goalWeightKg ? <span className="caption">{t('goalBy', { kg: formatWeight(p.goalWeightKg, units), date: fmt(addDays(today(), w * 7), t.lang, { day: 'numeric', month: 'long', year: 'numeric' }) })}</span> : null })()}
           </>
         )}
-        <div className="between" style={{ alignItems: 'flex-start', gap: 12 }}>
-          <span className="stack" style={{ gap: 2 }}><span className="label">{t('maintenanceKcal')}</span><span className="caption">{t('maintenanceHint')}</span></span>
-          <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{Number.isFinite(p.weightKg) && Number.isFinite(p.heightCm) && Number.isFinite(p.age) ? maintenance(p) : '—'} {t('kcal')}</span>
+        <div className="stack" style={{ gap: 4 }}>
+          <div className="between"><span className="label">{t('maintenanceKcal')}</span><span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{Number.isFinite(p.weightKg) && Number.isFinite(p.heightCm) && Number.isFinite(p.age) ? maintenance(p) : '—'} {t('kcal')}</span></div>
+          <span className="caption">{t('maintenanceHint')}</span>
         </div>
       </section>
 
