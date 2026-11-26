@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../store'
 import { useT } from '../i18n'
 import type { Activity, Goal, Pace, Profile, Sex } from '../types'
-import { calcTargets, lowestHealthy, suggestedGoalWeight, weeksToGoal } from '../lib/nutrition'
+import { calcTargets, lowestHealthy, maintenance, suggestedGoalWeight, weeksToGoal } from '../lib/nutrition'
 import { formatWeight } from '../lib/units'
 import { addDays, fmt, today } from '../lib/dates'
 import { sampleRecipes } from '../lib/samples'
@@ -12,25 +12,20 @@ import { Icon, NumberField, Stepper } from '../components/ui'
 import { HeightField, UnitsToggle, WeightField } from '../components/BodyFields'
 
 // Same colours as the bars on the Today screen
-// Pastel background with a dark shade of the same colour for the words, per target.
-const TARGET_CARDS: ['kcal' | 'protein' | 'carbs' | 'fat' | 'fibre', string, string][] = [
-  ['kcal', 'var(--green)', 'var(--lime)'],
-  ['protein', '#F9B8C8', '#7A0024'],
-  ['carbs', '#FFD57A', '#5E3B00'],
-  ['fat', '#CDD49B', '#353B12'],
-  ['fibre', '#DDEB6E', '#3F4A00'],
+const MACRO_ROWS: ['protein' | 'carbs' | 'fat' | 'fibre', string][] = [
+  ['protein', 'var(--cherry)'], ['carbs', 'var(--butter)'], ['fat', 'var(--olive)'], ['fibre', 'var(--lime)'],
 ]
 
 export default function Onboarding() {
   const t = useT()
-  const { lang, setLang, completeOnboarding } = useStore()
+  const { lang, completeOnboarding } = useStore()
   const [step, setStep] = useState(0)
   const [where] = useState(() => (isInstalled() ? 'desktop' : whereOpen()))
   const showHome = where !== 'desktop'
   const last = showHome ? 8 : 7
   // The goal weight and pace step only applies to losing or gaining.
-  const next = () => setStep(step === 4 && p.goal === 'maintain' ? 6 : step + 1)
-  const prev = () => setStep(step === 6 && p.goal === 'maintain' ? 4 : step - 1)
+  const next = () => setStep(step === 3 && p.goal === 'maintain' ? 5 : step + 1)
+  const prev = () => setStep(step === 5 && p.goal === 'maintain' ? 3 : step - 1)
   // Pantry staples: nothing picked to start with, so she has to choose (or say she keeps none of them).
   const [staples, setStaples] = useState<string[]>([])
   const [noStaples, setNoStaples] = useState(false)
@@ -48,7 +43,7 @@ export default function Onboarding() {
   const goalOk = p.goal === 'maintain' || (building ? p.strength !== undefined : Number.isFinite(goalKg) && (p.goal === 'lose' ? goalKg < p.weightKg && goalKg >= lowestHealthy(p) : goalKg > p.weightKg))
   const weeks = goalOk ? weeksToGoal({ ...p, goalWeightKg: goalKg }) : null
 
-  const valid = [true, p.name.trim().length > 0, p.age >= 13 && p.age <= 100 && p.heightCm >= 120 && p.heightCm <= 230 && p.weightKg >= 30 && p.weightKg <= 300, true, true, goalOk, true, staples.length > 0 || noStaples, true][step]
+  const valid = [p.name.trim().length > 0, p.age >= 13 && p.age <= 100 && p.heightCm >= 120 && p.heightCm <= 230 && p.weightKg >= 30 && p.weightKg <= 300, true, true, goalOk, true, true, staples.length > 0 || noStaples, true][step]
   const finish = () => {
     completeOnboarding({ ...p, name: p.name.trim(), ...(p.goal === 'maintain' || building ? { goalWeightKg: undefined, pace: undefined } : { goalWeightKg: p.goalWeightKg, pace: p.pace ?? 'slower' }) }, sampleRecipes(lang), staples)
   }
@@ -63,81 +58,62 @@ export default function Onboarding() {
 
   return (
     <main className="screen no-nav" style={{ minHeight: '100dvh' }}>
-      {step > 0 && (
-        <div className="between">
-          <button className="icon-btn" aria-label={t('back')} onClick={prev}><Icon name="back" /></button>
-          <div style={{ display: 'flex', gap: 6 }} aria-hidden="true">
-            {Array.from({ length: last }, (_, n) => n + 1).map((i) => <span key={i} style={{ width: 22, height: 6, borderRadius: 999, background: i <= step ? 'var(--green)' : 'var(--line)' }} />)}
-          </div>
-          <span style={{ width: 44 }} />
+      <div className="between">
+        {step > 0 ? <button className="icon-btn" aria-label={t('back')} onClick={prev}><Icon name="back" /></button> : <span style={{ width: 44, height: 44 }} />}
+        <div style={{ display: 'flex', gap: 5 }} aria-hidden="true">
+          {Array.from({ length: last + 1 }, (_, i) => <span key={i} style={{ width: 20, height: 6, borderRadius: 999, background: i <= step ? 'var(--green)' : 'var(--line)' }} />)}
         </div>
-      )}
+        <span style={{ width: 44 }} />
+      </div>
 
       {step === 0 && (
-        <div className="stack" style={{ gap: 24, paddingTop: 40 }}>
-          <img src="/icons/cat-fruitveg.png" alt="" width={96} height={96} style={{ width: 96, height: 96 }} />
-          <h1 className="display" style={{ fontSize: 44, lineHeight: '46px' }}>{t('obWelcome')}</h1>
-          <p style={{ margin: 0, fontSize: 17, lineHeight: '26px' }} className="muted">{t('obWelcomeSub')}</p>
-          <div className="stack">
-            <span className="label">{t('obLanguage')}</span>
-            <div className="chips" role="group" aria-label={t('obLanguage')}>
-              <button className="chip" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>English</button>
-              <button className="chip" aria-pressed={lang === 'pl'} onClick={() => setLang('pl')}>Polski</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {step === 1 && (
         <div className="stack" style={{ gap: 20 }}>
           <h1 className="title">{t('obName')}</h1>
+          <p className="muted" style={{ margin: 0, fontSize: 15, marginTop: -8 }}>{t('obNameSub')}</p>
           <label className="field"><span className="sr-only">{t('obNamePh')}</span>
-            <input className="input" autoFocus placeholder={t('obNamePh')} value={p.name} onChange={(e) => set('name', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && valid && setStep(2)} />
+            <input className="input" autoFocus placeholder={t('obNamePh')} value={p.name} onChange={(e) => set('name', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && valid && setStep(1)} />
           </label>
         </div>
       )}
 
-      {step === 2 && (
+      {step === 1 && (
         <div className="stack" style={{ gap: 16 }}>
           <h1 className="title">{t('obAbout')}</h1>
           <p className="muted" style={{ margin: 0 }}>{t('obAboutSub')}</p>
-          <div className="stack"><span className="label">{t('sex')}</span>
+          <div className="stack"><span className="label">{t('units')}</span><UnitsToggle /></div>
+          <div className="stack" style={{ gap: 6 }}><span className="label">{t('sex')}</span>
             <div className="chips" role="group" aria-label={t('sex')}>
               {(['female', 'male'] as Sex[]).map((s) => <button key={s} className="chip" aria-pressed={p.sex === s} onClick={() => set('sex', s)}>{t(s)}</button>)}
             </div>
+            <span className="caption">{t('sexHint')}</span>
           </div>
           <NumberField label={t('age')} value={p.age} onChange={(v) => set('age', v)} />
-          <div className="stack"><span className="label">{t('units')}</span><UnitsToggle /></div>
           <HeightField cm={p.heightCm} onChange={(v) => set('heightCm', v)} />
           <WeightField kg={p.weightKg} onChange={(v) => set('weightKg', v)} />
+          <span style={{ paddingBottom: 96 }} />
         </div>
       )}
 
-      {step === 3 && (
+      {step === 2 && (
         <div className="stack" style={{ gap: 12 }}>
           <h1 className="title">{t('obActivity')}</h1>
+          <p className="muted" style={{ margin: 0, fontSize: 15 }}>{t('obActivitySub')}</p>
           {(['low', 'light', 'moderate', 'high'] as Activity[]).map((a) =>
             option(p.activity === a, t(({ low: 'actLow', light: 'actLight', moderate: 'actModerate', high: 'actHigh' } as const)[a]), () => set('activity', a)))}
         </div>
       )}
 
-      {step === 4 && (
+      {step === 3 && (
         <div className="stack" style={{ gap: 12 }}>
           <h1 className="title">{t('obGoal')}</h1>
           {(['lose', 'maintain', 'gain', 'build'] as Goal[]).map((g) =>
-            option(p.goal === g, t(({ lose: 'goalLose', maintain: 'goalMaintain', gain: 'goalGain', build: 'goalBuild' } as const)[g]), () => set('goal', g), g === 'build' ? t('goalBuildSub') : undefined))}
-          <div className="card stack" style={{ marginTop: 8, gap: 12 }}>
-            <span className="stack" style={{ gap: 2 }}>
-              <span style={{ fontWeight: 600 }}>{t('householdQ')}</span>
-              <span className="caption">{t('householdHint')}</span>
-            </span>
-            <div className="between"><span className="label">{t('people')}</span>
-              <Stepper value={p.household ?? 1} onChange={(n) => setP({ ...p, household: n })} min={1} label={t('people')} /></div>
-          </div>
+            option(p.goal === g, t(({ lose: 'goalLose', maintain: 'goalMaintain', gain: 'goalGain', build: 'goalBuild' } as const)[g]), () => set('goal', g),
+              t(({ lose: 'goalLoseSub', maintain: 'goalMaintainSub', gain: 'goalGainSub', build: 'goalBuildSub' } as const)[g])))}
+          <span className="caption" style={{ paddingBottom: 96 }}>{t('obGoalNote')}</span>
         </div>
       )}
 
-      {step === 5 && building && (
+      {step === 4 && building && (
         <div className="stack" style={{ gap: 12 }}>
           <h1 className="title">{t('obStrength')}</h1>
           {option(p.strength === true, t('strengthYes'), () => set('strength', true))}
@@ -151,12 +127,12 @@ export default function Onboarding() {
         </div>
       )}
 
-      {step === 5 && !building && (
+      {step === 4 && !building && (
         <div className="stack" style={{ gap: 14 }}>
           <h1 className="title">{t(p.goal === 'lose' ? 'obGoalWeightLose' : 'obGoalWeightGain')}</h1>
           <WeightField label={t('goalWeight')} kg={goalKg} placeholderKg={suggestedGoalWeight(p)} onChange={(v) => set('goalWeightKg', Number.isFinite(v) && v > 0 ? v : undefined)} />
           {p.goal === 'lose' && goalKg < lowestHealthy(p) && <span className="caption" style={{ color: 'var(--cherry)' }}>{t('goalTooLow', { kg: formatWeight(lowestHealthy(p), units) })}</span>}
-          <span className="label" style={{ marginTop: 6 }}>{t('howFast')}</span>
+          <span className="stack" style={{ gap: 2, marginTop: 6 }}><span className="label">{t('howFast')}</span><span className="caption">{t('paceCoach')}</span></span>
           {(['slower', 'faster'] as Pace[]).map((pc) => {
             const w = weeksToGoal({ ...p, pace: pc, goalWeightKg: goalKg })
             const on = (p.pace ?? 'slower') === pc
@@ -181,22 +157,63 @@ export default function Onboarding() {
         </div>
       )}
 
-      {step === 6 && (
-        <div className="stack" style={{ gap: 12 }}>
-          <h1 className="title">{t('obTargets')}</h1>
-          <p className="muted" style={{ margin: 0, fontSize: 15 }}>{t('tgIntro')}</p>
-          {TARGET_CARDS.map(([k, bg, fg]) => (
-            <div key={k} className="card" style={{ background: bg, color: fg, display: 'flex', alignItems: 'center', gap: 12, padding: '22px 20px', border: 'none' }}>
-              <span className="stack grow" style={{ gap: 2, minWidth: 0 }}>
-                <span style={{ fontSize: 15, fontWeight: 700 }}>{k === 'kcal' ? t('calories') : t(k)}</span>
-                <span style={{ fontSize: 13, lineHeight: '18px' }}>{t(`ex_${k}` as const)}</span>
-              </span>
-              <span style={{ flex: 'none', fontFamily: 'var(--font-display)', fontSize: 28, lineHeight: 1, fontWeight: 800, letterSpacing: '-0.02em', whiteSpace: 'nowrap', textAlign: 'right' }}>
-                {k === 'kcal' ? targets.kcal : `${targets[k]}g`}
-              </span>
+      {step === 5 && (() => {
+        const uses = maintenance(p)
+        const diff = targets.kcal - uses
+        const floor = p.sex === 'male' ? 1500 : 1200
+        const perWeek = ((Math.abs(diff) * 7) / 7700).toFixed(1).replace('.', lang === 'pl' ? ',' : '.')
+        const sum = { display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 15, lineHeight: '22px' } as const
+        return (
+          <div className="stack" style={{ gap: 12 }}>
+            <h1 className="title">{t('obTargets')}</h1>
+            <p className="muted" style={{ margin: 0, fontSize: 15 }}>{t('tgIntro')}</p>
+            <div className="card stack" style={{ gap: 14 }}>
+              <div className="stack" style={{ gap: 2 }}>
+                <span className="label">{t('calories')}</span>
+                <span className="row" style={{ alignItems: 'baseline', gap: 8 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 52, lineHeight: '52px', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--green)' }}>{targets.kcal}</span>
+                  <span className="muted" style={{ fontSize: 14, fontWeight: 500 }}>{t('tgKcalDay')}</span>
+                </span>
+              </div>
+              {(p.goal === 'lose' || p.goal === 'gain') && Math.abs(diff) >= 50 ? (
+                <div className="stack" style={{ gap: 6, borderTop: '1px solid var(--line)', paddingTop: 12 }}>
+                  <div style={sum}><span className="muted">{t('tgBodyUses')}</span><span style={{ fontWeight: 600 }}>{uses}</span></div>
+                  <div style={sum}><span className="muted">{p.goal === 'lose' ? t('tgLose', { kg: perWeek }) : t('tgGain')}</span><span style={{ fontWeight: 600 }}>{diff < 0 ? '−' : '+'} {Math.abs(diff)}</span></div>
+                  <div style={{ ...sum, borderTop: '1px solid var(--line)', paddingTop: 8 }}><span style={{ fontWeight: 600 }}>{t('tgYours')}</span><span style={{ fontWeight: 700, color: 'var(--green)' }}>{targets.kcal}</span></div>
+                  {p.goal === 'lose' && targets.kcal === floor && <span className="caption">{t('tgFloor', { n: floor })}</span>}
+                </div>
+              ) : (
+                <span className="small muted" style={{ borderTop: '1px solid var(--line)', paddingTop: 12 }}>{t(p.goal === 'build' ? 'tgBuild' : p.goal === 'lose' ? 'tgFloor' : 'tgMaintain', { n: floor })}</span>
+              )}
             </div>
-          ))}
-          <span className="caption" style={{ textAlign: 'center', paddingBottom: 96 }}>{t('tgLater')}</span>
+            <div className="card stack" style={{ gap: 0, paddingTop: 16, paddingBottom: 6 }}>
+              <span className="label" style={{ paddingBottom: 6 }}>{t('tgInside')}</span>
+              {MACRO_ROWS.map(([k, color], i) => (
+                <div key={k} className="row" style={{ gap: 12, padding: '12px 0', borderTop: i ? '1px solid var(--line)' : 'none' }}>
+                  <span aria-hidden="true" style={{ width: 12, height: 12, borderRadius: 999, background: color, flex: 'none' }} />
+                  <span className="stack grow" style={{ gap: 0, minWidth: 0 }}>
+                    <span style={{ fontSize: 15, fontWeight: 600 }}>{t(k)}</span>
+                    <span className="caption">{t(`ex_${k}` as const)}</span>
+                  </span>
+                  <span style={{ flex: 'none', fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--green)' }}>{targets[k]}g</span>
+                </div>
+              ))}
+            </div>
+            <div className="tip"><Icon name="heart" size={22} /><span>{t('tgClose')}</span></div>
+            <span className="caption" style={{ textAlign: 'center', paddingBottom: 96 }}>{t('tgLater')}</span>
+          </div>
+        )
+      })()}
+
+      {step === 6 && (
+        <div className="stack" style={{ gap: 16 }}>
+          <h1 className="title">{t('householdQ')}</h1>
+          <p className="muted" style={{ margin: 0, fontSize: 15 }}>{t('householdHint')}</p>
+          <div className="card between" style={{ padding: '18px 20px' }}>
+            <span className="label">{t('people')}</span>
+            <Stepper value={p.household ?? 1} onChange={(n) => setP({ ...p, household: n })} min={1} label={t('people')} />
+          </div>
+          <span className="caption">{t('householdSolo')}</span>
         </div>
       )}
 
@@ -252,7 +269,7 @@ export default function Onboarding() {
 
       <div className="bottom-bar">
         <button className="btn primary block" disabled={!valid} onClick={() => (step === last ? finish() : next())}>
-          {step === 0 ? t('obStart') : step === last ? (step === 8 ? t('homeDone') : t('obGo')) : t('continue')}
+          {step === last ? (step === 8 ? t('homeDone') : t('obGo')) : t('continue')}
         </button>
       </div>
     </main>
