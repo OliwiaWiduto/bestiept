@@ -14,7 +14,7 @@ export default defineConfig({
         name: 'BestiePT',
         short_name: 'BestiePT',
         description: 'Save recipes, cook hands-free, plan your week and track your food.',
-        theme_color: '#3F451F',
+        theme_color: '#313616',
         background_color: '#FFF8F3',
         display: 'standalone',
         orientation: 'portrait',
