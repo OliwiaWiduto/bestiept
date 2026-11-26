@@ -42,13 +42,14 @@ export default function Onboarding() {
   const units = useStore((s) => s.units)
   const set = <K extends keyof Profile>(k: K, v: Profile[K]) => setP({ ...p, [k]: v })
   // Goal weight: suggested when she reaches that step; losing can't go below a healthy weight for her height.
-  const goalKg = p.goalWeightKg ?? suggestedGoalWeight(p)
-  const goalOk = p.goal === 'maintain' || (p.goal === 'lose' ? goalKg < p.weightKg && goalKg >= lowestHealthy(p) : goalKg > p.weightKg)
-  const weeks = weeksToGoal({ ...p, goalWeightKg: goalKg })
+  // The suggestion is only a placeholder: she types her own goal.
+  const goalKg = p.goalWeightKg ?? NaN
+  const goalOk = p.goal === 'maintain' || (Number.isFinite(goalKg) && (p.goal === 'lose' ? goalKg < p.weightKg && goalKg >= lowestHealthy(p) : goalKg > p.weightKg))
+  const weeks = goalOk ? weeksToGoal({ ...p, goalWeightKg: goalKg }) : null
 
   const valid = [true, p.name.trim().length > 0, p.age >= 13 && p.age <= 100 && p.heightCm >= 120 && p.heightCm <= 230 && p.weightKg >= 30 && p.weightKg <= 300, true, true, goalOk, true, staples.length > 0 || noStaples, true][step]
   const finish = () => {
-    completeOnboarding({ ...p, name: p.name.trim(), ...(p.goal === 'maintain' ? { goalWeightKg: undefined, pace: undefined } : { goalWeightKg: goalKg, pace: p.pace ?? 'slower' }) }, sampleRecipes(lang), staples)
+    completeOnboarding({ ...p, name: p.name.trim(), ...(p.goal === 'maintain' ? { goalWeightKg: undefined, pace: undefined } : { goalWeightKg: p.goalWeightKg, pace: p.pace ?? 'slower' }) }, sampleRecipes(lang), staples)
   }
 
   const option = (selected: boolean, label: string, onClick: () => void) => (
@@ -138,8 +139,7 @@ export default function Onboarding() {
       {step === 5 && (
         <div className="stack" style={{ gap: 14 }}>
           <h1 className="title">{t(p.goal === 'lose' ? 'obGoalWeightLose' : 'obGoalWeightGain')}</h1>
-          <p className="muted" style={{ margin: 0, fontSize: 15 }}>{t('obGoalWeightHint')}</p>
-          <WeightField label={t('goalWeight')} kg={goalKg} onChange={(v) => set('goalWeightKg', v)} />
+          <WeightField label={t('goalWeight')} kg={goalKg} placeholderKg={suggestedGoalWeight(p)} onChange={(v) => set('goalWeightKg', Number.isFinite(v) && v > 0 ? v : undefined)} />
           {p.goal === 'lose' && goalKg < lowestHealthy(p) && <span className="caption" style={{ color: 'var(--cherry)' }}>{t('goalTooLow', { kg: formatWeight(lowestHealthy(p), units) })}</span>}
           <span className="label" style={{ marginTop: 6 }}>{t('howFast')}</span>
           {(['slower', 'faster'] as Pace[]).map((pc) => {

@@ -95,9 +95,9 @@ export default function Settings() {
         {select<Goal>(t('obGoal'), p.goal, [['lose', t('goalLose')], ['maintain', t('goalMaintain')], ['gain', t('goalGain')]], (v) => setP({ ...p, goal: v }))}
         {p.goal !== 'maintain' && (
           <>
-            <WeightField label={t('goalWeight')} kg={p.goalWeightKg ?? suggestedGoalWeight(p)} onChange={(v) => setP({ ...p, goalWeightKg: v })} />
+            <WeightField label={t('goalWeight')} kg={p.goalWeightKg ?? NaN} placeholderKg={suggestedGoalWeight(p)} onChange={(v) => setP({ ...p, goalWeightKg: Number.isFinite(v) && v > 0 ? v : undefined })} />
             {select<Pace>(t('howFast'), p.pace ?? 'slower', [['slower', t('paceSlower')], ['faster', t('paceFaster')]], (v) => setP({ ...p, pace: v }))}
-            {(() => { const w = weeksToGoal({ ...p, goalWeightKg: p.goalWeightKg ?? suggestedGoalWeight(p) }); return w ? <span className="caption">{t('goalBy', { kg: formatWeight(p.goalWeightKg ?? suggestedGoalWeight(p), units), date: fmt(addDays(today(), w * 7), t.lang, { day: 'numeric', month: 'long', year: 'numeric' }) })}</span> : null })()}
+            {(() => { const w = weeksToGoal(p); return w && p.goalWeightKg ? <span className="caption">{t('goalBy', { kg: formatWeight(p.goalWeightKg, units), date: fmt(addDays(today(), w * 7), t.lang, { day: 'numeric', month: 'long', year: 'numeric' }) })}</span> : null })()}
           </>
         )}
         <div className="between" style={{ alignItems: 'flex-start', gap: 12 }}>
