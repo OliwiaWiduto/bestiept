@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { startAutoSync, syncNow } from './lib/sync'
-import { loadFamily, syncAvatar } from './lib/family'
+import { ensureUsername, loadFamily, syncAvatar, useFamily } from './lib/family'
 import Auth from './screens/Auth'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useHydrated, useStore } from './store'
@@ -64,6 +64,12 @@ export default function App() {
     document.addEventListener('visibilitychange', onVisible)
     return () => { alive = false; stop?.(); document.removeEventListener('visibilitychange', onVisible) }
   }, [hydrated, uid])
+
+  // No username yet (new or older accounts): make one from her name so friends can find her straight away.
+  const familyLoaded = useFamily((s) => s.loaded && !s.unavailable && !s.me?.username)
+  useEffect(() => {
+    if (synced && synced === uid && familyLoaded && profile?.name) ensureUsername(profile.name, profile.avatar).catch(() => {})
+  }, [synced, uid, familyLoaded, profile?.name, profile?.avatar])
 
   if (!hydrated || session === undefined) return null
   if (recovery && session) return <Auth recovery onDone={() => setRecovery(false)} />

@@ -84,6 +84,35 @@ export async function saveMe(username: string, name: string): Promise<UsernameRe
   return 'ok'
 }
 
+/** A username from her name: "Oliwia Łucja" → "oliwialucja" (letters, numbers, dots and underscores only). */
+export function usernameFrom(name: string): string {
+  let u = name.toLowerCase().replace(/ł/g, 'l').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9_.]/g, '').replace(/^[._]+|[._]+$/g, '')
+  if (u.length < 3) u = (u + 'bestie').slice(0, 16)
+  return u.slice(0, 16)
+}
+
+let naming = false
+/**
+ * Everyone gets a username without having to pick one: her onboarding name, or the name with a number
+ * on the end if someone already has it (oliwia, oliwia2… then oliwia + 4 random digits). She can still change it.
+ */
+export async function ensureUsername(name: string | undefined, avatar?: string) {
+  const { uid, me, unavailable } = useFamily.getState()
+  if (!uid || unavailable || me?.username || !name?.trim() || naming) return
+  naming = true
+  try {
+    const base = usernameFrom(name)
+    const tries = [base, ...Array.from({ length: 8 }, (_, i) => base + (i + 2)), ...Array.from({ length: 5 }, () => base + Math.floor(1000 + Math.random() * 9000))]
+    for (const u of tries) {
+      const { error } = await supabase.from('members').upsert({ id: uid, username: u, display_name: name.trim().slice(0, 40), updated_at: new Date().toISOString() })
+      if (!error) { await reload(); if (avatar) await syncAvatar(avatar); return }
+      if (error.code !== '23505') return
+    }
+  } finally {
+    naming = false
+  }
+}
+
 /** Keep my display name in step with my profile name. */
 export async function syncDisplayName(name: string) {
   const { uid, me } = useFamily.getState()
