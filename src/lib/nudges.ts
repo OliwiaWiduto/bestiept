@@ -18,13 +18,13 @@ export const nudgesOf = (p: Profile | null | undefined): Nudges => p?.nudges ?? 
 /** What kind of food something is, from its name (English or Polish), and the Bestie picks that feel like it. First match wins. */
 const TYPES: { re: RegExp; swaps: string[] }[] = [
   { re: /hot choc|gorąc\S* czekolad|kakao do picia/, swaps: ['bp-hot-chocolate', 'bp-choc-mousse'] },
-  { re: /frapp|latte|mocha|iced coffee|caramel|macchiato|cappuccino|flat white|mrożon\S* kaw|kaw\S* mrożon/, swaps: ['bp-iced-latte'] },
   { re: /pancake|waffle|naleśnik|gofr|placuszk|placki|racuch/, swaps: ['bp-cottage-pancakes', 'bp-choc-oats'] },
   { re: /bagel|bajgiel/, swaps: ['bp-salmon-bagel', 'bp-eggs-avo'] },
   { re: /toastie|grilled cheese|zapiekank|tost\S* z serem/, swaps: ['bp-turkey-toastie', 'bp-caesar-wrap'] },
   { re: /croissant|pain au|danish|cinnamon (roll|bun)|pastr|rogal|drożdżówk|cynamonk|pączek|pączk|donut|doughnut|brioche/, swaps: ['bp-choc-oats', 'bp-cottage-pancakes', 'bp-banana-muffins', 'bp-berry-bowl'] },
   { re: /cereal|cornflakes|coco pops|frosties|crunchy nut|granola|muesli|musli|płatk\S* śniadaniow|płatk\S* czekoladow|płatk\S* z mlekiem/, swaps: ['bp-berry-bowl', 'bp-choc-oats'] },
   { re: /muffin|banana bread|cake|brownie|cookie|biscuit|ciast|babeczk|herbatnik|bułk\S* słodk/, swaps: ['bp-banana-muffins', 'bp-choc-mousse', 'bp-pb-dip'] },
+  { re: /frapp|latte|mocha|iced coffee|caramel|macchiato|cappuccino|flat white|mrożon\S* kaw|kaw\S* mrożon/, swaps: ['bp-iced-latte'] }, // after food types: a coffee alongside a croissant shouldn't decide the swap
   { re: /chocolate|\bchoc\b|sweets|candy|haribo|kit ?kat|snickers|twix|dairy milk|\bbar\b|baton|czekolad|cukierk|żelk/, swaps: ['bp-choc-mousse', 'bp-hot-chocolate', 'bp-pb-dip'] },
   { re: /ice cream|lody|lodów|dessert|pudding|deser|tiramisu|cheesecake|sernik/, swaps: ['bp-yoghurt-bark', 'bp-choc-mousse'] },
   { re: /noodle|ramen|zupk\S* chińsk|makaron instant/, swaps: ['bp-prawn-noodles'] },
