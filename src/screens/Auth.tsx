@@ -50,7 +50,7 @@ export default function Auth({ recovery = false, onDone }: { recovery?: boolean;
   return (
     <main className="screen no-nav" style={{ minHeight: '100dvh', paddingTop: 'calc(env(safe-area-inset-top) + 48px)', paddingBottom: 'calc(env(safe-area-inset-bottom) + 150px)' }}>
       <img src="/icons/cat-fruitveg.png" alt="" style={{ width: 80, height: 80 }} />
-      <h1 className="display" style={{ fontSize: 40, lineHeight: '42px' }}>{t('obWelcome')}</h1>
+      <h1 className="display" style={{ fontSize: 40, lineHeight: '42px' }}>{t('authTitle')}</h1>
       <p className="muted" style={{ margin: 0 }}>{t('authSub')}</p>
       <div className="chips" role="group" aria-label={t('language')}>
         <button className="chip" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>English</button>

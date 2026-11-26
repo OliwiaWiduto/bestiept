@@ -18,7 +18,7 @@ const MACRO_ROWS: ['protein' | 'carbs' | 'fat' | 'fibre', string][] = [
 
 export default function Onboarding() {
   const t = useT()
-  const { lang, completeOnboarding } = useStore()
+  const { lang, setLang, completeOnboarding } = useStore()
   const [step, setStep] = useState(0)
   const [where] = useState(() => (isInstalled() ? 'desktop' : whereOpen()))
   const showHome = where !== 'desktop'
@@ -73,6 +73,13 @@ export default function Onboarding() {
           <label className="field"><span className="sr-only">{t('obNamePh')}</span>
             <input className="input" autoFocus placeholder={t('obNamePh')} value={p.name} onChange={(e) => set('name', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && valid && setStep(1)} />
           </label>
+          <div className="stack" style={{ gap: 10, marginTop: 8 }}>
+            <h2 className="heading">{t('language')}</h2>
+            <div className="chips" role="group" aria-label={t('language')}>
+              <button className="chip" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>English</button>
+              <button className="chip" aria-pressed={lang === 'pl'} onClick={() => setLang('pl')}>Polski</button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -207,8 +214,9 @@ export default function Onboarding() {
 
       {step === 6 && (
         <div className="stack" style={{ gap: 16 }}>
-          <h1 className="title">{t('householdQ')}</h1>
-          <p className="muted" style={{ margin: 0, fontSize: 15 }}>{t('householdHint')}</p>
+          <span className="eyebrow" style={{ color: 'var(--cherry)', fontWeight: 700 }}>{t('kitchenEyebrow')}</span>
+          <h1 className="title" style={{ marginTop: -8 }}>{t('householdQ')}</h1>
+          <p className="muted" style={{ margin: 0, fontSize: 15 }}>{t('kitchenIntro')}</p>
           <div className="card between" style={{ padding: '18px 20px' }}>
             <span className="label">{t('people')}</span>
             <Stepper value={p.household ?? 1} onChange={(n) => setP({ ...p, household: n })} min={1} label={t('people')} />
@@ -219,7 +227,8 @@ export default function Onboarding() {
 
       {step === 7 && (
         <div className="stack" style={{ gap: 12 }}>
-          <h1 className="title">{t('staplesTitle')}</h1>
+          <span className="eyebrow" style={{ color: 'var(--cherry)', fontWeight: 700 }}>{t('kitchenEyebrow')}</span>
+          <h1 className="title" style={{ marginTop: -4 }}>{t('staplesTitle')}</h1>
           <p className="muted" style={{ margin: 0, fontSize: 15 }}>{t('obStaplesHint')}</p>
           <div className="chips" style={{ gap: 8 }}>
             {stapleOptions.map((s) => (
