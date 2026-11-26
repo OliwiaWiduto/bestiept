@@ -52,3 +52,19 @@ const words: [string, 'en' | 'pl', string][] = [['milk', 'pl', 'mleko'], ['Spark
   ['mleko', 'en', 'milk'], ['jablka', 'en', 'apples'], ['maslo', 'en', 'butter'], ['jajka', 'en', 'eggs'], ['mleko', 'pl', 'mleko'], ['milk', 'en', 'milk'], ['chleb', 'en', 'bread'], ['eggs', 'pl', 'jajka']]
 const wrong = words.filter(([w, l, want]) => dictTranslate(w, l) !== want).map(([w, l, want]) => `${w}→${l}: ${dictTranslate(w, l)} (want ${want})`)
 if (wrong.length) { console.log('FAILED dictionary', wrong); process.exit(1) } else console.log('ok', words.length, 'dictionary words')
+
+// Bestie picks: every ingredient is in our food data (in both languages), and the stored numbers match it.
+import { LIBRARY } from '../src/lib/library'
+import { libNutrition } from './libNutrition'
+const libBad: string[] = []
+for (const l of LIBRARY) {
+  const en = libNutrition(l, 'en'), pl = libNutrition(l, 'pl')
+  if (en.missing.length || pl.missing.length) libBad.push(`${l.id}: not in food data: ${[...en.missing, ...pl.missing].join(', ')}`)
+  if (l.en.ingredients.length !== l.pl.ingredients.length || l.en.steps.length !== l.pl.steps.length) libBad.push(`${l.id}: English and Polish don't line up`)
+  for (const k of ['kcal', 'protein'] as const) {
+    if (Math.abs(en.per[k] - l.nutrition[k]) > Math.max(3, l.nutrition[k] * 0.03)) libBad.push(`${l.id}: stored ${k} ${l.nutrition[k]}, ingredients give ${en.per[k]}`)
+    if (Math.abs(pl.per[k] - en.per[k]) > Math.max(5, en.per[k] * 0.08)) libBad.push(`${l.id}: Polish ${k} ${pl.per[k]} vs English ${en.per[k]}`)
+  }
+  if (l.handsOn > 15) libBad.push(`${l.id}: more than 15 minutes hands-on`)
+}
+if (libBad.length) { console.log('FAILED Bestie picks', libBad); process.exit(1) } else console.log('ok', LIBRARY.length, 'Bestie picks')

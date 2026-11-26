@@ -9,8 +9,10 @@ import { CoachTip, Icon, toast } from '../components/ui'
 import { missingSamples } from '../lib/samples'
 import { foodArt } from '../lib/art'
 import { personName, useFamily } from '../lib/family'
+import { LIBRARY, libRecipe } from '../lib/library'
+import { PickCard } from '../components/Nudges'
 
-type Filter = 'all' | 'fav' | 'protein' | Meal
+type Filter = 'all' | 'picks' | 'fav' | 'protein' | Meal
 
 // One serving: at least 20g protein (10g for snacks) and at least 25% of calories from protein.
 function highProtein(r: Recipe) {
@@ -31,13 +33,14 @@ export default function Recipes() {
   const [filter, setFilter] = useState<Filter>('all')
   const [q, setQ] = useState('')
 
+  const picks = useMemo(() => LIBRARY.map((l) => libRecipe(l, lang)), [lang])
   const list = useMemo(() => {
     const query = q.trim().toLowerCase()
-    return recipes
-      .filter((r) => filter === 'all' || (filter === 'fav' ? r.favourite : filter === 'protein' ? highProtein(r) : r.category === filter))
+    return (filter === 'picks' ? picks : recipes)
+      .filter((r) => filter === 'all' || filter === 'picks' || (filter === 'fav' ? r.favourite : filter === 'protein' ? highProtein(r) : r.category === filter))
       .filter((r) => !query || r.title.toLowerCase().includes(query) || r.ingredients.some((i) => i.name.toLowerCase().includes(query)))
-      .sort((a, b) => b.createdAt - a.createdAt)
-  }, [recipes, filter, q])
+      .sort((a, b) => filter === 'picks' ? 0 : b.createdAt - a.createdAt)
+  }, [recipes, picks, filter, q])
 
   return (
     <main className="screen">
@@ -57,12 +60,28 @@ export default function Recipes() {
 
       <div className="chips scroll" role="group" aria-label="Filter">
         <button className="chip" aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>{t('all')}</button>
+        <button className="chip" aria-pressed={filter === 'picks'} onClick={() => setFilter('picks')}>{t('bestiePicks')}</button>
         <button className="chip" aria-pressed={filter === 'fav'} onClick={() => setFilter('fav')}><Icon name="heart" size={14} fill />&nbsp;{t('favourites')}</button>
         <button className="chip" aria-pressed={filter === 'protein'} onClick={() => setFilter('protein')}>{t('highProtein')}</button>
         {MEALS.map((m) => <button key={m} className="chip" aria-pressed={filter === m} onClick={() => setFilter(m)}>{t(m)}</button>)}
       </div>
 
-      {list.length === 0 && (
+      {filter === 'all' && !q.trim() && (
+        <section className="stack" style={{ gap: 10 }}>
+          <div className="between" style={{ alignItems: 'baseline' }}>
+            <h2 className="heading">{t('bestiePicks')}</h2>
+            <button className="link-btn" onClick={() => setFilter('picks')}>{t('seeAllN', { n: LIBRARY.length })}</button>
+          </div>
+          <span className="caption" style={{ marginTop: -6 }}>{t('bestiePicksSub')}</span>
+          <div className="row" style={{ gap: 12, overflowX: 'auto', margin: '0 -24px', padding: '0 24px 4px', alignItems: 'flex-start', scrollbarWidth: 'none' }}>
+            {LIBRARY.map((l) => <PickCard key={l.id} l={l} width={132} />)}
+          </div>
+          {list.length > 0 && <h2 className="heading" style={{ paddingTop: 6 }}>{t('yourRecipes')}</h2>}
+        </section>
+      )}
+      {filter === 'picks' && <span className="caption">{t('bestiePicksSub')}</span>}
+
+      {list.length === 0 && filter !== 'picks' && (
         <div className="empty">
           <img src="/icons/cat-cupboard.png" alt="" />
           <p style={{ margin: 0 }}>{t('emptyRecipes')}</p>

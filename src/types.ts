@@ -30,6 +30,8 @@ export type Profile = {
   pace?: Pace
   /** Build muscle: does she do strength training? */
   strength?: boolean
+  /** Healthy choices tips: off switch, today's tip hidden, swaps she said no to (id → date), and the week recap she's opened (that Sunday) */
+  nudges?: { off?: boolean; hiddenOn?: string; dismissed?: Record<string, string>; weekSeen?: string }
 }
 export type Pace = 'slower' | 'faster'
 
@@ -53,6 +55,10 @@ export type Recipe = {
   ownerId?: string
   /** Language the recipe was written in. Older recipes don't have it, so it's guessed. */
   lang?: Lang
+  /** Set on her copy of one of our Bestie picks (the library recipe's id) */
+  libId?: string
+  /** Minutes she's actually busy (Bestie picks), when the total includes oven or fridge time */
+  handsOn?: number
   /** Translations, line for line with the original. Dropped whenever the recipe is edited. */
   tr?: Partial<Record<Lang, RecipeText>>
 }

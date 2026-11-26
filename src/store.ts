@@ -37,6 +37,7 @@ type State = {
   updateProfile: (p: Profile, recalc: boolean) => void
   setTargets: (t: Macros) => void
   seeTip: (id: string) => void
+  setNudges: (patch: NonNullable<Profile['nudges']>) => void
 
   saveRecipe: (r: Recipe) => void
   deleteRecipe: (id: string) => void
@@ -87,6 +88,7 @@ export const useStore = create<State>()(
         }),
       updateProfile: (profile, recalc) => setState({ profile, ...(recalc ? { targets: calcTargets(profile) } : {}) }),
       setTargets: (targets) => setState({ targets }),
+      setNudges: (patch) => { const p = getState().profile; if (p) setState({ profile: { ...p, nudges: { ...p.nudges, ...patch } } }) },
       seeTip: (id) => { const p = getState().profile; if (p && !(p.tips ?? []).includes(id)) setState({ profile: { ...p, tips: [...(p.tips ?? []), id] } }) },
 
       saveRecipe: (r) => setState({ recipes: getState().recipes.some((x) => x.id === r.id) ? getState().recipes.map((x) => (x.id === r.id ? r : x)) : [r, ...getState().recipes] }),

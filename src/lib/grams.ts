@@ -4,8 +4,8 @@ import { parseIngredient } from './util'
 const PIECE: [RegExp, number][] = [
   [/aubergine|eggplant|bakłażan/, 300], [/egg|jajk|jaj/, 50], [/spring onion|scallion|dymk/, 15], [/onion|cebul/, 150], [/shallot|szalotk/, 30], [/garlic|czosn/, 5], [/lemongrass|trawa cytrynowa/, 20], [/lemon|cytryn/, 100], [/lime|limonk/, 70],
   [/sweet potato|batat/, 200], [/potato|ziemniak/, 170], [/carrot|marchew/, 80], [/cherry tomato|pomidork/, 15], [/tomato|pomidor/, 85], [/banana|banan/, 120], [/apple|jabłk/, 150],
-  [/chilli|chili|papryczk|jalape/, 15], [/pepper|papryk/, 160], [/courgette|zucchini|cukini/, 200], [/avocado|awokado/, 150], [/chicken breast|pierś/, 150], [/chicken thigh|udk/, 120], [/tortilla|wrap/, 60],
-  [/slice|kromk|plast/, 30], [/bagel|bun|bułk/, 85], [/pitta|pita/, 60], [/cucumber|ogór/, 300], [/salmon|łosoś/, 120], [/stock cube|kostk/, 10],
+  [/chilli|chili|papryczk|jalape/, 15], [/pepper|papryk/, 160], [/courgette|zucchini|cukini/, 200], [/avocado|awokado/, 150], [/chicken breast|pierś/, 150], [/chicken thigh|udk/, 120], [/mini tortill|small tortill|mał\w* tortill/, 25], [/tortill|wrap/, 60],
+  [/slice|kromk|plast/, 30], [/bagel|bajgiel|bun|bułk/, 85], [/rice cake|wafl\w* ryż/, 8], [/pitta|pita/, 60], [/cucumber|ogór/, 300], [/salmon|łoso/, 120], [/stock cube|kostk/, 10],
 ]
 // A cup weighs very different amounts: liquids ~240g, flour ~125g, leaves ~30g.
 const CUP: [RegExp, number][] = [

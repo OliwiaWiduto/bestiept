@@ -160,6 +160,13 @@ export default function Settings() {
         <span className="small muted">{goalSummary}</span>
       </button>
 
+      <section className="card stack" style={{ gap: 4 }}>
+        <button className="switch-row" role="switch" aria-checked={!profile.nudges?.off} onClick={() => useStore.getState().setNudges({ off: !profile.nudges?.off })}>
+          <span className="grow stack" style={{ gap: 2 }}><span className="heading" style={{ fontSize: 17 }}>{t('hcTipsSetting')}</span><span className="small muted">{t('hcTipsSettingSub')}</span></span>
+          <span className="switch" aria-hidden><span /></span>
+        </button>
+      </section>
+
       <button className="card stack" style={{ gap: 8, border: 'none', textAlign: 'left' }} onClick={() => nav('/family')}>
         <span className="between"><h2 className="heading">{t('family')}</h2><Icon name="forward" /></span>
         <span className="small muted">{t('familySummary')}</span>

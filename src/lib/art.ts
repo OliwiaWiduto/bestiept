@@ -7,6 +7,7 @@ const DISH: [RegExp, string][] = [
   [/pizza/, 'dish-pizza'],
   [/taco|burrito|fajita|wrap\b|wraps|quesadilla|tortilla|kebab|gyros|enchilada/, 'dish-taco'],
   [/lasagn|lazani|bake\b|baked|casserole|\bpie\b|gratin|moussaka|zapiekan|tarta|enchiladas/, 'dish-bake'],
+  [/croissant|pain au|rogal|pastr|danish|drożdżówk/, 'dish-cake'],
   [/cake|brownie|cookie|muffin|dessert|pudding|cheesecake|\btart\b|crumble|pancake|waffle|tiramisu|ciast|deser|sernik|babeczk|naleśnik|gofr|pączk|szarlotk/, 'dish-cake'],
   [/soup|stew|chowder|broth|chilli|chili|goulash|zupa|zupy|gulasz|rosół|barszcz|krem z|żurek|kapuśniak/, 'dish-soup'],
   [/curry|stir.?fry|risotto|paella|biryani|rice\b|\bdal\b|dhal|teriyaki|pad thai|katsu|ryż|risotto|potrawk/, 'dish-curry'],

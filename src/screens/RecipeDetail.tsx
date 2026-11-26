@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import type { Recipe } from '../types'
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useStore } from '../store'
 import { useRecipes } from '../lib/recipeLang'
 import { useT } from '../i18n'
@@ -11,14 +12,21 @@ import { equipmentIcon } from '../lib/equipment'
 import AddToPlanSheet from '../components/AddToPlanSheet'
 import MoveSheet from '../components/MoveSheet'
 import { fmt } from '../lib/dates'
+import { libById, libRecipe, ownCopy } from '../lib/library'
+import { localise } from '../lib/recipeLang'
 
 export default function RecipeDetail() {
   const t = useT()
   const nav = useNavigate()
   const { id } = useParams()
-  const { recipes: originals, toggleFavourite, deleteRecipe, saveRecipe, plan, updatePlan } = useStore()
+  const { recipes: originals, toggleFavourite, deleteRecipe, saveRecipe, plan, updatePlan, lang } = useStore()
   const recipes = useRecipes()
-  const r = recipes.find((x) => x.id === id)
+  // A Bestie pick she hasn't saved yet is shown straight from the library.
+  const lib = libById(id)
+  const mine = lib ? originals.find((x) => x.libId === lib.id && !x.ownerId) : undefined
+  const r = recipes.find((x) => x.id === id) ?? (lib ? libRecipe(lib, lang) : undefined)
+  /** Her copy of the pick (made now if needed), in the app's language. */
+  const copy = () => { const c = lib ? ownCopy(lib.id, useStore.getState().recipes, lang, saveRecipe) : null; return c ? localise(c, lang) : null }
   const original = originals.find((x) => x.id === id)
   // Opened from the plan? Start with the servings she planned to cook.
   const [params] = useSearchParams()
@@ -26,27 +34,33 @@ export default function RecipeDetail() {
   const [planOpen, setPlanOpen] = useState(false)
   const planned = plan.find((p) => p.id === params.get('plan'))
   const [moving, setMoving] = useState(false)
+  const [planRecipe, setPlanRecipe] = useState<Recipe | null>(null)
   const photo = usePhoto(r?.photo)
+  if (mine) return <Navigate to={`/recipes/${mine.id}?${params.toString()}`} replace />
   if (!r) return <main className="screen"><p className="muted">{t('notHere')}</p><button className="btn secondary" onClick={() => nav('/recipes')}>{t('back')}</button></main>
   const factor = servings / (r.servings || 1)
+  const isPick = !!lib || !!r.libId
+  // Opened from a swap tip: what she ate vs this recipe.
+  const swapP = params.get('swapP') !== null ? Number(params.get('swapP')) : null
 
   return (
     <main className="screen no-nav" style={{ paddingTop: 24 }}>
       <div className="hero-photo" role="img" aria-label={r.title} style={{ backgroundImage: photo ? `url(${photo})` : undefined }}>
         {!photo && <img src={foodArt(r.title, r.category)} alt="" style={{ width: 170, height: 170 }} />}
         <button className="icon-btn" style={{ left: 24 }} aria-label={t('back')} onClick={() => nav(-1)}><Icon name="back" /></button>
-        <button className="icon-btn" style={{ right: 24, color: 'var(--cherry)' }} aria-pressed={r.favourite} aria-label={r.favourite ? t('unfavourite') : t('favourite')} onClick={() => toggleFavourite(r.id)}>
+        <button className="icon-btn" style={{ right: 24, color: 'var(--cherry)' }} aria-pressed={r.favourite} aria-label={r.favourite ? t('unfavourite') : t('favourite')} onClick={() => { if (lib) { const c = copy(); if (c) { toggleFavourite(c.id); toast(t('savedCopy')) } } else toggleFavourite(r.id) }}>
           <Icon name="heart" fill={r.favourite} />
         </button>
-        <PhotoButton onPhoto={(photo) => original && saveRecipe({ ...original, photo })} label={r.photo ? t('changePhoto') : t('addPhoto')} className="btn secondary small"
+        {!lib && <PhotoButton onPhoto={(photo) => original && saveRecipe({ ...original, photo })} label={r.photo ? t('changePhoto') : t('addPhoto')} className="btn secondary small"
           style={{ position: 'absolute', right: 24, bottom: 16 }}>
           <Icon name="camera" size={16} />{r.photo ? t('changePhoto') : t('addPhoto')}
-        </PhotoButton>
+        </PhotoButton>}
       </div>
 
       <div className="stack" style={{ marginTop: 4 }}>
         <div className="row" style={{ gap: 8 }}>
           <span className="chip" aria-pressed="true" style={{ height: 32 }}>{t(r.category)}</span>
+          {isPick && <span className="tag" style={{ background: 'var(--cherry-soft)', color: 'var(--ink)' }}>{t('bestiePicks')}</span>}
           {r.source && siteName(r.source).href && (
             <a className="pen" href={siteName(r.source).href} target="_blank" rel="noreferrer" aria-label={t('openSource', { s: siteName(r.source).label })}><Icon name="link" size={18} /></a>
           )}
@@ -54,7 +68,7 @@ export default function RecipeDetail() {
         <h1 className="display" style={{ fontSize: 32, lineHeight: '36px' }}>{r.title}</h1>
         <div className="row small muted" style={{ gap: 6 }}>
           <Icon name="clock" size={16} />
-          <span>{[r.minutes ? t('minutes', { n: r.minutes }) : null, t('stepsN', { n: r.steps.length })].filter(Boolean).join(' · ')}</span>
+          <span>{[r.minutes ? t('minutes', { n: r.minutes }) : null, r.handsOn && r.minutes && r.handsOn < r.minutes ? t('handsOn', { n: r.handsOn }) : null, t('stepsN', { n: r.steps.length })].filter(Boolean).join(' · ')}</span>
         </div>
         {planned && (
           <div className="row small" style={{ gap: 6 }}>
@@ -64,6 +78,17 @@ export default function RecipeDetail() {
           </div>
         )}
       </div>
+
+      {swapP !== null && r.nutrition.protein > swapP && (
+        <section className="card stack" style={{ gap: 12 }}>
+          <span className="label">{t('hcWhatChanges')}</span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
+            <div className="stack" style={{ gap: 2, background: 'var(--track)', borderRadius: 18, padding: 12 }}><span className="caption">{t('hcYourMeal')}</span><span style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700 }}>{swapP} g</span><span className="caption">{params.get('swapK') ? t('hcProteinKcal', { k: params.get('swapK')! }) : t('protein').toLowerCase()}</span></div>
+            <div className="stack" style={{ gap: 2, background: 'var(--cherry-soft)', borderRadius: 18, padding: 12 }}><span className="caption" style={{ color: 'var(--ink)' }}>{t('hcThisRecipe')}</span><span style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700, color: 'var(--cherry)' }}>{r.nutrition.protein} g</span><span className="caption" style={{ color: 'var(--ink)' }}>{t('hcProteinKcal', { k: r.nutrition.kcal })}</span></div>
+          </div>
+          <span className="small" style={{ fontWeight: 600, color: 'var(--green)' }}>{t('hcMore', { n: r.nutrition.protein - swapP })}</span>
+        </section>
+      )}
 
       <section className="card stack" style={{ gap: 16 }}>
         <div className="row" style={{ alignItems: 'baseline', gap: 8 }}>
@@ -105,7 +130,7 @@ export default function RecipeDetail() {
         ))}
       </div>
 
-      <div className="row" style={{ justifyContent: 'center', gap: 8 }}>
+      {!lib && <div className="row" style={{ justifyContent: 'center', gap: 8 }}>
         <button className="btn ghost small" onClick={() => nav(`/recipes/${r.id}/edit`)}><Icon name="edit" size={16} />{t('editRecipe')}</button>
         <button className="btn ghost small" style={{ color: 'var(--cherry)' }} onClick={() => {
           if (!original || !confirm(t('confirmDeleteRecipe'))) return
@@ -116,14 +141,14 @@ export default function RecipeDetail() {
         }}>
           <Icon name="trash" size={16} />{t('deleteRecipe')}
         </button>
-      </div>
+      </div>}
 
       <div className="bottom-bar">
-        <button className="btn secondary" style={{ flex: 1 }} onClick={() => setPlanOpen(true)}>{t('addToPlan')}</button>
-        <button className="btn primary" style={{ flex: 1.4 }} disabled={r.steps.length === 0} onClick={() => nav(`/cook/${r.id}?s=${servings}`)}>{t('startCooking')}</button>
+        <button className="btn secondary" style={{ flex: 1 }} onClick={() => { if (lib) setPlanRecipe(copy()); setPlanOpen(true) }}>{t('addToPlan')}</button>
+        <button className="btn primary" style={{ flex: 1.4 }} disabled={r.steps.length === 0} onClick={() => nav(`/cook/${lib ? copy()?.id ?? r.id : r.id}?s=${servings}`)}>{t('startCooking')}</button>
       </div>
       <MoveSheet item={moving ? planned ?? null : null} onClose={() => setMoving(false)} onMove={(date, meal) => { if (planned) updatePlan(planned.id, { date, meal }); setMoving(false); toast(t('moved')) }} />
-      <AddToPlanSheet recipe={r} open={planOpen} onClose={() => setPlanOpen(false)} />
+      <AddToPlanSheet recipe={planRecipe ?? r} open={planOpen} onClose={() => setPlanOpen(false)} />
     </main>
   )
 }

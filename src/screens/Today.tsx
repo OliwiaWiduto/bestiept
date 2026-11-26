@@ -10,6 +10,8 @@ import { Avatar, Icon, Sheet, Thumb, toast } from '../components/ui'
 import { WeightField } from '../components/BodyFields'
 import { useFamily } from '../lib/family'
 import { formatDiff, formatWeight } from '../lib/units'
+import { MealTipCard, WeekBar, WinLine } from '../components/Nudges'
+import { mealTip, mealWin, nudgesOf } from '../lib/nudges'
 
 export default function Today() {
   const t = useT()
@@ -28,6 +30,10 @@ export default function Today() {
   const hour = new Date().getHours()
   const greeting = t(hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening', { name: profile.name })
 
+
+  // Healthy choices: one tip a day under the meal that caused it, or a little win to celebrate.
+  const tip = isToday ? mealTip(logs, viewDate, targets, nudgesOf(profile)) : null
+  const win = isToday && !tip && !nudgesOf(profile).off ? mealWin(logs, viewDate, targets) : null
 
   const latest = weights[weights.length - 1]
   const weekAgo = [...weights].reverse().find((w) => w.date <= addDays(today(), -7))
@@ -55,6 +61,7 @@ export default function Today() {
           <Icon name="forward" size={20} />
         </button>
       )}
+      {isToday && <WeekBar />}
       <div className="between" style={{ background: 'var(--surface-raised)', borderRadius: 999, padding: 4 }}>
         <button className="icon-btn" style={{ background: 'transparent' }} aria-label={t('prevDay')} onClick={() => setViewDate(addDays(viewDate, -1))}><Icon name="back" /></button>
         <button onClick={() => setViewDate(today())} aria-label={isToday ? undefined : t('backToToday')} style={{ border: 'none', background: 'transparent', fontSize: 15, fontWeight: 600 }}>
@@ -83,7 +90,8 @@ export default function Today() {
           return entries.map((e) => {
             const m = sumItems(e.items)
             return (
-              <button key={e.id} className="meal-row" onClick={() => nav(`/meal/${e.id}`)}>
+              <div key={e.id} className="stack" style={{ gap: 8 }}>
+              <button className="meal-row" onClick={() => nav(`/meal/${e.id}`)}>
                 <Thumb photo={e.photo} cat={e.meal} name={e.name} />
                 <span className="grow stack" style={{ gap: 2, minWidth: 0 }}>
                   {/* The meal's own numbers, written the same way as each ingredient's */}
@@ -91,6 +99,9 @@ export default function Today() {
                   <span style={{ fontSize: 15, lineHeight: '20px', fontWeight: 600 }}>{e.name}</span>
                 </span>
               </button>
+              {tip?.afterId === e.id && <MealTipCard tip={tip} />}
+              {win?.afterId === e.id && <WinLine meal={win.meal} protein={win.protein} />}
+              </div>
             )
           })
         })}
@@ -106,7 +117,7 @@ export default function Today() {
         </div>
         <div className="stack" style={{ gap: 8, alignItems: 'flex-end' }}>
           <button className="btn secondary small" onClick={() => setWeightOpen(true)}>{t('logToday')}</button>
-          <Link to="/trends" className="small" style={{ fontWeight: 600 }}>{t('seeTrends')}</Link>
+          <Link to="/trends" className="small" style={{ fontWeight: 600 }}>{t('seeInsights')}</Link>
         </div>
       </section>
 

@@ -11,11 +11,15 @@ import { addDays, fmt, today, weekDays, weekStart } from '../lib/dates'
 import { Avatar, Icon, Sheet, Stepper, Thumb } from '../components/ui'
 import { householdLink, useFamily } from '../lib/family'
 import AddToPlanSheet from '../components/AddToPlanSheet'
+import { isLow, MAIN, nudgesOf } from '../lib/nudges'
+import { LIBRARY, ownCopy } from '../lib/library'
+import { localise } from '../lib/recipeLang'
+import { foodArt } from '../lib/art'
 
 export default function Plan() {
   const t = useT()
   const nav = useNavigate()
-  const { plan, removePlan, profile, updateProfile } = useStore()
+  const { plan, removePlan, profile, updateProfile, targets } = useStore()
   const people = profile?.household ?? 1
   const [peopleOpen, setPeopleOpen] = useState(false)
   const recipes = useRecipes()
@@ -42,6 +46,13 @@ export default function Plan() {
   const days = weekDays(planWeek)
   const inWeek = plan.filter((p) => days.includes(p.date))
   const range = `${fmt(days[0], t.lang, { day: 'numeric' })} – ${fmt(days[6], t.lang, { day: 'numeric', month: 'long' })}`
+  // Week check (Healthy choices): main meals still to come this week, by protein per serving.
+  const ahead = inWeek.filter((p) => p.date >= today() && MAIN.includes(p.meal) && !p.leftoverOf)
+    .map((p) => ({ meal: p.meal, r: recipes.find((x) => x.id === p.recipeId) })).filter((x) => x.r)
+  const lowMeal = targets ? MAIN.find((m) => ahead.filter((x) => x.meal === m && isLow(x.r!.nutrition.protein, targets)).length >= 2) : undefined
+  const weekCheck = !targets || nudgesOf(profile).off ? null
+    : lowMeal ? t('hcPlanLow', { meal: t(lowMeal).toLowerCase() })
+    : ahead.length >= 5 && !ahead.some((x) => isLow(x.r!.nutrition.protein, targets)) ? t('hcPlanGood') : null
 
   return (
     <main className="screen">
@@ -80,11 +91,21 @@ export default function Plan() {
         })}
       </div>
 
+      <button className="people-row" onClick={() => nav('/shopping')}>
+        <Icon name="bag" size={20} />
+        <span className="grow" style={{ fontWeight: 600 }}>{t('shoppingListBtn')}</span>
+        <Icon name="forward" size={18} />
+      </button>
       <button className="people-row" onClick={() => setPeopleOpen(true)}>
         <Icon name="heart" size={20} />
         <span className="grow">{t('cookingForLong', { n: people })}</span>
         <span className="small" style={{ color: 'var(--cherry)', fontWeight: 600 }}>{t('change')}</span>
       </button>
+      {weekCheck && (
+        <div className="row small" style={{ gap: 10, alignItems: 'flex-start', background: lowMeal ? 'var(--cherry-soft)' : 'var(--surface-raised)', borderRadius: 18, padding: '12px 14px', lineHeight: '18px' }}>
+          <span style={{ color: lowMeal ? 'var(--cherry)' : 'var(--olive)', flex: 'none' }}><Icon name="sparkle" size={18} /></span><span>{weekCheck}</span>
+        </div>
+      )}
       {inWeek.length === 0 && <div className="empty"><img src="/icons/cat-cupboard.png" alt="" /><p style={{ margin: 0 }}>{t('planEmpty')}</p></div>}
 
       {days.map((d) => {
@@ -149,6 +170,13 @@ function RecipePicker({ open, meal, days, onClose, onPick }: { open: boolean; me
   const query = q.trim().toLowerCase()
   const matches = (r: Recipe) => (cat === 'all' || r.category === cat) && (!query || r.title.toLowerCase().includes(query) || r.ingredients.some((i) => i.name.toLowerCase().includes(query)))
   const { recent, rest } = rankRecipes(recipes.filter(matches), plan, days)
+  // Bestie picks come first (the ones she hasn't got a copy of yet), highest protein first.
+  const own = useStore((s) => s.recipes)
+  const lang = useStore((s) => s.lang)
+  const picks = LIBRARY.filter((l) => !own.some((r) => r.libId === l.id && !r.ownerId))
+    .filter((l) => (cat === 'all' || l.category === cat) && (!query || l[lang].title.toLowerCase().includes(query)))
+    .sort((a, b) => b.nutrition.protein - a.nutrition.protein).slice(0, query ? 10 : 5)
+  const pickLib = (id: string) => { const s = useStore.getState(); const c = ownCopy(id, s.recipes, lang, s.saveRecipe); if (c) onPick(localise(c, lang)) }
   const row = (r: Recipe) => (
     <button key={r.id} className="meal-row" onClick={() => onPick(r)}>
       <Thumb photo={r.photo} size={48} cat={r.category} name={r.title} />
@@ -165,8 +193,16 @@ function RecipePicker({ open, meal, days, onClose, onPick }: { open: boolean; me
         <button className="chip" aria-pressed={cat === 'all'} onClick={() => setCat('all')}>{t('all')}</button>
         {MEALS.map((m) => <button key={m} className="chip" aria-pressed={cat === m} onClick={() => setCat(m)}>{t(m)}</button>)}
       </div>
-      {recipes.length === 0 && <p className="muted" style={{ margin: 0 }}>{t('emptyRecipes')}</p>}
-      {recipes.length > 0 && !recent.length && !rest.length && <p className="muted" style={{ margin: 0 }}>{t('noRecipeMatch')}</p>}
+      {recipes.length > 0 && !recent.length && !rest.length && !picks.length && <p className="muted" style={{ margin: 0 }}>{t('noRecipeMatch')}</p>}
+      {picks.length > 0 && <><span className="label">{t('bestiePicks')}</span>{picks.map((l) => (
+        <button key={l.id} className="meal-row" onClick={() => pickLib(l.id)}>
+          <span className="thumb" style={{ width: 48, height: 48, borderRadius: 14 }}><img src={foodArt(l.en.title, l.category)} alt="" style={{ width: 40, height: 40 }} /></span>
+          <span className="grow stack" style={{ gap: 2, minWidth: 0 }}>
+            <span style={{ fontWeight: 600 }}>{l[lang].title}</span>
+            <span className="caption">{l.nutrition.kcal} {t('kcal')} · {l.nutrition.protein}g {t('protein').toLowerCase()} · {t('minutes', { n: l.handsOn })}</span>
+          </span>
+        </button>
+      ))}</>}
       {recent.length > 0 && <><span className="label">{t('pickedBefore')}</span>{recent.map(row)}</>}
       {rest.length > 0 && <><span className="label">{query ? t('results') : t('healthiestFirst')}</span>{rest.map(row)}</>}
     </Sheet>

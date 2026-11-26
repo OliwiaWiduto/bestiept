@@ -20,6 +20,10 @@ import { Icon, PhotoButton, Sheet, Stepper, Thumb, toast, type IconName } from '
 type Mode = 'menu' | 'recipe' | 'search' | 'quick' | 'barcode' | 'scan' | 'voice' | 'type' | 'again'
 type Picked = { name: string; per: Macros; portion: number; source?: string }
 
+import { MAIN, isLow, nudgesOf, swapsFor } from '../lib/nudges'
+import { ownCopy } from '../lib/library'
+import { foodArt } from '../lib/art'
+
 export default function LogFoodSheet() {
   const t = useT()
   const { logOpen, logMeal, closeLog, viewDate } = useUI()
@@ -202,6 +206,18 @@ export default function LogFoodSheet() {
     const rest = [...newest.values()].filter((l) => !usual.includes(l) && !planned.has(l.recipeId ?? '-'))
     return [...usual, ...rest].slice(0, 30)
   }, [logs, meal, viewDate, plannedNow])
+  /** Healthy choices: when her usual for this meal is light on protein, one Bestie pick that feels like it. */
+  const profile = useStore((st) => st.profile)
+  const targets = useStore((st) => st.targets)
+  const lang = useStore((st) => st.lang)
+  const better = useMemo(() => {
+    const nd = nudgesOf(profile)
+    const usual = recent[0]
+    if (nd.off || !targets || !MAIN.includes(meal) || !usual || usual.meal !== meal || !isLow(sumItems(usual.items).protein, targets)) return null
+    const pick = swapsFor(meal, [usual], { dismissed: nd.dismissed, today: viewDate })[0]
+    if (!pick || plannedNow.some((p) => recipes.find((x) => x.id === p.recipeId)?.libId === pick.id)) return null
+    return { pick, instead: usual.name }
+  }, [recent, meal, profile, targets, viewDate, plannedNow, recipes])
   const logAgain = (l: LogEntry) => {
     const rec = l.recipeId ? recipes.find((x) => x.id === l.recipeId) : undefined
     const only = l.items.length === 1 ? l.items[0] : null
@@ -283,6 +299,17 @@ export default function LogFoodSheet() {
                     <span className="planned-tag">{t('plannedTag')}</span>
                   </button>
                 ) })}
+                {better && (
+                  <button className="list-row" style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--line)', textAlign: 'left' }}
+                    onClick={() => { const c = ownCopy(better.pick.id, useStore.getState().recipes, lang, useStore.getState().saveRecipe); if (c) { setRecipeId(c.id); setServings(1); setMode('recipe') } }}>
+                    <span className="thumb" style={{ width: 40, height: 40, borderRadius: 12 }}><img src={foodArt(better.pick.en.title, better.pick.category)} alt="" style={{ width: 34, height: 34 }} /></span>
+                    <span className="grow stack" style={{ gap: 0, minWidth: 0 }}>
+                      <span style={{ fontWeight: 600, fontSize: 15 }}>{better.pick[lang].title}</span>
+                      <span className="caption">{t('betterPickSub', { p: better.pick.nutrition.protein, name: better.instead })}</span>
+                    </span>
+                    <span className="planned-tag" style={{ background: 'var(--cherry-soft)', color: 'var(--ink)' }}>{t('betterPick')}</span>
+                  </button>
+                )}
                 {recent.map((l) => (
                   <button key={l.id} className="list-row" style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--line)', textAlign: 'left' }} onClick={() => logAgain(l)}>
                     <Thumb cat={l.meal} name={l.name} photo={l.photo} size={40} />

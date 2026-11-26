@@ -6,15 +6,20 @@ import { add, scale, sumItems } from '../lib/nutrition'
 import { addDays, fmt, today } from '../lib/dates'
 import { BackButton, Icon, MacroBar } from '../components/ui'
 import { formatWeight } from '../lib/units'
+import { habits, nudgesOf } from '../lib/nudges'
+import { HabitCard } from '../components/Nudges'
 
 export default function Trends() {
   const t = useT()
-  const { logs, targets, weights, units } = useStore()
+  const { logs, targets, weights, units, profile } = useStore()
   const [range, setRange] = useState<7 | 30>(7)
   const days = useMemo(() => Array.from({ length: range }, (_, i) => addDays(today(), i - range + 1)), [range])
 
   const perDay = useMemo(() => days.map((d) => logs.filter((l) => l.date === d).reduce((acc, l) => add(acc, sumItems(l.items)), { ...ZERO })), [days, logs])
-  if (!targets) return null
+  if (!targets || !profile) return null
+  // Repeated misses over the last 7 days, each with swaps (Healthy choices).
+  const found = habits(logs, today(), targets, profile.goal, profile.pace, nudgesOf(profile))
+  const loggedDays = new Set(logs.filter((l) => l.date >= addDays(today(), -7) && l.date < today()).map((l) => l.date)).size
   // Today is still going, so it only counts once it's on target (or when it's the only day logged).
   const done = perDay.filter((m, i) => m.kcal > 0 && (i < range - 1 || m.kcal >= targets.kcal * 0.9))
   const logged = done.length ? done : perDay.filter((m) => m.kcal > 0)
@@ -41,6 +46,13 @@ export default function Trends() {
     <main className="screen">
       <div className="row"><BackButton to="/" /></div>
       <h1 className="display">{t('trends')}</h1>
+      {loggedDays >= 3 && (
+        <>
+          <div className="between" style={{ alignItems: 'baseline' }}><h2 className="heading">{t('hcHabits')}</h2><span className="caption">{t('hcLast7')}</span></div>
+          {found.length === 0 ? <p className="small muted" style={{ margin: 0 }}>{t('hcNoHabits')}</p> : found.map((h, i) => <HabitCard key={i} h={h} />)}
+        </>
+      )}
+
       <div className="chips" role="group">
         <button className="chip" aria-pressed={range === 7} onClick={() => setRange(7)}>{t('week')}</button>
         <button className="chip" aria-pressed={range === 30} onClick={() => setRange(30)}>{t('month')}</button>
