@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { useT } from '../i18n'
-import { Avatar, BackButton, Icon, toast } from '../components/ui'
+import { Avatar, BackButton, Icon, Sheet, toast } from '../components/ui'
 import { acceptLink, addPerson, removeLink, saveMe, useFamily } from '../lib/family'
 import { makeInviteCard, shareInviteCard } from '../lib/inviteCard'
 
@@ -16,6 +16,9 @@ export default function Family() {
   const [editing, setEditing] = useState(false)
   const [busy, setBusy] = useState(false)
   const [invite, setInvite] = useState<File | null>(null)
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const inviteUrl = useMemo(() => (invite ? URL.createObjectURL(invite) : ''), [invite])
+  useEffect(() => () => { if (inviteUrl) URL.revokeObjectURL(inviteUrl) }, [inviteUrl])
 
   // Draw the invite card ahead of time: phones only open the share sheet straight after a tap.
   useEffect(() => {
@@ -54,10 +57,15 @@ export default function Family() {
     if (r === 'ok') setEditing(false)
     toast(r === 'ok' ? t('saved') : r === 'taken' ? t('usernameTaken') : t('usernameRules'))
   }
+  const openInvite = () => {
+    if (!invite) { toast(t('inviteMaking')); return }
+    setPreviewOpen(true)
+  }
   const sendInvite = async () => {
-    if (!invite || !me?.username) { toast(t('inviteMaking')); return }
+    if (!invite || !me?.username) return
     const r = await shareInviteCard(invite, t('inviteShareText', { username: me.username }))
     if (r === 'downloaded') toast(t('inviteSaved'))
+    if (r !== 'cancelled') setPreviewOpen(false)
   }
   const add = async () => {
     if (!who.trim()) return
@@ -111,9 +119,14 @@ export default function Family() {
             <h2 className="heading">{t('inviteTitle')}</h2>
             <span className="small muted">{t('inviteSub')}</span>
           </div>
-          <button className="btn primary" onClick={sendInvite}>{t('sendInvite')}</button>
+          <button className="btn primary" onClick={openInvite}>{t('sendInvite')}</button>
         </section>
       )}
+
+      <Sheet open={previewOpen} onClose={() => setPreviewOpen(false)} title={t('invitePreview')}>
+        {inviteUrl && <img src={inviteUrl} alt={t('invitePreview')} style={{ display: 'block', width: '100%', maxWidth: 340, margin: '0 auto', borderRadius: 24 }} />}
+        <button className="btn primary" onClick={sendInvite}>{t('inviteSend')}</button>
+      </Sheet>
 
       {incoming.length > 0 && (
         <section className="card stack" style={{ gap: 12 }}>
