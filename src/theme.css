@@ -333,3 +333,6 @@ input[type=number] { -moz-appearance: textfield; }
 .text-back { display: inline-flex; align-items: center; gap: 2px; align-self: flex-start; margin-left: -4px; padding: 6px 4px; border: none; background: none; color: var(--ink-muted); font-size: 15px; font-weight: 600; }
 /* Log food: the meal planned for now */
 .planned-tag { flex: none; padding: 3px 10px; border-radius: 999px; background: var(--green); color: var(--lime, #d8f37a); font-size: 12px; font-weight: 700; }
+/* Today: calories and macros on one dark green card */
+:root { --lime-bright: #D8F37A; --on-green-muted: #D7DCC2; }
+.summary-card { background: var(--green); color: #FFFCF6; }
