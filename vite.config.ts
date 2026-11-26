@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt', // we choose a quiet moment to switch to the new version (see main.tsx)
       injectRegister: false,
       workbox: { globPatterns: ['**/*.{js,css,html,png,webp,svg,json,wasm}'], maximumFileSizeToCacheInBytes: 3 * 1024 * 1024 },
       includeAssets: ['favicon.png', 'apple-touch-icon.png', 'icons/*.png'],
