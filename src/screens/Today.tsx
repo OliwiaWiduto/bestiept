@@ -154,7 +154,7 @@ function SummaryCard({ totals, targets, goal, pace }: { totals: Macros; targets:
           <div style={{ ...edge, left: `${pct(max)}%` }} />
         </div>
         <div style={{ position: 'relative', height: 14, marginTop: -4, fontSize: 11, lineHeight: '14px' }}>
-          <span style={{ position: 'absolute', left: `${(pct(min) + pct(max)) / 2}%`, transform: 'translateX(-50%)', whiteSpace: 'nowrap', fontWeight: 600, color: 'var(--lime-bright)' }}>{t(goal === 'lose' ? 'zoneLose' : goal === 'gain' ? 'zoneGain' : 'zoneMaintain')}</span>
+          <span style={{ position: 'absolute', left: `${(pct(min) + pct(max)) / 2}%`, transform: 'translateX(-50%)', whiteSpace: 'nowrap', fontWeight: 600, color: 'var(--lime-bright)' }}>{t(goal === 'lose' ? 'zoneLose' : goal === 'gain' ? 'zoneGain' : goal === 'build' ? 'zoneBuild' : 'zoneMaintain')}</span>
         </div>
       </div>
       <div aria-hidden="true" style={{ borderTop: '1px solid rgba(255, 252, 246, .16)' }} />

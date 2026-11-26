@@ -92,8 +92,14 @@ export default function Settings() {
         <HeightField cm={p.heightCm} onChange={(v) => setP({ ...p, heightCm: v })} />
         <WeightField kg={p.weightKg} onChange={(v) => setP({ ...p, weightKg: v })} />
         {select<Activity>(t('obActivity'), p.activity, [['low', t('actLow')], ['light', t('actLight')], ['moderate', t('actModerate')], ['high', t('actHigh')]], (v) => setP({ ...p, activity: v }))}
-        {select<Goal>(t('obGoal'), p.goal, [['lose', t('goalLose')], ['maintain', t('goalMaintain')], ['gain', t('goalGain')]], (v) => setP({ ...p, goal: v }))}
-        {p.goal !== 'maintain' && (
+        {select<Goal>(t('obGoal'), p.goal, [['lose', t('goalLose')], ['maintain', t('goalMaintain')], ['gain', t('goalGain')], ['build', t('goalBuild')]], (v) => setP({ ...p, goal: v }))}
+        {p.goal === 'build' && (
+          <>
+            {select<'yes' | 'no'>(t('obStrength'), p.strength === false ? 'no' : 'yes', [['yes', t('strengthYes')], ['no', t('strengthNo')]], (v) => setP({ ...p, strength: v === 'yes' }))}
+            <span className="caption">{t(p.strength === false ? 'buildExpectNoTraining' : 'buildExpect')}</span>
+          </>
+        )}
+        {(p.goal === 'lose' || p.goal === 'gain') && (
           <>
             <WeightField label={t('goalWeight')} kg={p.goalWeightKg ?? NaN} placeholderKg={suggestedGoalWeight(p)} onChange={(v) => setP({ ...p, goalWeightKg: Number.isFinite(v) && v > 0 ? v : undefined })} />
             {select<Pace>(t('howFast'), p.pace ?? 'slower', [['slower', t('paceSlower')], ['faster', t('paceFaster')]], (v) => setP({ ...p, pace: v }))}

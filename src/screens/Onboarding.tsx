@@ -42,21 +42,22 @@ export default function Onboarding() {
   const units = useStore((s) => s.units)
   const set = <K extends keyof Profile>(k: K, v: Profile[K]) => setP({ ...p, [k]: v })
   // Goal weight: suggested when she reaches that step; losing can't go below a healthy weight for her height.
+  const building = p.goal === 'build'
   // The suggestion is only a placeholder: she types her own goal.
   const goalKg = p.goalWeightKg ?? NaN
-  const goalOk = p.goal === 'maintain' || (Number.isFinite(goalKg) && (p.goal === 'lose' ? goalKg < p.weightKg && goalKg >= lowestHealthy(p) : goalKg > p.weightKg))
+  const goalOk = p.goal === 'maintain' || (building ? p.strength !== undefined : Number.isFinite(goalKg) && (p.goal === 'lose' ? goalKg < p.weightKg && goalKg >= lowestHealthy(p) : goalKg > p.weightKg))
   const weeks = goalOk ? weeksToGoal({ ...p, goalWeightKg: goalKg }) : null
 
   const valid = [true, p.name.trim().length > 0, p.age >= 13 && p.age <= 100 && p.heightCm >= 120 && p.heightCm <= 230 && p.weightKg >= 30 && p.weightKg <= 300, true, true, goalOk, true, staples.length > 0 || noStaples, true][step]
   const finish = () => {
-    completeOnboarding({ ...p, name: p.name.trim(), ...(p.goal === 'maintain' ? { goalWeightKg: undefined, pace: undefined } : { goalWeightKg: p.goalWeightKg, pace: p.pace ?? 'slower' }) }, sampleRecipes(lang), staples)
+    completeOnboarding({ ...p, name: p.name.trim(), ...(p.goal === 'maintain' || building ? { goalWeightKg: undefined, pace: undefined } : { goalWeightKg: p.goalWeightKg, pace: p.pace ?? 'slower' }) }, sampleRecipes(lang), staples)
   }
 
-  const option = (selected: boolean, label: string, onClick: () => void) => (
+  const option = (selected: boolean, label: string, onClick: () => void, sub?: string) => (
     <button key={label} className="meal-row" aria-pressed={selected} onClick={onClick}
       style={{ border: `2px solid ${selected ? 'var(--green)' : 'transparent'}`, minHeight: 60, fontWeight: 600, fontSize: 16, padding: '16px 18px' }}>
       <span className={`check ${selected ? 'on' : ''}`} style={{ borderRadius: 999 }}>{selected && <Icon name="check" size={16} sw={2.5} />}</span>
-      {label}
+      {sub ? <span className="stack" style={{ gap: 2, textAlign: 'left' }}><span>{label}</span><span className="caption" style={{ fontWeight: 400 }}>{sub}</span></span> : label}
     </button>
   )
 
@@ -123,8 +124,8 @@ export default function Onboarding() {
       {step === 4 && (
         <div className="stack" style={{ gap: 12 }}>
           <h1 className="title">{t('obGoal')}</h1>
-          {(['lose', 'maintain', 'gain'] as Goal[]).map((g) =>
-            option(p.goal === g, t(({ lose: 'goalLose', maintain: 'goalMaintain', gain: 'goalGain' } as const)[g]), () => set('goal', g)))}
+          {(['lose', 'maintain', 'gain', 'build'] as Goal[]).map((g) =>
+            option(p.goal === g, t(({ lose: 'goalLose', maintain: 'goalMaintain', gain: 'goalGain', build: 'goalBuild' } as const)[g]), () => set('goal', g), g === 'build' ? t('goalBuildSub') : undefined))}
           <div className="card stack" style={{ marginTop: 8, gap: 12 }}>
             <span className="stack" style={{ gap: 2 }}>
               <span style={{ fontWeight: 600 }}>{t('householdQ')}</span>
@@ -136,7 +137,21 @@ export default function Onboarding() {
         </div>
       )}
 
-      {step === 5 && (
+      {step === 5 && building && (
+        <div className="stack" style={{ gap: 12 }}>
+          <h1 className="title">{t('obStrength')}</h1>
+          {option(p.strength === true, t('strengthYes'), () => set('strength', true))}
+          {option(p.strength === false, t('strengthNo'), () => set('strength', false))}
+          {p.strength !== undefined && (
+            <div className="card" style={{ background: 'var(--green)', color: '#FFFCF6', border: 'none', padding: '18px 20px', marginTop: 4 }}>
+              <span style={{ fontSize: 15, lineHeight: '22px' }}>{t(p.strength ? 'buildExpect' : 'buildExpectNoTraining')}</span>
+            </div>
+          )}
+          <span className="caption" style={{ paddingBottom: 96 }}>{t('buildScale')}</span>
+        </div>
+      )}
+
+      {step === 5 && !building && (
         <div className="stack" style={{ gap: 14 }}>
           <h1 className="title">{t(p.goal === 'lose' ? 'obGoalWeightLose' : 'obGoalWeightGain')}</h1>
           <WeightField label={t('goalWeight')} kg={goalKg} placeholderKg={suggestedGoalWeight(p)} onChange={(v) => set('goalWeightKg', Number.isFinite(v) && v > 0 ? v : undefined)} />

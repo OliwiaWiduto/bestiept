@@ -106,6 +106,11 @@ const en = {
   paceSlowerGain: 'About 5% over your maintenance · less fat gain', paceFasterGain: 'About 10% over your maintenance · quicker gains',
   weeksN: '{n} weeks', goalBy: 'At this pace you could reach {kg} by around {date}.', goalEstimate: 'This is an estimate. Everyone’s body is different, so we’ll go by how your weight actually changes.',
   maintenanceKcal: 'Maintenance', maintenanceHint: 'What your body uses in a day, from breathing to moving about. Eat this much and your weight stays about the same.',
+  goalBuild: 'Build muscle', goalBuildSub: 'Tone up and get stronger, keep my weight about the same', zoneBuild: 'Muscle building zone',
+  obStrength: 'Do you do strength training?', strengthYes: 'Yes, or I’m about to start', strengthNo: 'Not at the moment',
+  buildExpect: 'With 2–3 strength sessions a week and enough protein, most people notice a difference in 3–6 months.',
+  buildExpectNoTraining: 'Muscle is built by strength training, so pairing this with 2–3 sessions a week is what makes it work. We’ll keep your protein high either way.',
+  buildScale: 'Your weight may not change much, because you lose fat while you build muscle. Watch how your clothes fit and how strong you feel.',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -279,6 +284,11 @@ const pl: Dict = {
   paceSlowerGain: 'Ok. 5% ponad Twoje zapotrzebowanie · mniej tłuszczu', paceFasterGain: 'Ok. 10% ponad Twoje zapotrzebowanie · szybsze efekty',
   weeksN: '{n} tyg.', goalBy: 'W tym tempie możesz osiągnąć {kg} około {date}.', goalEstimate: 'To tylko szacunek. Każde ciało jest inne, więc będziemy patrzeć, jak naprawdę zmienia się Twoja waga.',
   maintenanceKcal: 'Zapotrzebowanie', maintenanceHint: 'Tyle Twoje ciało zużywa w ciągu dnia, od oddychania po ruch. Jedząc tyle, utrzymasz mniej więcej tę samą wagę.',
+  goalBuild: 'Zbudować mięśnie', goalBuildSub: 'Ujędrnić się i wzmocnić, utrzymując podobną wagę', zoneBuild: 'Strefa budowania mięśni',
+  obStrength: 'Czy robisz trening siłowy?', strengthYes: 'Tak, albo zaraz zaczynam', strengthNo: 'Na razie nie',
+  buildExpect: 'Przy 2–3 treningach siłowych w tygodniu i odpowiedniej ilości białka większość osób widzi różnicę po 3–6 miesiącach.',
+  buildExpectNoTraining: 'Mięśnie buduje trening siłowy, więc 2–3 treningi w tygodniu to podstawa. Białko i tak ustawimy wysoko.',
+  buildScale: 'Waga może się niewiele zmieniać, bo tracisz tłuszcz i budujesz mięśnie jednocześnie. Patrz, jak leżą ubrania i jak rośnie Twoja siła.',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 

@@ -19,7 +19,7 @@ export function calorieTarget(p: Profile): number {
   return Math.max(p.sex === 'male' ? 1500 : 1200, Math.round(kcal / 10) * 10)
 }
 
-/** The range shown on Today. Losing: slower 300–500 under maintenance, faster 500–600 under (the target is the top). Keeping: ±5%. Gaining: from the target up 5%. */
+/** The range shown on Today. Losing: slower 300–500 under maintenance, faster 500–600 under (the target is the top). Keeping or building muscle: ±5%. Gaining: from the target up 5%. */
 export function calorieZone(kcal: number, goal: Profile['goal'], pace?: Profile['pace']): [number, number] {
   if (goal === 'lose') return [kcal - (pace === 'faster' ? 100 : 200), kcal]
   if (goal === 'gain') return [kcal, Math.round((kcal * 1.05) / 10) * 10]
@@ -28,7 +28,7 @@ export function calorieZone(kcal: number, goal: Profile['goal'], pace?: Profile[
 
 /** Weeks to reach the goal weight at the daily target (7,700 kcal ≈ 1 kg). null when there's no goal or no change. */
 export function weeksToGoal(p: Profile): number | null {
-  if (p.goal === 'maintain' || !p.goalWeightKg) return null
+  if ((p.goal !== 'lose' && p.goal !== 'gain') || !p.goalWeightKg) return null
   const kg = p.goal === 'lose' ? p.weightKg - p.goalWeightKg : p.goalWeightKg - p.weightKg
   const perDay = Math.abs(calorieTarget(p) - maintenance(p))
   if (kg <= 0 || perDay < 50) return null
@@ -50,7 +50,8 @@ export const lowestHealthy = (p: Pick<Profile, 'heightCm'>) => Math.ceil(18.5 * 
 /** Daily targets from body details, rounded to friendly numbers. */
 export function calcTargets(p: Profile): Macros {
   const kcal = calorieTarget(p)
-  const protein = Math.round(p.weightKg * (p.goal === 'maintain' ? 1.6 : 1.8))
+  // Protein per kg: 1.6 keeping, 1.8 losing or gaining, 2.0 building muscle (research range 1.6–2.2)
+  const protein = Math.round(p.weightKg * (p.goal === 'build' ? 2.0 : p.goal === 'maintain' ? 1.6 : 1.8))
   const fat = Math.round((kcal * 0.28) / 9)
   const carbs = Math.max(0, Math.round((kcal - protein * 4 - fat * 9) / 4))
   return { kcal, protein, carbs, fat, fibre: p.sex === 'male' ? 30 : 25, sugar: Math.round((kcal * 0.1) / 4) }

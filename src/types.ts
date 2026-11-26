@@ -7,7 +7,8 @@ export const ZERO: Macros = { kcal: 0, protein: 0, carbs: 0, fat: 0, fibre: 0, s
 
 export type Sex = 'female' | 'male'
 export type Activity = 'low' | 'light' | 'moderate' | 'high'
-export type Goal = 'lose' | 'maintain' | 'gain'
+/** build: body recomposition, i.e. build muscle at about the same weight */
+export type Goal = 'lose' | 'maintain' | 'gain' | 'build'
 
 export type Profile = {
   name: string
@@ -27,6 +28,8 @@ export type Profile = {
   goalWeightKg?: number
   /** How fast: slower (300 kcal under maintenance, or 5% over) or faster (500 under, or 10% over) */
   pace?: Pace
+  /** Build muscle: does she do strength training? */
+  strength?: boolean
 }
 export type Pace = 'slower' | 'faster'
 
