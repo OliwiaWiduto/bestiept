@@ -103,16 +103,17 @@ function HabitBars({ h }: { h: Habit }) {
   const max = Math.max(h.line * 1.3, ...h.values.map((v) => v ?? 0)) || 1
   const ly = H - (h.line / max) * H
   const unit = h.kind === 'over' || h.kind === 'snack' ? t('kcal') : 'g'
+  const aim = h.kind === 'snack' ? t('hcHeavySnackLine', { n: h.line }) : h.kind === 'over' ? t('hcZoneTop', { n: h.line }) : t('hcAimFor', { n: h.line, u: unit })
   return (
     <div className="stack" style={{ gap: 6 }}>
-      <svg viewBox={`0 0 ${W} ${H + (n <= 10 ? 18 : 2)}`} width="100%" role="img" aria-label={h.values.map((v, i) => `${fmt(h.days[i], t.lang, { weekday: 'short' })} ${v ?? '–'}`).join(', ')}>
+      <svg viewBox={`0 -16 ${W} ${H + 16 + (n <= 10 ? 18 : 2)}`} width="100%" role="img" aria-label={h.values.map((v, i) => `${fmt(h.days[i], t.lang, { weekday: 'short' })} ${v ?? '–'}`).join(', ')}>
         {h.values.map((v, i) => v === null
           ? <rect key={i} x={i * (bw + gap)} y={H - 4} width={bw} height={4} rx={2} fill="var(--track)" />
           : <rect key={i} x={i * (bw + gap)} y={H - Math.max((v / max) * H, 3)} width={bw} height={Math.max((v / max) * H, 3)} rx={Math.min(bw / 2, 6)} fill="var(--green)" />)}
         <line x1={0} x2={W} y1={ly} y2={ly} stroke="var(--green)" strokeWidth={1.5} strokeDasharray="4 4" opacity={0.6} />
+        <text x={W} y={ly - 6} textAnchor="end" fontSize="11" fontWeight={600} fill="var(--green)" fontFamily="Inter">{aim}</text>
         {n <= 10 && h.days.map((d, i) => <text key={d} x={i * (bw + gap) + bw / 2} y={H + 14} textAnchor="middle" fontSize="11" fill="var(--ink-muted)" fontFamily="Inter">{fmt(d, t.lang, { weekday: 'narrow' })}</text>)}
       </svg>
-      <span className="caption"><span style={{ display: 'inline-block', width: 14, borderTop: '2px dashed var(--green)', verticalAlign: 'middle', marginRight: 6, opacity: 0.6 }} />{h.kind === 'snack' ? t('hcHeavySnackLine', { n: h.line }) : h.kind === 'over' ? t('hcZoneTop', { n: h.line }) : t('hcAimFor', { n: h.line, u: unit })}</span>
     </div>
   )
 }
