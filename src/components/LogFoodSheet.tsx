@@ -213,7 +213,7 @@ export default function LogFoodSheet() {
   const better = useMemo(() => {
     const nd = nudgesOf(profile)
     const usual = recent[0]
-    if (nd.off || !targets || !MAIN.includes(meal) || !usual || usual.meal !== meal || !worthSwapping(sumItems(usual.items))) return null
+    if (!targets || !MAIN.includes(meal) || !usual || usual.meal !== meal || !worthSwapping(sumItems(usual.items))) return null
     const pick = swapsFor(meal, [usual], { dismissed: nd.dismissed, today: viewDate })[0]
     if (!pick || plannedNow.some((p) => recipes.find((x) => x.id === p.recipeId)?.libId === pick.id)) return null
     return { pick, instead: usual.name }

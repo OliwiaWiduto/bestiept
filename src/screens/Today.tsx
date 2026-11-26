@@ -33,7 +33,7 @@ export default function Today() {
 
   // Healthy choices: one tip a day under the meal that caused it, or a little win to celebrate.
   const tip = isToday ? mealTip(logs, viewDate, targets, nudgesOf(profile)) : null
-  const win = isToday && !tip && !nudgesOf(profile).off ? mealWin(logs, viewDate, targets) : null
+  const win = isToday && !tip ? mealWin(logs, viewDate, targets) : null
 
   const latest = weights[weights.length - 1]
   const weekAgo = [...weights].reverse().find((w) => w.date <= addDays(today(), -7))

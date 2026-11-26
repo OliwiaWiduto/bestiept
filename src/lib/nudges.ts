@@ -69,7 +69,7 @@ export type MealTip = { meal: Meal; protein: number; kcal: number; swap: LibReci
 
 /** Today's one meal tip: a main meal light on protein, aimed at its biggest calorie-heavy, low-protein item. */
 export function mealTip(logs: LogEntry[], date: string, targets: Macros, nudges: Nudges): MealTip | null {
-  if (nudges.off || nudges.hiddenOn === date) return null
+  if (nudges.hiddenOn === date) return null
   const day = logs.filter((l) => l.date === date)
   const dayKcal = day.reduce((a, l) => a + sumItems(l.items).kcal, 0)
   for (const meal of MAIN) {

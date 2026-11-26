@@ -155,21 +155,14 @@ export default function Settings() {
         )}
       </section>
 
-      <button className="card stack" style={{ gap: 4, border: 'none', textAlign: 'left' }} onClick={() => nav('/settings/goals')}>
-        <span className="between"><h2 className="heading">{t('goalsTargets')}</h2><Icon name="forward" /></span>
-        <span className="small muted">{goalSummary}</span>
+      <button className="card between" style={{ gap: 12, border: 'none', textAlign: 'left', width: '100%' }} onClick={() => nav('/settings/goals')}>
+        <span className="stack grow" style={{ gap: 4, minWidth: 0 }}><h2 className="heading">{t('goalsTargets')}</h2><span className="small muted">{goalSummary}</span></span>
+        <span style={{ display: 'flex', flex: 'none' }}><Icon name="forward" /></span>
       </button>
 
-      <section className="card stack" style={{ gap: 4 }}>
-        <button className="switch-row" role="switch" aria-checked={!profile.nudges?.off} onClick={() => useStore.getState().setNudges({ off: !profile.nudges?.off })}>
-          <span className="grow stack" style={{ gap: 2 }}><span className="heading" style={{ fontSize: 17 }}>{t('hcTipsSetting')}</span><span className="small muted">{t('hcTipsSettingSub')}</span></span>
-          <span className="switch" aria-hidden><span /></span>
-        </button>
-      </section>
-
-      <button className="card stack" style={{ gap: 8, border: 'none', textAlign: 'left' }} onClick={() => nav('/family')}>
-        <span className="between"><h2 className="heading">{t('family')}</h2><Icon name="forward" /></span>
-        <span className="small muted">{t('familySummary')}</span>
+      <button className="card between" style={{ gap: 12, border: 'none', textAlign: 'left', width: '100%' }} onClick={() => nav('/family')}>
+        <span className="stack grow" style={{ gap: 8, minWidth: 0 }}><h2 className="heading">{t('family')}</h2><span className="small muted">{t('familySummary')}</span></span>
+        <span style={{ display: 'flex', flex: 'none' }}><Icon name="forward" /></span>
       </button>
 
       <section className="card stack" style={{ gap: 12 }}>

@@ -11,7 +11,7 @@ import { addDays, fmt, today, weekDays, weekStart } from '../lib/dates'
 import { Avatar, Icon, Sheet, Stepper, Thumb } from '../components/ui'
 import { householdLink, useFamily } from '../lib/family'
 import AddToPlanSheet from '../components/AddToPlanSheet'
-import { isLow, MAIN, nudgesOf } from '../lib/nudges'
+import { isLow, MAIN } from '../lib/nudges'
 import { LIBRARY, ownCopy } from '../lib/library'
 import { localise } from '../lib/recipeLang'
 import { foodArt } from '../lib/art'
@@ -50,7 +50,7 @@ export default function Plan() {
   const ahead = inWeek.filter((p) => p.date >= today() && MAIN.includes(p.meal) && !p.leftoverOf)
     .map((p) => ({ meal: p.meal, r: recipes.find((x) => x.id === p.recipeId) })).filter((x) => x.r)
   const lowMeal = targets ? MAIN.find((m) => ahead.filter((x) => x.meal === m && isLow(x.r!.nutrition.protein, targets)).length >= 2) : undefined
-  const weekCheck = !targets || nudgesOf(profile).off ? null
+  const weekCheck = !targets ? null
     : lowMeal ? t('hcPlanLow', { meal: t(lowMeal).toLowerCase() })
     : ahead.length >= 5 && !ahead.some((x) => isLow(x.r!.nutrition.protein, targets)) ? t('hcPlanGood') : null
 
