@@ -94,34 +94,60 @@ export function PickCard({ l, width }: { l: LibRecipe; width?: number }) {
   )
 }
 
-/** One repeated miss from the last 7 days, with swaps to plan. */
+/** A small bar chart: one bar per day, a dashed line for what to aim for. Days with nothing logged get a stub. */
+function HabitBars({ h }: { h: Habit }) {
+  const t = useT()
+  const n = h.values.length
+  const W = 300, H = 84, gap = n > 10 ? 2 : 8
+  const bw = (W - gap * (n - 1)) / n
+  const max = Math.max(h.line * 1.3, ...h.values.map((v) => v ?? 0)) || 1
+  const ly = H - (h.line / max) * H
+  const unit = h.kind === 'over' || h.kind === 'snack' ? t('kcal') : 'g'
+  return (
+    <div className="stack" style={{ gap: 6 }}>
+      <svg viewBox={`0 0 ${W} ${H + (n <= 10 ? 18 : 2)}`} width="100%" role="img" aria-label={h.values.map((v, i) => `${fmt(h.days[i], t.lang, { weekday: 'short' })} ${v ?? '–'}`).join(', ')}>
+        {h.values.map((v, i) => v === null
+          ? <rect key={i} x={i * (bw + gap)} y={H - 4} width={bw} height={4} rx={2} fill="var(--track)" />
+          : <rect key={i} x={i * (bw + gap)} y={H - Math.max((v / max) * H, 3)} width={bw} height={Math.max((v / max) * H, 3)} rx={Math.min(bw / 2, 6)} fill="var(--green)" />)}
+        <line x1={0} x2={W} y1={ly} y2={ly} stroke="var(--green)" strokeWidth={1.5} strokeDasharray="4 4" opacity={0.6} />
+        {n <= 10 && h.days.map((d, i) => <text key={d} x={i * (bw + gap) + bw / 2} y={H + 14} textAnchor="middle" fontSize="11" fill="var(--ink-muted)" fontFamily="Inter">{fmt(d, t.lang, { weekday: 'narrow' })}</text>)}
+      </svg>
+      <span className="caption"><span style={{ display: 'inline-block', width: 14, borderTop: '2px dashed var(--green)', verticalAlign: 'middle', marginRight: 6, opacity: 0.6 }} />{h.kind === 'snack' ? t('hcHeavySnackLine', { n: h.line }) : h.kind === 'over' ? t('hcZoneTop', { n: h.line }) : t('hcAimFor', { n: h.line, u: unit })}</span>
+    </div>
+  )
+}
+
+/** One repeated miss, with a small bar chart and swaps to plan. */
 export function HabitCard({ h }: { h: Habit }) {
   const t = useT()
   const targets = useStore((s) => s.targets)
   const n = h.low.filter(Boolean).length
-  const title = h.kind === 'protein' ? t('hcHabitProtein', { meal: t(h.meal), n }) : h.kind === 'snack' ? t('hcHabitSnack', { name: h.name, kcal: h.kcal, n }) : h.kind === 'fibre' ? t('hcHabitFibre', { g: targets?.fibre ?? 25, n }) : t('hcHabitOver', { n })
+  const of = h.low.length
+  const title = h.kind === 'protein' ? t('hcHabitProtein', { meal: t(h.meal), n, of }) : h.kind === 'snack' ? t('hcHabitSnack', { name: h.name, kcal: h.kcal, n, of }) : h.kind === 'fibre' ? t('hcHabitFibre', { g: targets?.fibre ?? 25, n, of }) : t('hcHabitOver', { n, of })
+  const swaps = h.kind === 'protein' || h.kind === 'snack' ? h.swaps : []
+  const heading = { margin: 0, fontSize: 15, lineHeight: '20px', fontWeight: 600 } as const
   return (
-    <section className="card stack" style={{ gap: 12 }}>
-      <span style={{ fontSize: 15, lineHeight: '20px', fontWeight: 600 }}>{title}</span>
-      <div className="row" style={{ gap: 6 }} aria-hidden="true">
-        {h.low.map((x, i) => <span key={i} style={{ flex: 1, height: 8, borderRadius: 999, background: x ? 'var(--cherry)' : 'var(--track)' }} />)}
-      </div>
+    <section className="card stack" style={{ gap: 14 }}>
+      <h3 style={heading}>{title}</h3>
+      <HabitBars h={h} />
       {h.kind === 'fibre' && <span className="small muted">{t('hcHabitFibreTip')}</span>}
       {h.kind === 'over' && <span className="small muted">{t('hcHabitOverTip')}</span>}
       {h.kind === 'snack' && <span className="small muted">{t('hcHabitSnackTip')}</span>}
-      {(h.kind === 'protein' || h.kind === 'snack') && h.swaps.length > 0 && (
+      {swaps.length > 0 && (
         <>
-          <span className="caption">{h.kind === 'snack' ? t('hcHabitSnackSwaps') : t('hcHabitSwaps')}</span>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>{h.swaps.map((l) => <PickCard key={l.id} l={l} />)}</div>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--line)', margin: '2px 0', width: '100%' }} />
+          <h3 style={heading}>{h.kind === 'snack' ? t('hcHabitSnackSwaps') : t('hcHabitSwaps')}</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>{swaps.map((l) => <PickCard key={l.id} l={l} />)}</div>
           <button className="btn primary block" onClick={() => {
+            const meal = h.kind === 'protein' || h.kind === 'snack' ? h.meal : 'snack'
             // The next few days that don't have this meal planned yet.
             const plan = useStore.getState().plan
             const days: string[] = []
-            for (let i = 1; days.length < h.swaps.length && i <= 14; i++) {
+            for (let i = 1; days.length < swaps.length && i <= 14; i++) {
               const d = addDays(today(), i)
-              if (!plan.some((p) => p.date === d && p.meal === h.meal)) days.push(d)
+              if (!plan.some((p) => p.date === d && p.meal === meal)) days.push(d)
             }
-            days.forEach((d, i) => planPick(h.swaps[i].id, d, h.meal))
+            days.forEach((d, i) => planPick(swaps[i].id, d, meal))
             toast(t('hcPlannedDays', { days: days.map((d) => fmt(d, t.lang, { weekday: 'short' })).join(', ') }))
           }}>{t('hcPlanThese')}</button>
         </>

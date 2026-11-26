@@ -17,9 +17,9 @@ export default function Trends() {
 
   const perDay = useMemo(() => days.map((d) => logs.filter((l) => l.date === d).reduce((acc, l) => add(acc, sumItems(l.items)), { ...ZERO })), [days, logs])
   if (!targets || !profile) return null
-  // Repeated misses over the last 7 days, each with swaps (Healthy choices).
-  const found = habits(logs, today(), targets, profile.goal, profile.pace, nudgesOf(profile))
-  const loggedDays = new Set(logs.filter((l) => l.date >= addDays(today(), -7) && l.date < today()).map((l) => l.date)).size
+  // Repeated misses over the week or month (Healthy choices), each with swaps.
+  const found = habits(logs, today(), targets, profile.goal, profile.pace, nudgesOf(profile), range)
+  const loggedDays = new Set(logs.filter((l) => l.date >= addDays(today(), -range) && l.date < today()).map((l) => l.date)).size
   // Today is still going, so it only counts once it's on target (or when it's the only day logged).
   const done = perDay.filter((m, i) => m.kcal > 0 && (i < range - 1 || m.kcal >= targets.kcal * 0.9))
   const logged = done.length ? done : perDay.filter((m) => m.kcal > 0)
@@ -40,19 +40,23 @@ export default function Trends() {
     return [(i / (span - 1)) * W, H - ((w.kg - wMin) / (wMax - wMin || 1)) * H] as const
   })
 
-  const summary = logged.length === 0 ? t(range === 7 ? 'weekSummaryEmpty' : 'monthSummaryEmpty') : logged.length < 3 ? t('summaryFew') : onTarget >= Math.ceil(logged.length * 0.6) ? t('weekSummaryGood') : t('weekSummaryOk')
+  // When she's not hitting target, say which way the days are going and what helps, never just "well done".
+  const overDays = logged.filter((m) => m.kcal > targets.kcal * 1.1)
+  const underDays = logged.filter((m) => m.kcal < targets.kcal * 0.9)
+  const overBy = overDays.length ? Math.round(overDays.reduce((a, m) => a + m.kcal - targets.kcal, 0) / overDays.length / 10) * 10 : 0
+  const below = found.length ? ` ${t('sumStartBelow')}` : ''
+  const [summary, sub] = logged.length === 0 ? [t(range === 7 ? 'weekSummaryEmpty' : 'monthSummaryEmpty'), null]
+    : logged.length < 3 ? [t('summaryFew'), null]
+    : onTarget >= Math.ceil(logged.length * 0.6) ? [t('weekSummaryGood'), null]
+    : onTarget >= Math.ceil(logged.length * 0.4) ? [t('weekSummaryOk'), null]
+    : overDays.length > logged.length / 2 ? [t('sumOver'), t('sumOverSub', { n: overBy }) + below]
+    : underDays.length > logged.length / 2 ? [t('sumUnder'), t('sumUnderSub')]
+    : [t('sumMixed'), t('sumMixedSub') + below]
 
   return (
     <main className="screen">
       <div className="row"><BackButton to="/" /></div>
       <h1 className="display">{t('trends')}</h1>
-      {loggedDays >= 3 && (
-        <>
-          <div className="between" style={{ alignItems: 'baseline' }}><h2 className="heading">{t('hcHabits')}</h2><span className="caption">{t('hcLast7')}</span></div>
-          {found.length === 0 ? <p className="small muted" style={{ margin: 0 }}>{t('hcNoHabits')}</p> : found.map((h, i) => <HabitCard key={i} h={h} />)}
-        </>
-      )}
-
       <div className="chips" role="group">
         <button className="chip" aria-pressed={range === 7} onClick={() => setRange(7)}>{t('week')}</button>
         <button className="chip" aria-pressed={range === 30} onClick={() => setRange(30)}>{t('month')}</button>
@@ -61,8 +65,12 @@ export default function Trends() {
       <section className="card green stack" style={{ gap: 8 }}>
         <span className="label" style={{ color: 'var(--green-soft)' }}>{t(range === 7 ? 'yourWeek' : 'yourMonth')}</span>
         <span style={{ fontFamily: 'var(--font-display)', fontSize: 24, lineHeight: '30px', fontWeight: 700 }}>{summary}</span>
-        <span className="small" style={{ color: 'var(--green-soft)' }}>{t('onTarget', { n: onTarget, t: range })}</span>
+        {sub && <span className="small" style={{ color: 'var(--on-green)', lineHeight: '20px' }}>{sub}</span>}
+        <span className="small" style={{ color: 'var(--green-soft)' }}>{t('onTarget', { n: onTarget, t: logged.length || range })}</span>
       </section>
+
+      {loggedDays >= 3 && found.map((h, i) => <HabitCard key={i} h={h} />)}
+      {loggedDays >= 3 && found.length === 0 && onTarget >= Math.ceil(logged.length * 0.6) && <p className="small muted" style={{ margin: 0 }}>{t('hcNoHabits')}</p>}
 
       <section className="card stack" style={{ gap: 12 }}>
         <div className="between">

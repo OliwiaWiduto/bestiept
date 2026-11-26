@@ -96,38 +96,42 @@ export function mealWin(logs: LogEntry[], date: string, targets: Macros): { meal
   return null
 }
 
-export type Habit =
-  | { kind: 'protein'; meal: Meal; low: boolean[]; swaps: LibRecipe[] }
-  | { kind: 'fibre'; low: boolean[] }
-  | { kind: 'over'; low: boolean[] }
-  | { kind: 'snack'; meal: Meal; name: string; kcal: number; low: boolean[]; swaps: LibRecipe[] }
+/** For the little bar chart on each habit: the value each day (null = nothing logged) and the line to aim for. */
+type Chart = { days: string[]; low: boolean[]; values: (number | null)[]; line: number }
+export type Habit = Chart & (
+  | { kind: 'protein'; meal: Meal; swaps: LibRecipe[] }
+  | { kind: 'fibre' }
+  | { kind: 'over' }
+  | { kind: 'snack'; meal: Meal; name: string; kcal: number; swaps: LibRecipe[] })
 
-/** Repeated misses over the 7 days before `date` (today isn't finished, so it doesn't count). */
-export function habits(logs: LogEntry[], date: string, targets: Macros, goal: Profile['goal'], pace: Profile['pace'], nudges: Nudges): Habit[] {
-  const days = Array.from({ length: 7 }, (_, i) => addDays(date, i - 7))
+/** Repeated misses over the n days before `date` (today isn't finished, so it doesn't count): 4 of 7, or about half of a month. */
+export function habits(logs: LogEntry[], date: string, targets: Macros, goal: Profile['goal'], pace: Profile['pace'], nudges: Nudges, n = 7): Habit[] {
+  const days = Array.from({ length: n }, (_, i) => addDays(date, i - n))
+  const need = n === 7 ? 4 : Math.ceil(n * 0.5)
   const out: Habit[] = []
   for (const meal of MAIN) {
     const per = days.map((d) => logs.filter((l) => l.date === d && l.meal === meal))
     const low = per.map((e) => e.length > 0 && isLow(e.reduce((a, l) => a + sumItems(l.items).protein, 0), targets) && !!swapTarget(e))
-    if (low.filter(Boolean).length < 4) continue
+    if (low.filter(Boolean).length < need) continue
     // Compare against one typical meal (the latest low one), and use every low day's food to work out what she likes.
     const lowDays = per.filter((_, i) => low[i])
     const typical = [swapTarget(lowDays.at(-1)!)!]
     const liked = lowDays.flat().map((e) => ({ ...e, items: [] }))
     const swaps = swapsFor(meal, [...typical, ...liked], { dismissed: nudges.dismissed, today: date, roomKcal: targets.kcal / 3 }).slice(0, 3)
-    out.push({ kind: 'protein', meal, low, swaps })
+    const values = per.map((e) => (e.length ? Math.round(e.reduce((a, l) => a + sumItems(l.items).protein, 0)) : null))
+    out.push({ kind: 'protein', meal, low, swaps, days, values, line: Math.round(proteinShare(targets)) })
   }
   // Whole-day checks only count days that look fully logged (60% of her calories or more).
   const totals = days.map((d) => logs.filter((l) => l.date === d).reduce((a, l) => add(a, sumItems(l.items)), { ...ZERO }))
   const full = totals.map((m) => m.kcal >= targets.kcal * 0.6)
   const fibre = totals.map((m, i) => full[i] && m.fibre < targets.fibre)
-  if (fibre.filter(Boolean).length >= 4) out.push({ kind: 'fibre', low: fibre })
+  if (fibre.filter(Boolean).length >= need) out.push({ kind: 'fibre', low: fibre, days, values: totals.map((m, i) => (full[i] ? Math.round(m.fibre) : null)), line: targets.fibre })
   const top = calorieZone(targets.kcal, goal, pace)[1]
   const over = totals.map((m, i) => full[i] && m.kcal > top)
   // Snacks are allowed to be treats. Only a heavy one (300 kcal+) that keeps tipping the day over the zone gets a lighter idea.
   const heavy = days.map((d) => logs.filter((l) => l.date === d && heavySnack(l)).sort((a, b) => sumItems(b.items).kcal - sumItems(a.items).kcal)[0])
   const snackDays = over.map((o, i) => o && !!heavy[i])
-  if (snackDays.filter(Boolean).length >= 4) {
+  if (snackDays.filter(Boolean).length >= need) {
     const last = heavy.filter((h, i) => h && snackDays[i]).at(-1)!
     const k = sumItems(last.items).kcal
     const text = textOf([last])
@@ -136,8 +140,9 @@ export function habits(logs: LogEntry[], date: string, targets: Macros, goal: Pr
     const lighter = [...new Set([...typed.map(libById), ...LIBRARY])]
       .filter((l): l is LibRecipe => !!l && l.category === 'snack' && l.nutrition.kcal <= k * 0.6 && l.feel === (savoury ? 'savoury' : 'sweet'))
       .filter((l) => { const w = nudges.dismissed?.[l.id]; return !w || addDays(w, 14) <= date })
-    out.push({ kind: 'snack', meal: 'snack', name: last.name, kcal: Math.round(k), low: snackDays, swaps: lighter.slice(0, 3) })
-  } else if (over.filter(Boolean).length >= 4) out.push({ kind: 'over', low: over })
+    const values = days.map((d) => { const s = logs.filter((l) => l.date === d && l.meal === 'snack'); return s.length ? Math.round(s.reduce((a, l) => a + sumItems(l.items).kcal, 0)) : null })
+    out.push({ kind: 'snack', meal: 'snack', name: last.name, kcal: Math.round(k), low: snackDays, swaps: lighter.slice(0, 3), days, values, line: 300 })
+  } else if (over.filter(Boolean).length >= need) out.push({ kind: 'over', low: over, days, values: totals.map((m, i) => (full[i] ? Math.round(m.kcal) : null)), line: Math.round(top) })
   return out
 }
 
