@@ -90,16 +90,19 @@ export default function Today() {
                 </span>
               </button>
             )
-          return entries.map((e) => (
-            <button key={e.id} className="meal-row" onClick={() => nav(`/meal/${e.id}`)}>
-              <Thumb photo={e.photo} cat={e.meal} name={e.name} />
-              <span className="grow stack" style={{ gap: 2 }}>
-                <span className="caption">{t(meal)}</span>
-                <span style={{ fontSize: 15, lineHeight: '20px', fontWeight: 600 }}>{e.name}</span>
-              </span>
-              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--green)' }}>{Math.round(sumItems(e.items).kcal)}</span>
-            </button>
-          ))
+          return entries.map((e) => {
+            const m = sumItems(e.items)
+            return (
+              <button key={e.id} className="meal-row" onClick={() => nav(`/meal/${e.id}`)}>
+                <Thumb photo={e.photo} cat={e.meal} name={e.name} />
+                <span className="grow stack" style={{ gap: 2, minWidth: 0 }}>
+                  {/* The meal's own numbers, written the same way as each ingredient's */}
+                  <span className="caption">{[t(meal), `${Math.round(m.kcal)} ${t('kcal')}`, `P ${Math.round(m.protein)}`, `C ${Math.round(m.carbs)}`, `F ${Math.round(m.fat)}`].join(' · ')}</span>
+                  <span style={{ fontSize: 15, lineHeight: '20px', fontWeight: 600 }}>{e.name}</span>
+                </span>
+              </button>
+            )
+          })
         })}
       </div>
 
