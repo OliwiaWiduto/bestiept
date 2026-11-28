@@ -243,10 +243,8 @@ export default function Shopping() {
               <button key={l.key} aria-pressed={have} onClick={() => { const n = new Set(outNow); if (have) n.add(l.key); else n.delete(l.key); setOutNow(n) }}
                 style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', background: 'transparent', border: 'none', borderBottom: i === all.length - 1 ? 'none' : '1px solid var(--line)', textAlign: 'left', width: '100%' }}>
                 <span className={`check ${have ? 'on' : ''}`}>{have && <Icon name="check" size={16} sw={2.5} />}</span>
-                <span className="grow stack" style={{ gap: 2 }}>
-                  <span style={{ fontSize: 15, lineHeight: '20px', fontWeight: 600 }}>{cap(plBasic(l.name))}</span>
-                  <span className="caption">{[displayAmount(l, t.lang), t(l.reason === 'staple' ? 'reasonStaple' : l.reason === 'small' ? 'reasonSmall' : 'reasonRecent')].filter(Boolean).join(' · ')}</span>
-                </span>
+                <span className="grow" style={{ fontSize: 15, lineHeight: '20px', fontWeight: 600 }}>{cap(plBasic(l.name))}</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--green)', whiteSpace: 'nowrap' }}>{displayAmount(l, t.lang)}</span>
               </button>
             )
           })}
