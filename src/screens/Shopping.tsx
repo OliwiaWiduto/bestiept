@@ -104,8 +104,9 @@ export default function Shopping() {
   const visible = need.filter((l) => !hidden.has(l.key))
   type Item = { key: string; name: string; amount: string; category: ShoppingLine['category']; text: string }
   const items: Item[] = [
-    ...visible.map((l) => ({ key: l.key, name: l.name, amount: displayAmount(l, t.lang), category: l.category, text: plannedText(displayAmount(l, t.lang), l.name, t.lang) })),
+    // Her own things first, newest at the top, where she types them.
     ...(showExtras ? shopping.extras : []).map((e) => ({ key: `extra:${e.id}`, name: exName(e), amount: e.amount, category: categorise(e.tr?.en ?? e.name), text: lineText(e.amount, exName(e)) })),
+    ...visible.map((l) => ({ key: l.key, name: l.name, amount: displayAmount(l, t.lang), category: l.category, text: plannedText(displayAmount(l, t.lang), l.name, t.lang) })),
   ]
   const allKeys = items.map((i) => i.key)
   const done = allKeys.filter(isTicked).length
@@ -124,9 +125,9 @@ export default function Shopping() {
   const editing = useRef(false)
   const listKey = items.map((i) => i.key + i.amount + i.name).join('|')
   useEffect(() => { if (!editing.current) setText(asText()) }, [listKey]) // eslint-disable-line react-hooks/exhaustive-deps
-  const commit = () => {
+  const commit = (v = text) => {
     editing.current = false
-    const lines = text.split('\n').map((l) => l.trim()).filter(Boolean)
+    const lines = v.split('\n').map((l) => l.trim()).filter(Boolean)
     const wanted = new Map(lines.map((l) => [l.toLowerCase(), l]))
     const planned = new Map(need.map((l) => [plannedText(displayAmount(l, t.lang), l.name, t.lang).toLowerCase(), l.key]))
     const nextHidden = new Set(shopping.hidden ?? [])
@@ -145,7 +146,7 @@ export default function Shopping() {
       return { id: uid(), name: ing.name || l, amount }
     })
     // Her own items aren't in the text while she's only looking at some meals, so they stay as they are.
-    setShopping({ hidden: [...nextHidden], extras: [...(showExtras ? [] : shopping.extras), ...keep, ...added] })
+    setShopping({ hidden: [...nextHidden], extras: [...(showExtras ? [] : shopping.extras), ...added, ...keep] })
   }
   // Take everything in the basket off the list (planned items are hidden for this week, added ones deleted), with Undo.
   const [finishOpen, setFinishOpen] = useState(false)
@@ -273,7 +274,7 @@ export default function Shopping() {
           <span className="small muted">{t(hint)}</span>
           {hint === 'listHintNoPlan' && <button className="btn secondary small" style={{ alignSelf: 'flex-start' }} onClick={() => nav('/plan')}>{t('planMeals')}</button>}
           <LineEditor value={text} onChange={setText} onFocus={() => { editing.current = true }} onDone={commit}
-            struck={(l) => bought.has(l)} placeholder={t('listPh')} label={t('shopping')} />
+            struck={(l) => bought.has(l)} placeholder={t('listPh')} label={t('shopping')} addOnTop />
           {inBasket.length > 0 && (
             <div className="between" style={{ gap: 12 }}>
               <span className="caption">{t('boughtHint', { n: inBasket.length })}</span>

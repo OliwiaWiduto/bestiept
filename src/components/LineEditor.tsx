@@ -1,15 +1,27 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 /**
  * A list you type into one line at a time (Enter for a new line, Backspace on an empty line to remove it).
  * Each line is its own box, so a line can be styled (crossed out) without the cursor drifting.
  */
-export function LineEditor({ value, onChange, onFocus, onDone, struck, placeholder, label }: {
-  value: string; onChange: (v: string) => void; onFocus?: () => void; onDone: () => void
+export function LineEditor({ value, onChange, onFocus, onDone, struck, placeholder, label, addOnTop }: {
+  value: string; onChange: (v: string) => void; onFocus?: () => void; onDone: (v?: string) => void
   struck: (line: string) => boolean; placeholder: string; label: string
+  /** The empty "add" line sits at the top (with the placeholder) and new things go in above the rest. */
+  addOnTop?: boolean
 }) {
-  const lines = value === '' ? [''] : value.split('\n')
-  const shown = lines[lines.length - 1].trim() === '' ? lines : [...lines, '']
+  const lines = value === '' ? (addOnTop ? [] : ['']) : value.split('\n')
+  const shown = addOnTop || lines[lines.length - 1].trim() === '' ? lines : [...lines, '']
+  const [draft, setDraft] = useState('')
+  const topRef = useRef<HTMLInputElement | null>(null)
+  /** Put the typed line(s) at the top of the list and return the new text. */
+  const addDraft = (more: string[]) => {
+    const parts = more.map((p) => p.trim()).filter(Boolean)
+    if (!parts.length) return value
+    const v = [...parts, ...(value ? [value] : [])].join('\n')
+    onChange(v)
+    return v
+  }
   const refs = useRef<(HTMLInputElement | null)[]>([])
   const focusNext = useRef<{ i: number; at: 'start' | 'end' } | null>(null)
   const wrap = useRef<HTMLDivElement>(null)
@@ -44,11 +56,30 @@ export function LineEditor({ value, onChange, onFocus, onDone, struck, placehold
 
   return (
     <div ref={wrap} className="line-editor" role="group" aria-label={label}
-      onBlur={(e) => { if (!wrap.current?.contains(e.relatedTarget as Node | null)) onDone() }}>
+      onBlur={(e) => {
+        if (wrap.current?.contains(e.relatedTarget as Node | null)) return
+        if (draft.trim()) { const v = addDraft([draft]); setDraft(''); onDone(v) } else onDone()
+      }}>
+      {addOnTop && (
+        <input ref={topRef} className={shown.length ? "add" : undefined} value={draft} aria-label={placeholder} placeholder={placeholder}
+          enterKeyHint="done" autoCapitalize="sentences" onFocus={onFocus}
+          onChange={(e) => setDraft(e.target.value)}
+          onPaste={(e) => {
+            const txt = e.clipboardData.getData('text')
+            if (!txt.includes('\n')) return
+            e.preventDefault()
+            addDraft([draft, ...txt.split(/\r?\n/)]); setDraft('')
+          }}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter') return
+            e.preventDefault()
+            addDraft([draft]); setDraft('')
+          }} />
+      )}
       {shown.map((line, i) => (
         <input key={i} ref={(el) => { refs.current[i] = el }} value={line} aria-label={`${label} ${i + 1}`}
           className={struck(line.trim().toLowerCase()) ? 'struck' : undefined}
-          placeholder={i === shown.length - 1 ? placeholder : undefined}
+          placeholder={!addOnTop && i === shown.length - 1 ? placeholder : undefined}
           enterKeyHint="next" autoCapitalize="sentences"
           onFocus={onFocus}
           onChange={(e) => { const next = [...shown]; next[i] = e.target.value; set(next) }}
