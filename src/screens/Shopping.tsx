@@ -174,6 +174,16 @@ export default function Shopping() {
   useEffect(() => { setBasketCount(done) }, [done, setBasketCount])
 
 
+  // The first time she starts shopping in a week, check the things we think she already has (once per item per week).
+  const [cupboard, setCupboard] = useState<typeof probably | null>(null)
+  const [outNow, setOutNow] = useState<Set<string>>(new Set())
+  const goShopping = () => { noteTrip(); setShopping({ shoppingMode: true }); window.scrollTo(0, 0) }
+  const startShopping = () => {
+    commit()
+    const asked = new Set(shopping.cupboardChecked ?? [])
+    const toCheck = probably.filter((l) => !asked.has(`${planWeek}:${l.key}`))
+    if (toCheck.length) { setOutNow(new Set()); setCupboard(toCheck) } else goShopping()
+  }
   const row = (key: string, name: string, amount: string, caption: string, last: boolean) => {
     const on = isTicked(key)
     return (
@@ -213,11 +223,44 @@ export default function Shopping() {
           <h1 className="display">{t('shopping')}</h1>
         </div>
       </div>
+      {!shoppingNow && (
+        <div className="stack" style={{ gap: 8 }}>
+          <span className="small muted">{t(hint)}</span>
+          {hint === 'listHintNoPlan' && <button className="btn secondary small" style={{ alignSelf: 'flex-start' }} onClick={() => nav('/plan')}>{t('planMeals')}</button>}
+        </div>
+      )}
       {!shoppingNow && text.trim() !== '' && (
-        <button className="btn primary block sticky-start" onClick={() => { commit(); noteTrip(); setShopping({ shoppingMode: true }); window.scrollTo(0, 0) }}>
+        <button className="btn primary block sticky-start" onClick={startShopping}>
           <Icon name="bag" size={20} />{t('startShopping')}
         </button>
       )}
+      <Sheet open={!!cupboard} onClose={() => setCupboard(null)} title={t('cupboardTitle')}>
+        <span className="small muted">{t('cupboardHint')}</span>
+        <div className="card" style={{ padding: '4px 16px', maxHeight: '50dvh', overflowY: 'auto' }}>
+          {(cupboard ?? []).map((l, i, all) => {
+            const have = !outNow.has(l.key)
+            return (
+              <button key={l.key} aria-pressed={have} onClick={() => { const n = new Set(outNow); if (have) n.add(l.key); else n.delete(l.key); setOutNow(n) }}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', background: 'transparent', border: 'none', borderBottom: i === all.length - 1 ? 'none' : '1px solid var(--line)', textAlign: 'left', width: '100%' }}>
+                <span className={`check ${have ? 'on' : ''}`}>{have && <Icon name="check" size={16} sw={2.5} />}</span>
+                <span className="grow stack" style={{ gap: 2 }}>
+                  <span style={{ fontSize: 15, lineHeight: '20px', fontWeight: 600 }}>{cap(plBasic(l.name))}</span>
+                  <span className="caption">{[displayAmount(l, t.lang), t(l.reason === 'staple' ? 'reasonStaple' : l.reason === 'small' ? 'reasonSmall' : 'reasonRecent')].filter(Boolean).join(' · ')}</span>
+                </span>
+              </button>
+            )
+          })}
+        </div>
+        <button className="btn primary block" onClick={() => {
+          const asked = (cupboard ?? []).map((l) => `${planWeek}:${l.key}`)
+          const prev = (shopping.cupboardChecked ?? []).filter((k) => k.startsWith(planWeek + ':'))
+          setShopping({ out: [...shopping.out, ...[...outNow].filter((k) => !shopping.out.includes(k))], cupboardChecked: [...prev, ...asked] })
+          setCupboard(null)
+          goShopping()
+        }}>
+          {outNow.size ? t('cupboardAddN', { n: outNow.size }) : t('cupboardGo')}
+        </button>
+      </Sheet>
       {shopping.shoppingMode && cookable.length + (shopping.extras.length ? 1 : 0) > 1 && (
         <div className="chips" role="group" aria-label={t('shopFor')}>
           <button className="chip" aria-pressed={!someMeals} onClick={() => setShopping({ onlyFor: undefined })}>{t('allMeals')}</button>
@@ -272,8 +315,6 @@ export default function Shopping() {
 
       {!shoppingNow && (
         <section className="stack" style={{ gap: 8 }}>
-          <span className="small muted">{t(hint)}</span>
-          {hint === 'listHintNoPlan' && <button className="btn secondary small" style={{ alignSelf: 'flex-start' }} onClick={() => nav('/plan')}>{t('planMeals')}</button>}
           <LineEditor value={text} onChange={setText} onFocus={() => { editing.current = true }} onDone={commit}
             struck={(l) => bought.has(l)} placeholder={t('listPh')} label={t('shopping')} addOnTop />
           {inBasket.length > 0 && (

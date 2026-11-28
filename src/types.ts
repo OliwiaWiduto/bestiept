@@ -113,6 +113,8 @@ export type ShoppingState = {
   shoppingMode?: boolean
   /** Only shop for these planned meals (plan item ids); not set = every meal. Kept on this phone only. */
   onlyFor?: string[]
+  /** "Already in your cupboard?" items she's confirmed before shopping, as week:key (asked once a week per item) */
+  cupboardChecked?: string[]
 }
 
 export type WeightEntry = { date: string; kg: number }
