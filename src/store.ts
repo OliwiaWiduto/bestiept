@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { markLogged } from './lib/celebrate'
 import { create } from 'zustand'
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware'
 import { del, get, set } from 'idb-keyval'
@@ -95,7 +96,7 @@ export const useStore = create<State>()(
       deleteRecipe: (id) => setState({ recipes: getState().recipes.filter((r) => r.id !== id), plan: getState().plan.filter((p) => p.recipeId !== id) }),
       toggleFavourite: (id) => setState({ recipes: getState().recipes.map((r) => (r.id === id ? { ...r, favourite: !r.favourite } : r)) }),
 
-      saveLog: (e) => setState({ logs: getState().logs.some((x) => x.id === e.id) ? getState().logs.map((x) => (x.id === e.id ? e : x)) : [...getState().logs, e] }),
+      saveLog: (e) => { markLogged(); setState({ logs: getState().logs.some((x) => x.id === e.id) ? getState().logs.map((x) => (x.id === e.id ? e : x)) : [...getState().logs, e] }) },
       deleteLog: (id) => setState({ logs: getState().logs.filter((l) => l.id !== id) }),
 
       addPlan: (p) => {

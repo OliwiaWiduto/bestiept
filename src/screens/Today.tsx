@@ -1,10 +1,11 @@
-import { useMemo, useState, type CSSProperties } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { useUI } from '../ui-state'
 import { useT } from '../i18n'
-import { MEALS, ZERO, type Goal, type Macros, type Pace } from '../types'
-import { add, calorieZone, sumItems } from '../lib/nutrition'
+import { MEALS, ZERO, type Macros } from '../types'
+import { add, sumItems } from '../lib/nutrition'
+import SummaryCard from '../components/SummaryCard'
 import { addDays, fmt, today } from '../lib/dates'
 import { Avatar, Icon, Sheet, Thumb, toast } from '../components/ui'
 import { WeightField } from '../components/BodyFields'
@@ -73,7 +74,7 @@ export default function Today() {
         <button className="icon-btn" style={{ background: 'transparent' }} aria-label={t('nextDay')} disabled={isToday} onClick={() => setViewDate(addDays(viewDate, 1))}><Icon name="forward" /></button>
       </div>
 
-      <SummaryCard totals={totals} targets={targets} goal={profile.goal} pace={profile.pace} />
+      <SummaryCard date={viewDate} totals={totals} targets={targets} goal={profile.goal} pace={profile.pace} sounds={profile.sounds !== false} />
 
 
       <h2 className="heading" style={{ paddingTop: 8 }}>{t('yourMeals')}</h2>
@@ -149,48 +150,5 @@ function WeightSheet({ open, onClose, last, onSave }: { open: boolean; onClose: 
       <WeightField kg={kg} onChange={setKg} big />
       <button className="btn primary block" disabled={!(kg >= 30 && kg <= 300)} onClick={() => onSave(Math.round(kg * 10) / 10)}>{t('save')}</button>
     </Sheet>
-  )
-}
-
-/** Calories against a zone (the bar runs past it, so eating over still fits) and the macros, on one dark green card. */
-function SummaryCard({ totals, targets, goal, pace }: { totals: Macros; targets: Macros; goal: Goal; pace?: Pace }) {
-  const t = useT()
-  const [min, max] = calorieZone(targets.kcal, goal, pace)
-  const full = Math.ceil((max * 1.16) / 100) * 100
-  const pct = (n: number) => Math.max(0, Math.min(100, (n / full) * 100))
-  const eaten = Math.round(totals.kcal)
-  const over = eaten > max
-  const edge: CSSProperties = { position: 'absolute', top: 0, bottom: 0, width: 2, marginLeft: -1, background: 'var(--green)' }
-  return (
-    <section className="card stack summary-card" style={{ gap: 16 }}>
-      <div className="stack" style={{ gap: 8 }}>
-        <div className="between label"><span>{t('calories')}</span><span style={{ fontWeight: 400, color: 'var(--on-green-muted)' }}><b style={{ color: '#fff', fontWeight: 600 }}>{eaten}</b> / {max}</span></div>
-        <div role="img" aria-label={`${eaten} / ${max} ${t('kcal')}`} style={{ position: 'relative', height: 14, borderRadius: 999, overflow: 'hidden', background: 'rgba(255, 252, 246, .16)' }}>
-          <div style={{ position: 'absolute', top: 0, bottom: 0, left: `${pct(min)}%`, width: `${pct(max) - pct(min)}%`, background: 'rgba(216, 243, 122, .38)' }} />
-          <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: `${over ? pct(max) : pct(eaten)}%`, borderRadius: 999, background: 'var(--lime-bright)', transition: 'width .3s' }} />
-          {over && <div style={{ position: 'absolute', top: 0, bottom: 0, left: `${pct(max)}%`, width: `${pct(eaten) - pct(max)}%`, borderRadius: '0 999px 999px 0', background: '#FF7A9C' }} />}
-          <div style={{ ...edge, left: `${pct(min)}%` }} />
-          <div style={{ ...edge, left: `${pct(max)}%` }} />
-        </div>
-        <div style={{ position: 'relative', height: 14, marginTop: -4, fontSize: 11, lineHeight: '14px' }}>
-          <span style={{ position: 'absolute', left: `${(pct(min) + pct(max)) / 2}%`, transform: 'translateX(-50%)', whiteSpace: 'nowrap', fontWeight: 600, color: 'var(--lime-bright)' }}>{t(goal === 'lose' ? 'zoneLose' : goal === 'gain' ? 'zoneGain' : goal === 'build' ? 'zoneBuild' : 'zoneMaintain')}</span>
-        </div>
-      </div>
-      <div aria-hidden="true" style={{ borderTop: '1px solid rgba(255, 252, 246, .16)' }} />
-      <SummaryMacro label={t('protein')} value={totals.protein} target={targets.protein} color="var(--cherry)" />
-      <SummaryMacro label={t('carbs')} value={totals.carbs} target={targets.carbs} color="var(--butter)" />
-      <SummaryMacro label={t('fat')} value={totals.fat} target={targets.fat} color="var(--olive)" />
-      <SummaryMacro label={t('fibre')} value={totals.fibre} target={targets.fibre} color="var(--lime)" />
-    </section>
-  )
-}
-
-function SummaryMacro({ label, value, target, color }: { label: string; value: number; target: number; color: string }) {
-  const pct = target > 0 ? Math.min(100, (value / target) * 100) : 0
-  return (
-    <div className="stack" style={{ gap: 8 }}>
-      <div className="between label"><span>{label}</span><span style={{ fontWeight: 400, color: 'var(--on-green-muted)' }}><b style={{ color: '#fff', fontWeight: 600 }}>{Math.round(value)}</b> / {Math.round(target)}g</span></div>
-      <div style={{ height: 8, borderRadius: 999, overflow: 'hidden', background: 'rgba(255, 252, 246, .16)' }}><div style={{ width: `${pct}%`, height: '100%', borderRadius: 999, background: color, transition: 'width .3s' }} /></div>
-    </div>
   )
 }

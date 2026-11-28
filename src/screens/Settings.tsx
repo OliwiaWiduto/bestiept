@@ -151,6 +151,10 @@ export default function Settings() {
           <button className="chip" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>{t('english')}</button>
           <button className="chip" aria-pressed={lang === 'pl'} onClick={() => setLang('pl')}>{t('polish')}</button>
         </div>
+            <button className="switch-row" role="switch" aria-checked={profile.sounds !== false} onClick={() => updateProfile({ ...profile, sounds: profile.sounds === false }, false)}>
+              <span className="grow stack" style={{ gap: 0 }}><span style={{ fontWeight: 600 }}>{t('sounds')}</span><span className="small muted">{t('soundsHint')}</span></span>
+              <span className="switch" aria-hidden><span /></span>
+            </button>
           </>
         )}
       </section>

@@ -340,3 +340,18 @@ input[type=number] { -moz-appearance: textfield; }
 
 /* Healthy choices: a meal and its tip, one card outlined in pink */
 .tip-group { background: var(--surface-raised); border: 1.5px solid #EFA3B8; border-radius: var(--radius-md); overflow: hidden; display: flex; flex-direction: column; }
+
+/* Today card rewards: spring fill, shine, number bounce, confetti, Goal hit badge */
+@keyframes sc-shimmer { from { transform: translateX(-120%); } to { transform: translateX(220%); } }
+@keyframes sc-bump { 0% { transform: scale(1); } 30% { transform: scale(1.22); } 100% { transform: scale(1); } }
+@keyframes sc-pop-in { 0% { transform: scale(0) rotate(-20deg); opacity: 0; } 60% { transform: scale(1.25) rotate(6deg); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes sc-pop-out { from { transform: scale(1); opacity: 1; } to { transform: scale(0); opacity: 0; } }
+@keyframes sc-zone { 0% { transform: translateX(-50%) scale(1); } 40% { transform: translateX(-50%) scale(1.18); } 100% { transform: translateX(-50%) scale(1); } }
+@keyframes sc-burst { 0% { transform: translate(-50%, -50%) scale(.3) rotate(0); opacity: 1; } 70% { opacity: 1; } 100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1) rotate(var(--r)); opacity: 0; } }
+.sc-shine { position: absolute; top: 0; bottom: 0; left: 0; width: 45%; background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.65), rgba(255,255,255,0)); transform: translateX(-120%); animation: sc-shimmer .9s ease-out 1; }
+.sc-bump { display: inline-block; animation: sc-bump .6s cubic-bezier(.34,1.56,.64,1) 1; }
+.sc-badge { display: inline-flex; align-items: center; gap: 3px; height: 18px; padding: 0 7px; border-radius: 999px; background: var(--lime-bright); color: var(--green); font-size: 11px; font-weight: 700; animation: sc-pop-in .52s cubic-bezier(.34,1.56,.64,1) 1 both; }
+.sc-badge-out { animation: sc-pop-out .32s ease-in 1 both; }
+.sc-zone-pop { animation: sc-zone .7s cubic-bezier(.34,1.56,.64,1) 1; }
+.sc-bit { position: absolute; left: 0; top: 0; pointer-events: none; animation: sc-burst .85s cubic-bezier(.2,.7,.3,1) 1 both; }
+@media (prefers-reduced-motion: reduce) { .sc-fill { transition: none !important; } .sc-shine, .sc-bit { display: none; } .sc-bump, .sc-badge, .sc-badge-out, .sc-zone-pop { animation: none; } }

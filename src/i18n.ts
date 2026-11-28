@@ -145,6 +145,8 @@ const en = {
   inviteBeMyBestie: 'Be my bestie?', inviteFourTaps: 'I’ve got recipes I’d love to share with you. Add me on BestiePT in four taps:', inviteStep1: 'Open **BestiePT**', inviteStep2: 'Tap **your picture,** top right',
   inviteStep3: 'Tap', inviteStep4: 'Under **{addSomeone}**, type my name, then press **{add}**', inviteFooter: 'I’ll accept, and we’re linked.',
   inviteShareText: 'Hey! I’ve got some recipes on BestiePT I’d love to share with you. Add me, I’m @{username}', invitePreview: 'Your invite card', inviteSend: 'Send', inviteSaved: 'Invite card saved. Send it to your bestie!', inviteMaking: 'Making your card…',
+  and: 'and', goalHit: '{list} goal hit!', goalsHit: '{list} goals hit!', inZoneToo: 'And you’re in your zone.', inYourZone: 'You’re in your zone!', inYourZoneShort: 'In your zone!', overYourZone: 'Over your zone', overGoalToday: 'Over your goal today: {list}', goalHitBadge: 'Goal hit',
+  sounds: 'Sounds', soundsHint: 'A little chime when you log food and hit a goal',
   weight: 'Weight', logToday: 'Log today', seeTrends: 'See trends', prevDay: 'Previous day', nextDay: 'Next day', backToToday: 'Back to today',
   weightDown: 'Down {n} this week', weightUp: 'Up {n} this week', weightSame: 'Same as last week', weightNone: 'Log your first weigh-in',
 
@@ -357,6 +359,8 @@ const pl: Dict = {
   inviteBeMyBestie: 'Zostaniesz moją bestie?', inviteFourTaps: 'Mam przepisy, którymi chcę się z Tobą podzielić. Dodaj mnie w BestiePT w czterech krokach:', inviteStep1: 'Otwórz **BestiePT**', inviteStep2: 'Dotknij **swojego zdjęcia** w prawym górnym rogu',
   inviteStep3: 'Dotknij', inviteStep4: 'W sekcji **{addSomeone}** wpisz moją nazwę, a potem naciśnij **{add}**', inviteFooter: 'Zaakceptuję i od razu się połączymy.',
   inviteShareText: 'Hej! Mam w BestiePT przepisy, którymi chcę się z Tobą podzielić. Dodaj mnie, jestem @{username}', invitePreview: 'Twoja karta z zaproszeniem', inviteSend: 'Wyślij', inviteSaved: 'Karta zapisana. Wyślij ją swojej bestie!', inviteMaking: 'Robię Twoją kartę…',
+  and: 'i', goalHit: 'Cel osiągnięty: {list}!', goalsHit: 'Cele osiągnięte: {list}!', inZoneToo: 'I jesteś w swojej strefie.', inYourZone: 'Jesteś w swojej strefie!', inYourZoneShort: 'W Twojej strefie!', overYourZone: 'Ponad Twoją strefą', overGoalToday: 'Dziś ponad cel: {list}', goalHitBadge: 'Cel osiągnięty',
+  sounds: 'Dźwięki', soundsHint: 'Delikatny dźwięk, gdy dodajesz posiłek i osiągasz cel',
   weight: 'Waga', logToday: 'Zapisz dziś', seeTrends: 'Zobacz trendy', prevDay: 'Poprzedni dzień', nextDay: 'Następny dzień', backToToday: 'Wróć do dziś',
   weightDown: 'Mniej o {n} w tym tygodniu', weightUp: 'Więcej o {n} w tym tygodniu', weightSame: 'Tak samo jak w zeszłym tygodniu', weightNone: 'Zapisz swoje pierwsze ważenie',
 
