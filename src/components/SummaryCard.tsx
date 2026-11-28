@@ -39,7 +39,7 @@ function status(b: Bar, v: number): Status {
  * numbers up and plays a chime; reaching a goal plays a rising run of notes and pops in a "Goal hit" badge for a moment.
  * Going over is quiet: one soft pop, and the number and zone label turn pink.
  */
-export default function SummaryCard({ date, totals, targets, goal, pace, sounds }: { date: string; totals: Macros; targets: Macros; goal: Goal; pace?: Pace; sounds: boolean }) {
+export default function SummaryCard({ date, totals, targets, goal, pace }: { date: string; totals: Macros; targets: Macros; goal: Goal; pace?: Pace }) {
   const t = useT()
   const now = pick(totals)
   const [min, max] = calorieZone(targets.kcal, goal, pace)
@@ -95,7 +95,7 @@ export default function SummaryCard({ date, totals, targets, goal, pace, sounds 
     const reached = bars.filter((b) => status(b, prev[b.key]) === 'under' && status(b, now[b.key]) === 'zone')
     const wentOver = bars.filter((b) => status(b, prev[b.key]) !== 'over' && status(b, now[b.key]) === 'over')
     const kind: SoundKind = wentOver.length ? 'quiet' : reached.length ? 'goal' : 'add'
-    if (sounds) playSound(kind)
+    playSound(kind)
     buzz(kind)
 
     const list = (bs: Bar[]) => {

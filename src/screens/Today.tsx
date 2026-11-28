@@ -74,7 +74,7 @@ export default function Today() {
         <button className="icon-btn" style={{ background: 'transparent' }} aria-label={t('nextDay')} disabled={isToday} onClick={() => setViewDate(addDays(viewDate, 1))}><Icon name="forward" /></button>
       </div>
 
-      <SummaryCard date={viewDate} totals={totals} targets={targets} goal={profile.goal} pace={profile.pace} sounds={profile.sounds !== false} />
+      <SummaryCard date={viewDate} totals={totals} targets={targets} goal={profile.goal} pace={profile.pace} />
 
 
       <h2 className="heading" style={{ paddingTop: 8 }}>{t('yourMeals')}</h2>

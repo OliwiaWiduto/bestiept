@@ -31,8 +31,6 @@ export type Profile = {
   /** Build muscle: does she do strength training? */
   strength?: boolean
   /** Healthy choices tips: off switch, today's tip hidden, swaps she said no to (id → date), and the week recap she's opened (that Sunday) */
-  /** Sounds when logging food and hitting goals. Unset = on. */
-  sounds?: boolean
   nudges?: { off?: boolean; hiddenOn?: string; dismissed?: Record<string, string>; weekSeen?: string }
 }
 export type Pace = 'slower' | 'faster'
