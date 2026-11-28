@@ -17,7 +17,7 @@ import { AddItemSheet } from './AddItemSheet'
 import { itemMacros, sumItems } from '../lib/nutrition'
 import { Icon, PhotoButton, Sheet, Stepper, Thumb, toast, type IconName } from './ui'
 
-type Mode = 'menu' | 'recipe' | 'search' | 'quick' | 'barcode' | 'scan' | 'voice' | 'type' | 'again'
+type Mode = 'menu' | 'recipe' | 'search' | 'barcode' | 'scan' | 'voice' | 'type' | 'again'
 type Picked = { name: string; per: Macros; portion: number; source?: string }
 
 import { MAIN, nudgesOf, swapsFor, worthSwapping } from '../lib/nudges'
@@ -42,7 +42,6 @@ export default function LogFoodSheet() {
   const [servings, setServings] = useState(1)
   const [picked, setPicked] = useState<Picked | null>(null)
   const [grams, setGrams] = useState('100')
-  const [quick, setQuick] = useState({ name: '', kcal: '', protein: '', carbs: '', fat: '' })
   const [code, setCode] = useState('')
   const [lookup, setLookup] = useState<'idle' | 'loading' | 'notfound'>('idle')
   const [typing, setTyping] = useState(false)
@@ -57,7 +56,7 @@ export default function LogFoodSheet() {
   useEffect(() => {
     if (logOpen) {
       setMode('menu'); setMeal(logMeal ?? defaultMeal()); setQuery(''); setTab('all'); setFocusSearch(false); setAgain(null); setRecipeId(null); setServings(1); setPicked(null)
-      setQuick({ name: '', kcal: '', protein: '', carbs: '', fat: '' }); setCode(''); setLookup('idle'); setTyping(false); setScan(null); setEditId(null); setGuessNote(false); setScanning(false); setScanError(null); setDest('own'); setTargetId(null)
+      setCode(''); setLookup('idle'); setTyping(false); setScan(null); setEditId(null); setGuessNote(false); setScanning(false); setScanError(null); setDest('own'); setTargetId(null)
     }
   }, [logOpen, logMeal])
 
@@ -250,7 +249,7 @@ export default function LogFoodSheet() {
             {tile('barcode', t('barcode'), () => setMode('barcode'))}
             {tile('mic', t('voiceLog'), () => setMode('voice'))}
             {tile('edit', t('typeLog'), () => setMode('type'))}
-            {tile('plus', t('quickAdd'), () => setMode('quick'))}
+            {tile('book', t('yourRecipes'), () => { setQuery(''); setMode('recipe') })}
           </div>
           <div className="row" style={{ gap: 10 }}>
             <label className="search-field grow">
@@ -336,13 +335,14 @@ export default function LogFoodSheet() {
 
       {mode === 'recipe' && !r && (
         <div className="stack">
+          <span className="heading">{t('yourRecipes')}</span>
           <input className="input" placeholder={t('searchRecipes')} value={query} onChange={(e) => setQuery(e.target.value)} />
           {recipeList.length === 0 && <p className="muted">{t('emptyRecipes')}</p>}
           {recipeList.map((x) => (
             <button key={x.id} className="meal-row" onClick={() => { setRecipeId(x.id); setMeal(x.category) }}>
               <Thumb cat={x.category} name={x.title} photo={x.photo} size={48} />
               <span className="grow" style={{ fontWeight: 600 }}>{x.title}</span>
-              <span className="small muted">{x.nutrition.kcal} {t('kcal')}</span>
+              <span className="small muted" style={{ whiteSpace: 'nowrap' }}>{Math.round(x.nutrition.kcal)} {t('kcal')}</span>
             </button>
           ))}
         </div>
@@ -430,22 +430,6 @@ export default function LogFoodSheet() {
         </div>
       )}
 
-      {mode === 'quick' && (
-        <div className="stack" style={{ gap: 12 }}>
-          <label className="field"><span>{t('quickName')}</span><input className="input" autoFocus value={quick.name} onChange={(e) => setQuick({ ...quick, name: e.target.value })} /></label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
-            {(['kcal', 'protein', 'carbs', 'fat'] as const).map((k) => (
-              <label key={k} className="field"><span>{k === 'kcal' ? t('calories') : `${t(k)} (g)`}</span>
-                <input className="input" type="text" inputMode="decimal" value={quick[k]} onChange={(e) => setQuick({ ...quick, [k]: e.target.value })} /></label>
-            ))}
-          </div>
-          {destination}
-          <button className="btn primary block" disabled={!quick.name.trim() || !(toNum(quick.kcal) >= 0) || quick.kcal === ''}
-            onClick={() => saveItem(quick.name.trim(), { id: uid(), name: quick.name.trim(), amount: 1, unit: 'serving', per: { kcal: toNum(quick.kcal) || 0, protein: toNum(quick.protein) || 0, carbs: toNum(quick.carbs) || 0, fat: toNum(quick.fat) || 0, fibre: 0, sugar: 0 } })}>
-            {addLabel}
-          </button>
-        </div>
-      )}
     </Sheet>
   )
 }
