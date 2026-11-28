@@ -44,7 +44,7 @@ const en = {
   obGoal: 'What’s your goal?', goalLose: 'Lose weight', goalMaintain: 'Stay where I am', goalGain: 'Gain weight',
   obTargets: 'Your daily targets', obTargetsSub: 'A good starting point. Change any of these whenever you like in Settings.', obGo: 'Let’s go',
 
-  morning: 'Morning, {name}', afternoon: 'Hey, {name}', evening: 'Evening, {name}',
+  morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening',
   today: 'Today', kcalLeft: 'kcal left today', kcalOver: 'kcal over today', yourMeals: 'Your meals',
   dinnerEmpty: 'What are we having tonight?', addMeal: 'Add a meal', mealEmpty: 'Nothing logged yet',
   scanBarcode: 'Barcode scanner', pointAtBarcode: 'Point your camera at the barcode', startingCamera: 'Starting camera…', typeInstead: 'Type the number instead', cameraDenied: 'Camera access is off. Allow it in your browser settings, or type the number below.', cameraUnavailable: 'Can’t use the camera here. Type the number below instead.',
@@ -256,7 +256,7 @@ const pl: Dict = {
   obGoal: 'Jaki jest Twój cel?', goalLose: 'Schudnąć', goalMaintain: 'Utrzymać wagę', goalGain: 'Przytyć',
   obTargets: 'Twoje dzienne cele', obTargetsSub: 'Dobry punkt wyjścia. Możesz je zmienić w każdej chwili w Ustawieniach.', obGo: 'Lecimy',
 
-  morning: 'Dzień dobry, {name}', afternoon: 'Hej, {name}', evening: 'Dobry wieczór, {name}',
+  morning: 'Dzień dobry', afternoon: 'Dzień dobry', evening: 'Dobry wieczór',
   today: 'Dziś', kcalLeft: 'kcal zostało na dziś', kcalOver: 'kcal ponad cel', yourMeals: 'Twoje posiłki',
   dinnerEmpty: 'Co dziś na kolację?', addMeal: 'Dodaj posiłek', mealEmpty: 'Nic jeszcze nie dodano',
   scanBarcode: 'Skaner kodów', pointAtBarcode: 'Skieruj aparat na kod kreskowy', startingCamera: 'Włączam aparat…', typeInstead: 'Wpisz numer ręcznie', cameraDenied: 'Dostęp do aparatu jest wyłączony. Włącz go w ustawieniach przeglądarki albo wpisz numer poniżej.', cameraUnavailable: 'Nie da się tu użyć aparatu. Wpisz numer poniżej.',

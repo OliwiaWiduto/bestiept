@@ -28,7 +28,10 @@ export default function Today() {
   const links = useFamily((f) => f.links)
   const requests = links.filter((l) => l.status === 'pending' && l.incoming)
   const hour = new Date().getHours()
-  const greeting = t(hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening', { name: profile.name })
+  const greeting = t(hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening')
+  // Her name is the big title. Longer names get a bit smaller so they still fit next to her picture.
+  const name = profile.name.trim()
+  const nameSize = name.length > 18 ? 28 : name.length > 11 ? 34 : undefined
 
 
   // Healthy choices: one tip a day under the meal that caused it, or a little win to celebrate.
@@ -42,9 +45,9 @@ export default function Today() {
   return (
     <main className="screen">
       <div className="between" style={{ paddingTop: 8 }}>
-        <div className="stack" style={{ gap: 2 }}>
+        <div className="stack" style={{ gap: 2, minWidth: 0 }}>
           <span className="eyebrow">{greeting}</span>
-          <h1 className="display">{isToday ? t('today') : fmt(viewDate, t.lang, { weekday: 'long' })}</h1>
+          <h1 className="display" style={nameSize ? { fontSize: nameSize, lineHeight: `${nameSize + 2}px`, overflowWrap: 'break-word' } : { overflowWrap: 'break-word' }}>{name || t('today')}</h1>
         </div>
         <button aria-label={t('settings')} onClick={() => nav('/settings')} style={{ border: 'none', background: 'none', padding: 0, borderRadius: 999 }}>
           <Avatar name={profile.name} avatar={profile.avatar} size={52} />
