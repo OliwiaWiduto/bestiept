@@ -8,7 +8,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt', // we choose a quiet moment to switch to the new version (see main.tsx)
       injectRegister: false,
-      workbox: { globPatterns: ['**/*.{js,css,html,png,webp,svg,json,wasm}'], maximumFileSizeToCacheInBytes: 3 * 1024 * 1024 },
+      workbox: { importScripts: ['push-sw.js'], globPatterns: ['**/*.{js,css,html,png,webp,svg,json,wasm}'], maximumFileSizeToCacheInBytes: 3 * 1024 * 1024 },
       includeAssets: ['favicon.png', 'apple-touch-icon.png', 'icons/*.png'],
       manifest: {
         name: 'BestiePT',

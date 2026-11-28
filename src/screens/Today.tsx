@@ -6,6 +6,7 @@ import { useT } from '../i18n'
 import { MEALS, ZERO, type Macros } from '../types'
 import { add, sumItems } from '../lib/nutrition'
 import SummaryCard from '../components/SummaryCard'
+import { RemindersCard } from '../components/Reminders'
 import { addDays, fmt, today } from '../lib/dates'
 import { Avatar, Icon, Sheet, Thumb, toast } from '../components/ui'
 import { WeightField } from '../components/BodyFields'
@@ -115,6 +116,8 @@ export default function Today() {
           })
         })}
       </div>
+
+      {isToday && <RemindersCard />}
 
       <section className="card between" style={{ marginTop: 4 }}>
         <div className="stack" style={{ gap: 2 }}>

@@ -101,7 +101,7 @@ export const useStore = create<State>()(
 
       addPlan: (p) => {
         const id = uid()
-        setState({ plan: [...getState().plan, { ...p, id }] })
+        setState({ plan: [...getState().plan, { ...p, id, createdAt: Date.now() }] })
         return id
       },
       updatePlan: (id, patch) => setState({ plan: getState().plan.map((p) => (p.id === id ? { ...p, ...patch } : p)) }),

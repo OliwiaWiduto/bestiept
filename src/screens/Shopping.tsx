@@ -82,8 +82,15 @@ export default function Shopping() {
   const altsOf = useMemo(() => new Map([...need, ...probably].map((l) => [l.key, l.alts ?? []])), [need, probably])
   // Ticked under its key, or (ticked before keys matched across languages) under the same line's key in either language.
   const isTicked = (key: string) => shopping.ticked[tk(key)] ?? (altsOf.get(key) ?? []).some((a) => shopping.ticked[tk(a)])
+  // A shopping trip: starting shopping, or the first tick in 3 hours. Kept so reminders come when she usually shops.
+  const noteTrip = () => {
+    const p = useStore.getState().profile
+    const times = p?.shopTimes ?? []
+    if (p && !(times.length && Date.now() - times[times.length - 1] < 3 * 3600_000)) useStore.getState().updateProfile({ ...p, shopTimes: [...times, Date.now()].slice(-12) }, false)
+  }
   const toggle = (key: string) => {
     const on = !isTicked(key)
+    if (on) noteTrip()
     const ticked = { ...shopping.ticked, [tk(key)]: on }
     for (const a of altsOf.get(key) ?? []) delete ticked[tk(a)]
     setShopping({
@@ -205,7 +212,7 @@ export default function Shopping() {
         </div>
       </div>
       {!shoppingNow && text.trim() !== '' && (
-        <button className="btn primary block sticky-start" onClick={() => { commit(); setShopping({ shoppingMode: true }); window.scrollTo(0, 0) }}>
+        <button className="btn primary block sticky-start" onClick={() => { commit(); noteTrip(); setShopping({ shoppingMode: true }); window.scrollTo(0, 0) }}>
           <Icon name="bag" size={20} />{t('startShopping')}
         </button>
       )}

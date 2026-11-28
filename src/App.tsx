@@ -1,4 +1,5 @@
 import { useRecipeTranslator } from './lib/recipeLang'
+import { refreshReminders } from './lib/push'
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
@@ -43,7 +44,7 @@ export default function App() {
   useEffect(() => { document.documentElement.lang = lang }, [lang])
   useEffect(() => { window.scrollTo(0, 0) }, [pathname])
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session))
+    supabase.auth.getSession().then(({ data }) => { setSession(data.session); if (data.session) refreshReminders(useStore.getState().lang) })
     const { data } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s)
       if (event === 'PASSWORD_RECOVERY') setRecovery(true)

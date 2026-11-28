@@ -31,6 +31,10 @@ export type Profile = {
   /** Build muscle: does she do strength training? */
   strength?: boolean
   /** Healthy choices tips: off switch, today's tip hidden, swaps she said no to (id → date), and the week recap she's opened (that Sunday) */
+  /** She answered the reminders card on Today (turned them on or said not now). */
+  remindersAsked?: boolean
+  /** When she went shopping with the list (ms, last 12), so reminders can learn when she usually shops */
+  shopTimes?: number[]
   nudges?: { off?: boolean; hiddenOn?: string; dismissed?: Record<string, string>; weekSeen?: string }
 }
 export type Pace = 'slower' | 'faster'
@@ -87,6 +91,8 @@ export type PlanItem = {
   recipeId: string
   servings: number
   leftoverOf?: string
+  /** When it was added (ms), so reminders can learn when she usually plans */
+  createdAt?: number
   /** Set when the meal is in the plan of the person I plan and shop with (not stored) */
   ownerId?: string
 }

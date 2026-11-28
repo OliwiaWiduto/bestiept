@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { RemindersSetting } from '../components/Reminders'
 import { syncAvatar } from '../lib/family'
 import { useStore } from '../store'
 import { useT, type TKey } from '../i18n'
@@ -164,6 +165,8 @@ export default function Settings() {
         <span className="stack grow" style={{ gap: 8, minWidth: 0 }}><h2 className="heading">{t('family')}</h2><span className="small muted">{t('familySummary')}</span></span>
         <span style={{ display: 'flex', flex: 'none' }}><Icon name="forward" /></span>
       </button>
+
+      <RemindersSetting />
 
       <section className="card stack" style={{ gap: 12 }}>
         <h2 className="heading">{t('staples')}</h2>
