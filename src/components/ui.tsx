@@ -117,7 +117,7 @@ export function BottomNav({ onLog }: { onLog: () => void }) {
   )
 }
 
-export function Sheet({ open, onClose, title, children, tall }: { open: boolean; onClose: () => void; title?: string; children: ReactNode; tall?: boolean }) {
+export function Sheet({ open, onClose, title, children, tall, onBack }: { open: boolean; onClose: () => void; title?: string; children: ReactNode; tall?: boolean; onBack?: () => void }) {
   useEffect(() => {
     if (!open) return
     const k = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -155,7 +155,7 @@ export function Sheet({ open, onClose, title, children, tall }: { open: boolean;
       <div className="sheet" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}
         style={{ ...(tall ? { height: '88dvh' } : {}), ...(lifted ? { maxHeight: kb.room - 12, ...(tall ? { height: kb.room - 12 } : {}), paddingBottom: 16 } : {}) }}>
         <div className="sheet-handle" />
-        {title && <div className="between"><h2 className="heading">{title}</h2><button className="icon-btn" aria-label="Close" onClick={onClose}><Icon name="close" size={20} /></button></div>}
+        {title && <div className="between"><div className="row" style={{ gap: 2, minWidth: 0 }}>{onBack && <button className="icon-btn" style={{ marginLeft: -12, background: 'transparent' }} aria-label="Back" onClick={onBack}><Icon name="back" /></button>}<h2 className="heading">{title}</h2></div><button className="icon-btn" aria-label="Close" onClick={onClose}><Icon name="close" size={20} /></button></div>}
         {children}
       </div>
     </div>

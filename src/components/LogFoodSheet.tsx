@@ -116,7 +116,8 @@ export default function LogFoodSheet() {
 
 
   const goBack = () => { setMode('menu'); setPicked(null); setRecipeId(null); setScan(null); setEditId(null); setAgain(null) }
-  const back = mode !== 'menu' && !editId && (
+  const pickingRecipe = mode === 'recipe' && !recipeId
+  const back = mode !== 'menu' && !editId && !pickingRecipe && (
     <button className="icon-btn" style={{ alignSelf: 'flex-start' }} aria-label={t('back')} onClick={goBack}><Icon name="back" /></button>
   )
 
@@ -240,7 +241,7 @@ export default function LogFoodSheet() {
   )
 
   return (
-    <Sheet open={logOpen} onClose={closeLog} title={focusSearch ? undefined : t('logFood')} tall={mode === 'menu'}>
+    <Sheet open={logOpen} onClose={closeLog} title={focusSearch ? undefined : pickingRecipe ? t('yourRecipes') : t('logFood')} onBack={pickingRecipe ? goBack : undefined} tall={mode === 'menu'}>
       {back}
       {mode === 'menu' && (
         <div className="stack" style={{ gap: 14 }}>
@@ -335,7 +336,6 @@ export default function LogFoodSheet() {
 
       {mode === 'recipe' && !r && (
         <div className="stack">
-          <span className="heading">{t('yourRecipes')}</span>
           <input className="input" placeholder={t('searchRecipes')} value={query} onChange={(e) => setQuery(e.target.value)} />
           {recipeList.length === 0 && <p className="muted">{t('emptyRecipes')}</p>}
           {recipeList.map((x) => (
