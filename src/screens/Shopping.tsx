@@ -71,7 +71,8 @@ export default function Shopping() {
   useTranslatedExtras(shopping.extras, t.lang, setShopping)
   // 'extras' in the choice = the things she typed in herself
   const extrasPicked = !!shopping.onlyFor?.includes('extras')
-  const someMeals = !!shopping.onlyFor && (chosen.length > 0 || extrasPicked)
+  // The meal filter only applies while shopping; editing always shows the whole list.
+  const someMeals = !!shopping.shoppingMode && !!shopping.onlyFor && (chosen.length > 0 || extrasPicked)
   const showExtras = !someMeals || extrasPicked
   const pickedIds = [...chosen, ...(extrasPicked ? ['extras'] : [])]
   const [choosing, setChoosing] = useState(false)
@@ -217,7 +218,7 @@ export default function Shopping() {
           <Icon name="bag" size={20} />{t('startShopping')}
         </button>
       )}
-      {cookable.length + (shopping.extras.length ? 1 : 0) > 1 && (
+      {shopping.shoppingMode && cookable.length + (shopping.extras.length ? 1 : 0) > 1 && (
         <div className="chips" role="group" aria-label={t('shopFor')}>
           <button className="chip" aria-pressed={!someMeals} onClick={() => setShopping({ onlyFor: undefined })}>{t('allMeals')}</button>
           <button className="chip" aria-pressed={someMeals} onClick={() => setChoosing(true)}>
