@@ -52,10 +52,9 @@ export function AddItemSheet({ open, onClose, onAdd }: { open: boolean; onClose:
   const tile = (icon: IconName, label: string, onClick: () => void) => (
     <button key={label} className="log-tile" aria-label={label} title={label} onClick={onClick}><Icon name={icon} size={24} sw={1.75} /></button>
   )
-  const back = <button className="icon-btn" style={{ alignSelf: 'flex-start' }} aria-label={t('back')} onClick={() => setMode('menu')}><Icon name="back" /></button>
 
   return (
-    <Sheet open={open} onClose={close} title={t('addSomething')} tall={mode === 'menu'}>
+    <Sheet open={open} onClose={close} title={t('addSomething')} onBack={mode !== 'menu' ? () => setMode('menu') : undefined} tall={mode === 'menu'}>
       {mode === 'menu' && (
         <div className="stack" style={{ gap: 14 }}>
           <div className="log-tiles">
@@ -86,7 +85,6 @@ export function AddItemSheet({ open, onClose, onAdd }: { open: boolean; onClose:
 
       {mode === 'barcode' && (
         <div className="stack">
-          {back}
           {busy ? <p className="muted" style={{ margin: 0 }}>{t('lookingUp')}</p> : <BarcodeScanner onCode={(c) => { setCode(c); barcode(c) }} onFail={onFail} />}
           <form className="row" style={{ gap: 8 }} onSubmit={(e) => { e.preventDefault(); if (code.trim()) barcode(code) }}>
             <input className="input grow" inputMode="numeric" placeholder={t('barcodePh')} aria-label={t('barcode')} value={code} onChange={(e) => setCode(e.target.value)} />
@@ -100,7 +98,6 @@ export function AddItemSheet({ open, onClose, onAdd }: { open: boolean; onClose:
 
       {mode === 'quick' && (
         <div className="stack">
-          {back}
           <input className="input" placeholder={t('quickName')} aria-label={t('quickName')} value={custom.name} onChange={(e) => setCustom({ ...custom, name: e.target.value })} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
             {(['kcal', 'protein', 'carbs', 'fat'] as const).map((k) => (

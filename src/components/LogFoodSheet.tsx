@@ -117,9 +117,7 @@ export default function LogFoodSheet() {
 
   const goBack = () => { setMode('menu'); setPicked(null); setRecipeId(null); setScan(null); setEditId(null); setAgain(null) }
   const pickingRecipe = mode === 'recipe' && !recipeId
-  const back = mode !== 'menu' && !editId && !pickingRecipe && (
-    <button className="icon-btn" style={{ alignSelf: 'flex-start' }} aria-label={t('back')} onClick={goBack}><Icon name="back" /></button>
-  )
+  const canGoBack = mode !== 'menu' && !editId
 
   const gramsStep = picked && (
     <div className="stack" style={{ gap: 16 }}>
@@ -241,8 +239,7 @@ export default function LogFoodSheet() {
   )
 
   return (
-    <Sheet open={logOpen} onClose={closeLog} title={focusSearch ? undefined : pickingRecipe ? t('yourRecipes') : t('logFood')} onBack={pickingRecipe ? goBack : undefined} tall={mode === 'menu'}>
-      {back}
+    <Sheet open={logOpen} onClose={closeLog} title={focusSearch ? undefined : pickingRecipe ? t('yourRecipes') : t('logFood')} onBack={canGoBack ? goBack : undefined} tall={mode === 'menu'}>
       {mode === 'menu' && (
         <div className="stack" style={{ gap: 14 }}>
           <div className={`log-tiles collapsible${focusSearch ? ' gone' : ''}`} aria-hidden={focusSearch}>
