@@ -91,11 +91,6 @@ export default function Plan() {
         })}
       </div>
 
-      <button className="people-row" onClick={() => nav('/shopping')}>
-        <Icon name="bag" size={20} />
-        <span className="grow" style={{ fontWeight: 600 }}>{t('shoppingListBtn')}</span>
-        <Icon name="forward" size={18} />
-      </button>
       <button className="people-row" onClick={() => setPeopleOpen(true)}>
         <Icon name="heart" size={20} />
         <span className="grow">{t('cookingForLong', { n: people })}</span>
@@ -113,18 +108,18 @@ export default function Plan() {
         const past = d < today()
         if (d < from) return null
         if (past && items.length === 0 && d !== from) return null
+        // What the day adds up to for her (one serving of each planned meal), to plan around her targets.
+        const day = items.reduce((acc, p) => { const n = recipes.find((x) => x.id === p.recipeId)?.nutrition; return n ? { kcal: acc.kcal + n.kcal, protein: acc.protein + n.protein, carbs: acc.carbs + n.carbs, fat: acc.fat + n.fat } : acc }, { kcal: 0, protein: 0, carbs: 0, fat: 0 })
+        const next = MEALS.find((m) => !items.some((p) => p.meal === m)) ?? 'snack'
         return (
           <section key={d} id={`day-${d}`} className="stack" style={{ scrollMarginTop: 20 }}>
             <div className="between">
               <h2 className="heading">{fmt(d, t.lang, { weekday: 'long', day: 'numeric' })}</h2>
-              <span className="small muted">{items.length ? t(items.length === 1 ? 'mealN' : 'mealsN', { n: items.length }) : ''}</span>
+              {items.length > 0 && <span className="small muted" style={{ textAlign: 'right' }}><b style={{ color: 'var(--ink)', fontWeight: 600 }}>{Math.round(day.kcal).toLocaleString(t.lang === 'pl' ? 'pl-PL' : 'en-GB')} {t('kcal')}</b> · P {Math.round(day.protein)} · C {Math.round(day.carbs)} · F {Math.round(day.fat)}</span>}
             </div>
             {MEALS.map((m) => {
               const here = items.filter((p) => p.meal === m)
-              if (here.length === 0) {
-                if (past || m === 'snack') return null
-                return <button key={m} className="slot" onClick={() => setPickFor({ date: d, meal: m })}><Icon name="plus" size={18} />{t(m)}</button>
-              }
+              if (here.length === 0) return null
               return here.map((p) => {
                 const r = recipes.find((x) => x.id === p.recipeId)
                 if (!r) return null
@@ -146,7 +141,10 @@ export default function Plan() {
               })
             })}
             {past && items.length === 0 && <span className="small muted">{t('nothingPlanned')}</span>}
-            {!past && !items.some((p) => p.meal === 'snack') && <button className="slot-snack" onClick={() => setPickFor({ date: d, meal: 'snack' })}><Icon name="plus" size={16} />{t('addSnack')}</button>}
+            {/* One add button per day: a dashed box while the day is empty, then a small text button so the plan stays compact. */}
+            {!past && (items.length === 0
+              ? <button className="slot" onClick={() => setPickFor({ date: d, meal: next })}><Icon name="plus" size={18} />{t('addMeal')}</button>
+              : <button className="slot-snack" onClick={() => setPickFor({ date: d, meal: next })}><Icon name="plus" size={16} />{t('addMeal')}</button>)}
           </section>
         )
       })}
