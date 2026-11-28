@@ -66,6 +66,7 @@ export default function SummaryCard({ date, totals, targets, goal, pace }: { dat
   const lastDate = useRef(date)
   const timers = useRef<number[]>([])
   const raf = useRef(0)
+  const card = useRef<HTMLElement>(null)
 
   useEffect(() => () => { timers.current.forEach(clearTimeout); cancelAnimationFrame(raf.current) }, [])
 
@@ -76,52 +77,65 @@ export default function SummaryCard({ date, totals, targets, goal, pace }: { dat
     if (same(prev, now)) { if (!same(shown, now)) { setShown(now); setNums(now) } return }
     const logged = takeLogged()
     const later = (fn: () => void, ms: number) => timers.current.push(window.setTimeout(fn, ms))
-
-    // Count the numbers up while the bars spring to their new widths.
-    cancelAnimationFrame(raf.current)
-    const t0 = performance.now()
-    const step = (time: number) => {
-      const k = Math.min(1, (time - t0) / 1000), e = 1 - Math.pow(1 - k, 3)
-      setNums(Object.fromEntries(KEYS.map((key) => [key, prev[key] + (now[key] - prev[key]) * e])) as Record<Key, number>)
-      if (k < 1) raf.current = requestAnimationFrame(step)
-    }
-    raf.current = requestAnimationFrame(step)
-    requestAnimationFrame(() => setShown(now))
-
     // Only her own logging celebrates (not a sync from another phone, a deletion or switching days).
-    const grew = KEYS.some((k) => now[k] > prev[k])
-    if (!logged || !grew) return
+    const celebrate = logged && KEYS.some((k) => now[k] > prev[k])
 
-    const reached = bars.filter((b) => status(b, prev[b.key]) === 'under' && status(b, now[b.key]) === 'zone')
-    const wentOver = bars.filter((b) => status(b, prev[b.key]) !== 'over' && status(b, now[b.key]) === 'over')
-    const kind: SoundKind = wentOver.length ? 'quiet' : reached.length ? 'goal' : 'add'
-    playSound(kind)
-    buzz(kind)
-
-    const list = (bs: Bar[]) => {
-      const n = bs.map((b) => b.label.toLowerCase())
-      return n.length > 1 ? `${n.slice(0, -1).join(', ')} ${t('and')} ${n[n.length - 1]}` : n[0]
+    const start = () => {
+      // Count the numbers up while the bars spring to their new widths.
+      cancelAnimationFrame(raf.current)
+      const t0 = performance.now()
+      const step = (time: number) => {
+        const k = Math.min(1, (time - t0) / 1000), e = 1 - Math.pow(1 - k, 3)
+        setNums(Object.fromEntries(KEYS.map((key) => [key, prev[key] + (now[key] - prev[key]) * e])) as Record<Key, number>)
+        if (k < 1) raf.current = requestAnimationFrame(step)
+      }
+      raf.current = requestAnimationFrame(step)
+      requestAnimationFrame(() => setShown(now))
+      if (celebrate) cheer()
     }
-    const cap = (s: string) => (t.lang === 'pl' ? s : s.charAt(0).toUpperCase() + s.slice(1))
-    const hits = reached.filter((b) => b.celebrate && b.key !== 'kcal')
-    if (wentOver.length) toast(t('overGoalToday', { list: list(wentOver) }))
-    else if (hits.length) toast(t(hits.length > 1 ? 'goalsHit' : 'goalHit', { list: cap(list(hits)) }) + (reached.some((b) => b.key === 'kcal') ? ` ${t('inZoneToo')}` : ''))
-    else if (reached.some((b) => b.key === 'kcal')) toast(t('inYourZone'))
-    else if (reached.length) toast(t(reached.length > 1 ? 'goalsHit' : 'goalHit', { list: cap(list(reached)) }))
 
-    if (kind !== 'quiet') { setParty((p) => p + 1); setConfetti(true); later(() => setConfetti(false), 1100) }
-    const badgeKeys = reached.filter((b) => b.key !== 'kcal').map((b) => b.key)
-    if (badgeKeys.length) {
-      later(() => setBadges({ keys: badgeKeys, out: false }), 900)
-      later(() => setBadges({ keys: badgeKeys, out: true }), 3200)
-      later(() => setBadges({ keys: [], out: false }), 3550)
+    const cheer = () => {
+      const reached = bars.filter((b) => status(b, prev[b.key]) === 'under' && status(b, now[b.key]) === 'zone')
+      const wentOver = bars.filter((b) => status(b, prev[b.key]) !== 'over' && status(b, now[b.key]) === 'over')
+      const kind: SoundKind = wentOver.length ? 'quiet' : reached.length ? 'goal' : 'add'
+      playSound(kind)
+      buzz(kind)
+
+      const list = (bs: Bar[]) => {
+        const n = bs.map((b) => b.label.toLowerCase())
+        return n.length > 1 ? `${n.slice(0, -1).join(', ')} ${t('and')} ${n[n.length - 1]}` : n[0]
+      }
+      const cap = (s: string) => (t.lang === 'pl' ? s : s.charAt(0).toUpperCase() + s.slice(1))
+      const hits = reached.filter((b) => b.celebrate && b.key !== 'kcal')
+      if (wentOver.length) toast(t('overGoalToday', { list: list(wentOver) }))
+      else if (hits.length) toast(t(hits.length > 1 ? 'goalsHit' : 'goalHit', { list: cap(list(hits)) }) + (reached.some((b) => b.key === 'kcal') ? ` ${t('inZoneToo')}` : ''))
+      else if (reached.some((b) => b.key === 'kcal')) toast(t('inYourZone'))
+      else if (reached.length) toast(t(reached.length > 1 ? 'goalsHit' : 'goalHit', { list: cap(list(reached)) }))
+
+      if (kind !== 'quiet') { setParty((p) => p + 1); setConfetti(true); later(() => setConfetti(false), 1100) }
+      const badgeKeys = reached.filter((b) => b.key !== 'kcal').map((b) => b.key)
+      if (badgeKeys.length) {
+        later(() => setBadges({ keys: badgeKeys, out: false }), 900)
+        later(() => setBadges({ keys: badgeKeys, out: true }), 3200)
+        later(() => setBadges({ keys: [], out: false }), 3550)
+      }
     }
+
+    if (!celebrate) { start(); return }
+    // She may be scrolled down (looking at dinner): bring the card into view first, then play it all.
+    later(() => {
+      const r = card.current?.getBoundingClientRect()
+      if (r && (r.top < 0 || r.bottom > window.innerHeight)) {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+        later(start, 550)
+      } else start()
+    }, 60)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date, now.kcal, now.protein, now.carbs, now.fat, now.fibre])
 
   const fmt = (n: number) => Math.round(n).toLocaleString(t.lang === 'pl' ? 'pl-PL' : 'en-GB')
   const draw = (b: Bar, thick: boolean) => {
-    const v = shown[b.key], st = status(b, now[b.key])
+    const v = shown[b.key], st = status(b, v)
     const pct = (n: number) => (b.max > 0 ? Math.max(0, Math.min(100, (n / b.max) * 100)) : 0)
     const over = b.flagOver && Math.round(v) > b.zMax
     const edge: CSSProperties = { position: 'absolute', top: 0, bottom: 0, width: 2, marginLeft: -1, background: 'var(--green)' }
@@ -149,7 +163,7 @@ export default function SummaryCard({ date, totals, targets, goal, pace }: { dat
   const c = draw(cal, true)
   const zoneName = t((goal === 'lose' ? 'zoneLose' : goal === 'gain' ? 'zoneGain' : goal === 'build' ? 'zoneBuild' : 'zoneMaintain') as TKey)
   return (
-    <section className="card stack summary-card" style={{ gap: 16, position: 'relative' }}>
+    <section ref={card} className="card stack summary-card" style={{ gap: 16, position: 'relative' }}>
       <div className="stack" style={{ gap: 8, position: 'relative' }}>
         <div className="between label"><span>{t('calories')}</span><span style={{ fontWeight: 400, color: 'var(--on-green-muted)' }}>{c.number} / {fmt(max)}</span></div>
         {c.bar}
