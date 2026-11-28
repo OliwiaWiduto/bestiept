@@ -121,10 +121,11 @@ export default function Shopping() {
   const bought = new Set(inBasket.map((i) => i.text.toLowerCase()))
 
   // The list as text, one item per line. Edits are saved when she leaves the box or starts shopping.
-  const asText = () => items.map((i) => i.text).join('\n')
+  // Still to buy first, things already in the basket at the bottom.
+  const asText = () => [...items.filter((i) => !isTicked(i.key)), ...items.filter((i) => isTicked(i.key))].map((i) => i.text).join('\n')
   const [text, setText] = useState(asText)
   const editing = useRef(false)
-  const listKey = items.map((i) => i.key + i.amount + i.name).join('|')
+  const listKey = items.map((i) => i.key + i.amount + i.name + (isTicked(i.key) ? '✓' : '')).join('|')
   useEffect(() => { if (!editing.current) setText(asText()) }, [listKey]) // eslint-disable-line react-hooks/exhaustive-deps
   const commit = (v = text) => {
     editing.current = false
