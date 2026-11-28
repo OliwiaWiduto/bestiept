@@ -15,7 +15,7 @@ import { IngredientForm, IngredientRow, MealHeader } from './MealParts'
 import { VoiceLog } from './VoiceLog'
 import { AddItemSheet } from './AddItemSheet'
 import { itemMacros, sumItems } from '../lib/nutrition'
-import { Icon, PhotoButton, Sheet, Stepper, Thumb, toast, type IconName } from './ui'
+import { Icon, PhotoButton, PortionPicker, Sheet, Thumb, scaleItems, toast, type IconName } from './ui'
 
 type Mode = 'menu' | 'recipe' | 'search' | 'barcode' | 'scan' | 'voice' | 'type' | 'again'
 type Picked = { name: string; per: Macros; portion: number; source?: string }
@@ -40,6 +40,7 @@ export default function LogFoodSheet() {
   const [again, setAgain] = useState<LogEntry | null>(null)
   const [recipeId, setRecipeId] = useState<string | null>(null)
   const [servings, setServings] = useState(1)
+  const [againPortion, setAgainPortion] = useState(1)
   const [picked, setPicked] = useState<Picked | null>(null)
   const [grams, setGrams] = useState('100')
   const [code, setCode] = useState('')
@@ -55,7 +56,7 @@ export default function LogFoodSheet() {
 
   useEffect(() => {
     if (logOpen) {
-      setMode('menu'); setMeal(logMeal ?? defaultMeal()); setQuery(''); setTab('all'); setFocusSearch(false); setAgain(null); setRecipeId(null); setServings(1); setPicked(null)
+      setMode('menu'); setMeal(logMeal ?? defaultMeal()); setQuery(''); setTab('all'); setFocusSearch(false); setAgain(null); setRecipeId(null); setServings(1); setAgainPortion(1); setPicked(null)
       setCode(''); setLookup('idle'); setTyping(false); setScan(null); setEditId(null); setGuessNote(false); setScanning(false); setScanError(null); setDest('own'); setTargetId(null)
     }
   }, [logOpen, logMeal])
@@ -221,7 +222,7 @@ export default function LogFoodSheet() {
     const only = l.items.length === 1 ? l.items[0] : null
     if (rec && only && only.unit === 'serving') { setRecipeId(rec.id); setServings(only.amount || 1); setMode('recipe') }
     else if (only && only.unit === 'g') { setPicked({ name: only.name, per: only.per, portion: only.amount }); setGrams(String(Math.round(only.amount))); setMode('search') }
-    else { setAgain(l); setMode('again') }
+    else { setAgain(l); setAgainPortion(1); setMode('again') }
   }
   const searching = mode === 'menu' && query.trim().length > 0
   const recipeRow = (x: (typeof recipes)[number]) => (
@@ -326,8 +327,9 @@ export default function LogFoodSheet() {
         <div className="stack" style={{ gap: 14 }}>
           <MealHeader photo={again.photo} name={again.name} onName={(name) => setAgain({ ...again, name })} />
           <div className="card tight">{again.items.map((i) => <div key={i.id} className="list-row"><span className="grow" style={{ fontWeight: 600, fontSize: 15 }}>{i.name}</span><span className="small muted">{Math.round(itemMacros(i).kcal)} {t('kcal')}</span></div>)}</div>
+          <PortionPicker value={againPortion} onChange={setAgainPortion} kcal={sumItems(again.items).kcal * againPortion} label={t('portionQ')} />
           {mealChips}
-          <button className="btn primary block" onClick={() => save(again.name, again.items.map((i) => ({ ...i, id: uid() })), again.photo ? { photo: again.photo } : undefined)}>{t('addToMeal', { meal: t(meal) })}</button>
+          <button className="btn primary block" onClick={() => save(again.name, scaleItems(again.items, againPortion).map((i) => ({ ...i, id: uid() })), again.photo ? { photo: again.photo } : undefined)}>{t('addToMeal', { meal: t(meal) })}</button>
         </div>
       )}
 
@@ -347,7 +349,7 @@ export default function LogFoodSheet() {
       {mode === 'recipe' && r && (
         <div className="stack" style={{ gap: 16 }}>
           <div className="meal-row"><Thumb cat={r.category} name={r.title} photo={r.photo} /><span className="grow" style={{ fontWeight: 600 }}>{r.title}</span></div>
-          <div className="between"><span className="label">{t('servingsEaten')}</span><Stepper value={servings} onChange={setServings} min={0.25} step={0.25} label={t('servings')} /></div>
+          <PortionPicker value={servings} onChange={setServings} kcal={r.nutrition.kcal * servings} label={t('portionQ')} />
           {mealChips}
           <span className="small muted">{t('recipeLogHint')}</span>
           <button className="btn primary block" disabled={busy} onClick={async () => {

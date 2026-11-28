@@ -9,7 +9,7 @@ import { equipmentIcon } from '../lib/equipment'
 import { recipeItems } from '../lib/matchFood'
 import { today } from '../lib/dates'
 import { defaultMeal } from '../ui-state'
-import { Icon, Stepper, toast } from '../components/ui'
+import { Icon, PortionPicker, toast } from '../components/ui'
 
 type Timer = { id: string; step: number; total: number; endsAt: number | null; left: number }
 
@@ -241,8 +241,7 @@ export default function Cooking() {
         <div className="stack" style={{ gap: 20, alignItems: 'center', textAlign: 'center' }}>
           <img src="/icons/cat-fruitveg.png" alt="" style={{ width: 96, height: 96 }} />
           <h1 className="step-text">{t('cookedTitle')}</h1>
-          <span className="soft">{t('howManyAte')}</span>
-          <div style={{ background: 'var(--on-green)', borderRadius: 999, padding: '6px 10px' }}><Stepper value={ate} onChange={setAte} min={0.25} step={0.25} label={t('servings')} /></div>
+          <div style={{ width: '100%', textAlign: 'left' }}><PortionPicker dark value={ate} onChange={setAte} kcal={r.nutrition.kcal * ate} label={t('portionQ')} /></div>
         </div>
         <div className="stack" style={{ marginTop: 32 }}>
           <button className="btn primary block" onClick={async () => {

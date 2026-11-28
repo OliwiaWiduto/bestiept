@@ -271,3 +271,32 @@ export function PhotoButton({ onPhoto, className, style, children, label, max, d
     </>
   )
 }
+
+const PORTIONS = [0.25, 0.5, 0.75, 1, 1.5, 2, 3]
+export const portionText = (n: number) => ({ 0.25: '¼', 0.5: '½', 0.75: '¾', 1.5: '1½', 2.5: '2½' } as Record<number, string>)[n] ?? String(Math.round(n * 100) / 100)
+/** How much of the serving she had: ¼ to 3, as one row of chips. kcal (for the chosen portion) shows on the right when given. */
+export function PortionPicker({ value, onChange, kcal, label, dark }: { value: number; onChange: (n: number) => void; kcal?: number; label: string; dark?: boolean }) {
+  const t = useT()
+  const list = PORTIONS.includes(value) ? PORTIONS : [...PORTIONS, value].sort((a, b) => a - b)
+  return (
+    <div className="stack" style={{ gap: 10 }}>
+      <div className="between"><span className="label">{label}</span>{kcal !== undefined && <span className="small" style={{ fontWeight: 600, color: dark ? 'var(--green-soft)' : 'var(--green)' }}>{Math.round(kcal)} {t('kcal')}</span>}</div>
+      <div className="chips" role="radiogroup" aria-label={label} style={{ flexWrap: 'nowrap', gap: 6 }}>
+        {list.map((n) => {
+          const on = n === value
+          return (
+            <button key={n} type="button" className="chip" role="radio" aria-checked={on} aria-label={`${portionText(n)} ${t('servings')}`} onClick={() => onChange(n)}
+              style={{ flex: '1 1 0', minWidth: 0, height: 44, padding: 0, justifyContent: 'center', fontSize: 16, fontWeight: 700,
+                ...(dark ? { borderColor: on ? 'var(--lime-bright)' : 'var(--green-edge)', background: on ? 'var(--lime-bright)' : 'transparent', color: on ? 'var(--green)' : 'var(--on-green)' }
+                  : { borderColor: on ? 'var(--green)' : 'var(--line)', background: on ? 'var(--green)' : 'transparent', color: on ? 'var(--on-green)' : 'var(--ink)' }) }}>
+              {portionText(n)}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/** The same food items, n times as much. */
+export const scaleItems = <T extends { amount: number }>(items: T[], n: number): T[] => items.map((i) => ({ ...i, amount: Math.round(i.amount * n * 100) / 100 }))

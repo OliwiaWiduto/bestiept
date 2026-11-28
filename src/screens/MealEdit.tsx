@@ -4,7 +4,7 @@ import { useStore } from '../store'
 import { useT } from '../i18n'
 import { MEALS, type LogEntry } from '../types'
 import { sumItems } from '../lib/nutrition'
-import { BackButton, Icon, MacroGrid, PhotoButton, Sheet } from '../components/ui'
+import { BackButton, Icon, MacroGrid, PhotoButton, PortionPicker, Sheet, scaleItems } from '../components/ui'
 import { IngredientForm, IngredientRow, MealHeader } from '../components/MealParts'
 import { AddItemSheet } from '../components/AddItemSheet'
 
@@ -17,6 +17,8 @@ export default function MealEdit() {
   const [draft, setDraft] = useState<LogEntry | null>(original ?? null)
   const [adding, setAdding] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
+  // How much of what was logged she actually had: changing it scales every ingredient.
+  const [portion, setPortion] = useState(1)
   if (!draft) return <main className="screen"><div className="row"><BackButton to="/" /></div><p className="muted">{t('notHere')}</p></main>
 
   const totals = sumItems(draft.items)
@@ -45,6 +47,8 @@ export default function MealEdit() {
         </div>
         <MacroGrid m={totals} />
       </section>
+
+      <PortionPicker value={portion} onChange={(n) => { setDraft({ ...draft, items: scaleItems(draft.items, n / portion) }); setPortion(n) }} label={t('portionQ')} />
 
       <div className="between" style={{ paddingTop: 4 }}>
         <h2 className="heading">{t('whatsIn')}</h2>
