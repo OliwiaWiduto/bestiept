@@ -77,12 +77,23 @@ export default function Shopping() {
   const pickedIds = [...chosen, ...(extrasPicked ? ['extras'] : [])]
   const [choosing, setChoosing] = useState(false)
   const listPlan = useMemo(() => (someMeals ? allPlan.filter((p) => chosen.includes(p.id)) : allPlan), [allPlan, someMeals, chosen.join()]) // eslint-disable-line react-hooks/exhaustive-deps
-  const { need, probably } = useMemo(() => buildList(listPlan, recipes, shopping, today(), keyFrom), [listPlan, recipes, shopping, keyFrom])
+  const { need, probably: guessed } = useMemo(() => buildList(listPlan, recipes, shopping, today(), keyFrom), [listPlan, recipes, shopping, keyFrom])
+  // Something she's out of becomes one of her own items (so it stays until she ticks it, whatever the week),
+  // so don't also show it as "probably got it".
+  const ownNames = new Set(shopping.extras.flatMap((e) => [e.name, ...Object.values(e.tr ?? {})].map((n) => (n ?? '').trim().toLowerCase())))
+  const probably = guessed.filter((l) => !ownNames.has(cap(plBasic(l.name)).toLowerCase()) && !ownNames.has(l.name.trim().toLowerCase()))
+  const markOut = (lines: typeof probably) => {
+    const add = lines.map((l) => ({ id: uid(), name: cap(plBasic(l.name)), amount: '' }))
+    return [...add, ...shopping.extras]
+  }
 
-  const tk = (key: string) => `${planWeek}:${key}`
+  // Ticks on planned items are for this week; her own items stay ticked (and on the list until ticked) whatever the week.
+  const tk = (key: string) => (key.startsWith('extra:') ? key : `${planWeek}:${key}`)
   const altsOf = useMemo(() => new Map([...need, ...probably].map((l) => [l.key, l.alts ?? []])), [need, probably])
   // Ticked under its key, or (ticked before keys matched across languages) under the same line's key in either language.
-  const isTicked = (key: string) => shopping.ticked[tk(key)] ?? (altsOf.get(key) ?? []).some((a) => shopping.ticked[tk(a)])
+  const isTicked = (key: string) => shopping.ticked[tk(key)]
+    ?? (key.startsWith('extra:') ? Object.entries(shopping.ticked).some(([k, v]) => v && k.endsWith(':' + key)) // ticked before, under a week
+      : (altsOf.get(key) ?? []).some((a) => shopping.ticked[tk(a)]))
   // A shopping trip: starting shopping, or the first tick in 3 hours. Kept so reminders come when she usually shops.
   const noteTrip = () => {
     const p = useStore.getState().profile
@@ -268,7 +279,7 @@ export default function Shopping() {
         <button className="btn primary block" onClick={() => {
           const asked = (cupboard ?? []).map((l) => `${planWeek}:${l.key}`)
           const prev = (shopping.cupboardChecked ?? []).filter((k) => k.startsWith(planWeek + ':'))
-          setShopping({ out: [...shopping.out, ...[...outNow].filter((k) => !shopping.out.includes(k))], cupboardChecked: [...prev, ...asked] })
+          setShopping({ extras: markOut((cupboard ?? []).filter((l) => outNow.has(l.key))), cupboardChecked: [...prev, ...asked] })
           setCupboard(null)
           goShopping()
         }}>
@@ -366,7 +377,7 @@ export default function Shopping() {
                   <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink-muted)' }}>{cap(plBasic(l.name))}</span>
                   <span className="caption">{[displayAmount(l, t.lang), t(l.reason === 'staple' ? 'reasonStaple' : l.reason === 'small' ? 'reasonSmall' : 'reasonRecent')].filter(Boolean).join(' · ')}</span>
                 </span>
-                <button className="chip" style={{ borderColor: 'var(--green)', color: 'var(--green)' }} onClick={() => setShopping({ out: [...shopping.out, l.key] })}>{t('imOut')}</button>
+                <button className="chip" style={{ borderColor: 'var(--green)', color: 'var(--green)' }} onClick={() => setShopping({ extras: markOut([l]) })}>{t('imOut')}</button>
               </div>
             ))}
           </div>
