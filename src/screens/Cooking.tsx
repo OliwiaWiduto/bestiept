@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useStore } from '../store'
 import { useRecipes } from '../lib/recipeLang'
 import { useT } from '../i18n'
-import type { Ingredient } from '../types'
+import { stepIngredients } from '../lib/stepIngredients'
 import { ingredientText, shortName, splitName, uid } from '../lib/util'
 import { equipmentIcon } from '../lib/equipment'
 import { recipeItems } from '../lib/matchFood'
@@ -13,42 +13,6 @@ import { Icon, PortionPicker, toast } from '../components/ui'
 
 type Timer = { id: string; step: number; total: number; endsAt: number | null; left: number }
 
-// Which ingredients a step uses. Matching whole words (allowing plurals and Polish endings) so
-// "chicken" doesn't pull in chickpeas or chicken stock, and "add the butter" doesn't pull in peanut butter.
-const FILL = new Set(['fresh', 'large', 'small', 'medium', 'finely', 'roughly', 'thinly', 'chopped', 'grated', 'sliced', 'diced', 'crushed', 'minced', 'peeled', 'ripe', 'whole', 'extra', 'virgin', 'boneless', 'skinless', 'tinned', 'canned', 'dried', 'frozen', 'good', 'quality', 'plus', 'more', 'for', 'and', 'the', 'świeży', 'świeża', 'świeże', 'duża', 'duży', 'mała', 'mały', 'drobno', 'posiekany', 'posiekana', 'starty', 'starta'])
-// Words that only mean something with the word in front ("soy sauce", "chicken stock", "peanut butter")
-const GENERIC = new Set(['sauce', 'oil', 'milk', 'butter', 'juice', 'stock', 'paste', 'powder', 'flakes', 'seeds', 'leaves', 'water', 'cream', 'sugar', 'vinegar', 'zest', 'sos', 'olej', 'mleko', 'masło', 'sok', 'bulion', 'pasta', 'cukier', 'ocet'])
-const wordsOf = (txt: string) => txt.toLowerCase().split(/[^a-ząęółśżźćń]+/).filter(Boolean)
-const same = (a: string, b: string) => {
-  if (a === b) return true
-  const [s, l] = a.length <= b.length ? [a, b] : [b, a]
-  return s.length >= 4 && l.startsWith(s.slice(0, Math.max(4, s.length - 1))) && l.length - s.length <= 3
-}
-const phraseOf = (name: string) => wordsOf(name.split(',')[0].split('(')[0]).filter((w) => w.length > 2 && !FILL.has(w))
-const hasPhrase = (step: string[], phrase: string[]) => step.some((_, i) => phrase.every((w, j) => step[i + j] && same(step[i + j], w)))
-
-function stepIngredients(step: string, ings: Ingredient[], before: string[] = []): Ingredient[] {
-  const words = wordsOf(step)
-  const low = step.toLowerCase()
-  const has = (w: string) => words.some((x) => same(x, w))
-  const heads = ings.map((i) => phraseOf(i.name).at(-1) ?? '')
-  return ings.filter((ing, n) => {
-    const phrase = phraseOf(ing.name)
-    if (!phrase.length) return false
-    if (hasPhrase(words, phrase)) return true
-    const head = phrase[phrase.length - 1]
-    if (phrase.length === 1) return has(head)
-    if (GENERIC.has(head)) {
-      // "Pour in the stock": only when it's the one stock in the recipe, it's named on its own ("the stock",
-      // "…, stock"), and it wasn't already used by name earlier (then "the sauce" means the sauce you made).
-      if (heads.filter((h) => same(h, head)).length !== 1) return false
-      if (!new RegExp(`(?:\\b(?:the|your|some|and|with|i|oraz)\\s+|,\\s*|^)${head.slice(0, Math.max(4, head.length - 1))}`).test(low)) return false
-      return !before.some((b) => hasPhrase(wordsOf(b), phrase))
-    }
-    // "Add the chicken" for "chicken thighs" (unless another chicken-something is named in this step)
-    return has(head) || (phrase.length === 2 && !GENERIC.has(phrase[0]) && has(phrase[0]) && !ings.some((o, m) => m !== n && phraseOf(o.name)[0] === phrase[0] && hasPhrase(words, phraseOf(o.name))))
-  })
-}
 function stepMinutes(step: string): number | null {
   const m = step.match(/(\d+)\s*(?:-|–|to|do)?\s*(\d+)?\s*(min|minute|minutes|mins|minut|minuty|hour|hours|godzin|godziny|godzinę)/i)
   if (!m) return null

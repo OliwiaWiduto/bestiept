@@ -68,3 +68,22 @@ for (const l of LIBRARY) {
   if (l.handsOn > 15) libBad.push(`${l.id}: more than 15 minutes hands-on`)
 }
 if (libBad.length) { console.log('FAILED Bestie picks', libBad); process.exit(1) } else console.log('ok', LIBRARY.length, 'Bestie picks')
+
+// Cooking mode: each step shows only the ingredients it uses (whole words, not "sweet" = sweet chilli or "sprinkle" = spring onions).
+import { stepIngredients } from '../src/lib/stepIngredients'
+const stepCases: [string[], string, string[]][] = [
+  [['sweetcorn', 'sweet chilli', 'tuna'], 'Add the sweet corn and stir.', ['sweetcorn']],
+  [['sweetcorn', 'sweet chilli sauce', 'red chilli'], 'Drizzle over the sweet chili sauce.', ['sweet chilli sauce']],
+  [['red onion', 'spring onions', 'cheddar cheese'], 'Fry the red onion.', ['red onion']],
+  [['spring onions', 'cheddar cheese', 'cream cheese'], 'Sprinkle over the cheese.', ['cheddar cheese', 'cream cheese']],
+  [['cheddar cheese', 'cream cheese'], 'Stir in the cream cheese.', ['cream cheese']],
+  [['chicken thighs', 'chickpeas', 'chicken stock'], 'Add the chicken.', ['chicken thighs']],
+  [['peanut butter', 'butter'], 'Melt the butter.', ['butter']],
+  [['kukurydza konserwowa', 'słodki sos chili', 'tuńczyk'], 'Dodaj kukurydzę.', ['kukurydza konserwowa']],
+  [['2 łyżki sosu sojowego', '1 łyżka słodkiego sosu chili'], 'Dodaj sos sojowy i słodki sos chili.', ['2 łyżki sosu sojowego', '1 łyżka słodkiego sosu chili']],
+]
+const stepBad = stepCases.filter(([names, step, want]) => {
+  const got = stepIngredients(step, names.map((name, i) => ({ id: String(i), name, amount: null, unit: '' }))).map((i) => i.name)
+  return got.join('|') !== want.join('|') && (console.log('  step:', step, 'got', got, 'want', want), true)
+})
+if (stepBad.length) { console.log('FAILED cooking steps', stepBad.length); process.exit(1) } else console.log('ok', stepCases.length, 'cooking steps')
