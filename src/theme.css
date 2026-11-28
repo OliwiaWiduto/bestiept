@@ -304,7 +304,7 @@ input[type=number] { -moz-appearance: textfield; }
 .sheet { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 .sheet-backdrop { overscroll-behavior: contain; touch-action: none; }
 .sheet { touch-action: pan-y; }
-.people-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 0 16px; border: none; border-radius: var(--radius-md); background: var(--surface-raised); color: var(--ink); font-size: 15px; font-weight: 600; text-align: left; }
+.people-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 0 16px; border: none; border-radius: var(--radius-md); background: var(--cherry-soft); color: var(--ink); font-size: 15px; font-weight: 600; text-align: left; }
 .people-row > svg { color: var(--cherry); }
 
 /* Shopping: list as text, a bar to start shopping, a basket to tick things into */
