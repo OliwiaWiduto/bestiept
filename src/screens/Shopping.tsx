@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../store'
-import { useRecipes } from '../lib/recipeLang'
+import { localise, useRecipes } from '../lib/recipeLang'
 import { useUI } from '../ui-state'
 import { useNavigate } from 'react-router-dom'
 import { useT } from '../i18n'
@@ -54,6 +54,9 @@ export default function Shopping() {
   const nav = useNavigate()
   const { plan, shopping, setShopping } = useStore()
   const recipes = useRecipes()
+  // The recipes as saved and in both languages: a household list's ticks match whichever language each of us reads it in.
+  const rawRecipes = useStore((s) => s.recipes)
+  const keyFrom = useMemo(() => ({ raw: rawRecipes, alts: (['en', 'pl'] as const).map((l) => rawRecipes.map((r) => localise(r, l))) }), [rawRecipes])
   const planWeek = weekStart(today())
   const days = weekDays(planWeek)
   const weekPlan = useMemo(() => plan.filter((p) => days.includes(p.date)), [plan, days])
@@ -73,14 +76,18 @@ export default function Shopping() {
   const pickedIds = [...chosen, ...(extrasPicked ? ['extras'] : [])]
   const [choosing, setChoosing] = useState(false)
   const listPlan = useMemo(() => (someMeals ? allPlan.filter((p) => chosen.includes(p.id)) : allPlan), [allPlan, someMeals, chosen.join()]) // eslint-disable-line react-hooks/exhaustive-deps
-  const { need, probably } = useMemo(() => buildList(listPlan, recipes, shopping, today()), [listPlan, recipes, shopping])
+  const { need, probably } = useMemo(() => buildList(listPlan, recipes, shopping, today(), keyFrom), [listPlan, recipes, shopping, keyFrom])
 
   const tk = (key: string) => `${planWeek}:${key}`
-  const isTicked = (key: string) => !!shopping.ticked[tk(key)]
+  const altsOf = useMemo(() => new Map([...need, ...probably].map((l) => [l.key, l.alts ?? []])), [need, probably])
+  // Ticked under its key, or (ticked before keys matched across languages) under the same line's key in either language.
+  const isTicked = (key: string) => shopping.ticked[tk(key)] ?? (altsOf.get(key) ?? []).some((a) => shopping.ticked[tk(a)])
   const toggle = (key: string) => {
     const on = !isTicked(key)
+    const ticked = { ...shopping.ticked, [tk(key)]: on }
+    for (const a of altsOf.get(key) ?? []) delete ticked[tk(a)]
     setShopping({
-      ticked: { ...shopping.ticked, [tk(key)]: on },
+      ticked,
       lastBought: on ? { ...shopping.lastBought, [key]: today() } : shopping.lastBought,
       out: on ? shopping.out.filter((k) => k !== key) : shopping.out,
     })

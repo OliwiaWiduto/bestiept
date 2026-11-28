@@ -144,7 +144,7 @@ export default function Plan() {
             {/* One add button per day: a dashed box while the day is empty, then a small text button so the plan stays compact. */}
             {!past && (items.length === 0
               ? <button className="slot" onClick={() => setPickFor({ date: d, meal: next })}><Icon name="plus" size={18} />{t('addMeal')}</button>
-              : <button className="slot-snack" onClick={() => setPickFor({ date: d, meal: next })}><Icon name="plus" size={16} />{t('addMeal')}</button>)}
+              : <button className="slot-snack" onClick={() => setPickFor({ date: d, meal: next })}><Icon name="plus" size={16} />{t('addAnotherMeal')}</button>)}
           </section>
         )
       })}

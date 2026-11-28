@@ -73,6 +73,8 @@ export type ShoppingLine = {
   category: Category
   recipes: string[]
   reason?: 'staple' | 'small' | 'recent'
+  /** The same line's key as worked out from the recipe in other languages (older ticks were saved under these). */
+  alts?: string[]
 }
 
 const norm = (s: string) => s.toLowerCase().replace(/\(.*?\)/g, '').split(',')[0].replace(/\s+/g, ' ').trim()
@@ -113,25 +115,33 @@ function addAmounts(a: { amount: number | null; unit: string }, amt: number | nu
   return false
 }
 
-/** Combine every planned (non-leftover) meal's ingredients into one list. */
-export function buildList(plan: PlanItem[], recipes: Recipe[], shop: ShoppingState, todayKey: string) {
+/**
+ * Combine every planned (non-leftover) meal's ingredients into one list.
+ * recipes are shown in the reader's language; keyFrom (the recipes as saved) gives every line the same key on every phone,
+ * so a household list ticked in Polish is ticked in English too. alts: the recipes in each language, for older ticks.
+ */
+export function buildList(plan: PlanItem[], recipes: Recipe[], shop: ShoppingState, todayKey: string, keyFrom?: { raw: Recipe[]; alts: Recipe[][] }) {
   const map = new Map<string, ShoppingLine>()
   for (const p of plan) {
     if (p.leftoverOf) continue
     const r = recipes.find((x) => x.id === p.recipeId)
     if (!r) continue
     const factor = p.servings / (r.servings || 1)
-    for (const ing of r.ingredients) {
+    const raw = keyFrom?.raw.find((x) => x.id === r.id)
+    for (const [n0, ing] of r.ingredients.entries()) {
       const name = norm(ing.name)
-      const k = ingredientKey(ing.name)
+      const k = ingredientKey(raw?.ingredients[n0]?.name ?? ing.name)
       if (!name || !k) continue
+      const alts = [ing.name, ...(keyFrom?.alts ?? []).map((list) => list.find((x) => x.id === r.id)?.ingredients[n0]?.name ?? '')].map(ingredientKey).filter((a) => a && a !== k)
       const [amt, unit] = baseUnit(ing.amount === null ? null : ing.amount * factor, ing.unit)
       // Same thing in units that add up (tsp + tbsp, ml + tbsp) goes on one line; otherwise a second line.
       let key = k
       for (let n = 2; ; n++) {
         const cur = map.get(key)
-        if (!cur) { map.set(key, { key, name, amount: amt, unit, category: categorise(name), recipes: [r.title] }); break }
+        const suffix = key.slice(k.length)
+        if (!cur) { map.set(key, { key, name, amount: amt, unit, category: categorise(name), recipes: [r.title], alts: alts.map((a) => a + suffix) }); break }
         if (addAmounts(cur, amt, unit)) {
+          for (const a of alts) if (!cur.alts!.includes(a + suffix)) cur.alts!.push(a + suffix)
           if (name.length < cur.name.length) cur.name = name // show the plainest wording
           if (!cur.recipes.includes(r.title)) cur.recipes.push(r.title)
           break
