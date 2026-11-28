@@ -356,3 +356,7 @@ input[type=number] { -moz-appearance: textfield; }
 .sc-zone-pop { animation: sc-zone .7s cubic-bezier(.34,1.56,.64,1) 1; }
 .sc-bit { position: absolute; left: 0; top: 0; pointer-events: none; animation: sc-burst .85s cubic-bezier(.2,.7,.3,1) 1 both; }
 @media (prefers-reduced-motion: reduce) { .sc-fill { transition: none !important; } .sc-shine, .sc-bit { display: none; } .sc-bump, .sc-badge, .sc-badge-out, .sc-zone-pop { animation: none; } }
+/* "+3 more" over a fade at the bottom of a scrolling list */
+.cup-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 88px; border-radius: 0 0 var(--radius-lg) var(--radius-lg); pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--surface-raised) 70%); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 12px; }
+.cup-fade span { font-size: 14px; font-weight: 600; color: var(--green); }

@@ -177,6 +177,16 @@ export default function Shopping() {
   // The first time she starts shopping in a week, check the things we think she already has (once per item per week).
   const [cupboard, setCupboard] = useState<typeof probably | null>(null)
   const [outNow, setOutNow] = useState<Set<string>>(new Set())
+  // How many rows are still below the bottom of the box, shown as "+3 more" over a fade.
+  const cupList = useRef<HTMLDivElement>(null)
+  const [hiddenRows, setHiddenRows] = useState(0)
+  const countHidden = () => {
+    const box = cupList.current
+    if (!box) return
+    const bottom = box.getBoundingClientRect().bottom - 8
+    setHiddenRows([...box.querySelectorAll('button')].filter((b) => b.getBoundingClientRect().top + 20 > bottom).length)
+  }
+  useEffect(() => { if (cupboard) requestAnimationFrame(countHidden) }, [cupboard])
   const goShopping = () => { noteTrip(); setShopping({ shoppingMode: true }); window.scrollTo(0, 0) }
   const startShopping = () => {
     commit()
@@ -236,7 +246,8 @@ export default function Shopping() {
       )}
       <Sheet open={!!cupboard} onClose={() => setCupboard(null)} title={t('cupboardTitle')}>
         <span className="small muted">{t('cupboardHint')}</span>
-        <div className="card" style={{ padding: '4px 16px', maxHeight: '50dvh', overflowY: 'auto' }}>
+        <div style={{ position: 'relative' }}>
+        <div ref={cupList} className="card" onScroll={countHidden} style={{ padding: '4px 16px', maxHeight: '50dvh', overflowY: 'auto' }}>
           {(cupboard ?? []).map((l, i, all) => {
             const have = !outNow.has(l.key)
             return (
@@ -248,6 +259,10 @@ export default function Shopping() {
               </button>
             )
           })}
+        </div>
+        {hiddenRows > 0 && (
+          <div className="cup-fade" aria-hidden="true"><span>{t('moreN', { n: hiddenRows })}</span></div>
+        )}
         </div>
         <button className="btn primary block" onClick={() => {
           const asked = (cupboard ?? []).map((l) => `${planWeek}:${l.key}`)
